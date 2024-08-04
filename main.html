@@ -1,1 +1,310 @@
-<html><h1>Hello</h1></html>
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מפת השקעות בישראל</title>
+    <!-- טעינת קובץ CSS של Leaflet לעיצוב המפה -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <!-- טעינת ספריית Leaflet לעבודה עם מפות -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        /* הגדרת גובה ורוחב המפה */
+        #map { 
+            height: 800px; 
+            width: 100%; 
+        }
+        
+        /* עיצוב כפתור הלוג */
+        #logButton { 
+            margin-top: 20px; 
+        }
+        
+        /* עיצוב תוכן הלוג */
+        #logContent { 
+            display: none; 
+            margin-top: 20px; 
+            font-family: Arial, sans-serif; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            max-height: 500px; 
+            overflow-y: auto; 
+        }
+        
+        /* עיצוב החלונית הקופצת */
+        .custom-popup {
+            max-height: 300px; /* גובה מקסימלי של החלונית */
+            overflow-y: auto; /* אפשרות לגלילה אנכית */
+            width: 300px; /* רוחב קבוע לחלונית */
+            direction: rtl;
+            text-align: right;
+            padding: 10px;
+            line-height: 1.5; /* מרווח בין השורות */
+        }
+
+        /* עיצוב שם היישוב בחלונית */
+        .city-name {
+            font-size: 12px; 
+            font-weight: bold;
+            text-decoration: underline; /* קו תחתון */
+            margin-bottom: 10px;
+        }
+
+        /* עיצוב סרגל הגלילה בצד ימין של החלונית */
+        .custom-popup::-webkit-scrollbar {
+            width: 10px;
+        }
+        .custom-popup::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-popup::-webkit-scrollbar-thumb {
+            background: #888;
+        }
+        .custom-popup::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <!-- אלמנט המפה -->
+    <div id="map"></div>
+    <!-- כפתור להצגת הלוג -->
+    <button id="logButton" onclick="toggleLog()">LOG</button>
+    <!-- אלמנט להצגת תוכן הלוג -->
+    <div id="logContent"></div>
+    <script>
+        // משתנים גלובליים
+        var map; // משתנה לשמירת אובייקט המפה
+        var logMessages = []; // מערך לשמירת הודעות הלוג
+
+        /**
+         * פונקציה להמרת קואורדינטות ממערכת הקואורדינטות המקורית למערכת של Leaflet
+         * @param {number} x - קואורדינטת X במערכת המקורית
+         * @param {number} y - קואורדינטת Y במערכת המקורית
+         * @returns {Array} - מערך עם שני ערכים: [latitude, longitude]
+         */
+        function convertCoordinates(x, y) {
+            // הגדרת ערכי מינימום ומקסימום לקואורדינטות במערכת המקורית
+            const minX = 3500000, maxX = 4000000;
+            const minY = 3400000, maxY = 3950000;
+            // הגדרת ערכי מינימום ומקסימום לקווי רוחב ואורך
+            const minLat = 29.24, maxLat = 33.64;
+            const minLon = 32.27, maxLon = 36.425;
+            
+            // חישוב קו רוחב וקו אורך באמצעות אינטרפולציה לינארית
+            let lat = minLat + (y - minY) / (maxY - minY) * (maxLat - minLat);
+            let lon = minLon + (x - minX) / (maxX - minX) * (maxLon - minLon);
+            
+            // התאמות נוספות לקואורדינטות על סמך נתונים אמפיריים
+            lat = lat * 0.9565 + 1.24;
+            lon = lon * 1.0715 - 3.1;
+            
+            return [lat, lon];
+        }
+
+        /**
+         * פונקציה לרישום הודעות לוג
+         * @param {string} message - ההודעה שיש לרשום
+         */
+        function log(message) {
+            console.log(message); // הדפסה לקונסול
+            logMessages.push(message); // הוספה למערך ההודעות
+            updateLogContent(); // עדכון תצוגת הלוג בממשק
+        }
+
+        /**
+         * פונקציה לעדכון תוכן הלוג בממשק המשתמש
+         */
+        function updateLogContent() {
+            document.getElementById('logContent').innerHTML = logMessages.join('<br>');
+        }
+
+        /**
+         * פונקציה להצגה או הסתרה של הלוג
+         */
+        function toggleLog() {
+            var logContent = document.getElementById('logContent');
+            // החלפת מצב התצוגה של הלוג
+            logContent.style.display = logContent.style.display === 'none' ? 'block' : 'none';
+        }
+
+        /**
+         * פונקציה לאתחול המפה
+         */
+        function initMap() {
+            // הסרת מפה קיימת אם יש
+            if (map) {
+                map.remove();
+            }
+            // יצירת מפה חדשה וממורכזת על ישראל
+            map = L.map('map').setView([31.5, 35], 8);
+            // הוספת שכבת מפת רקע מ-OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            log('מפה אותחלה מחדש');
+        }
+
+        /**
+         * פונקציה לפורמט של מספרים במיליונים
+         * @param {number} value - הערך שיש להמיר למיליונים
+         * @returns {string} - מחרוזת המייצגת את הערך במיליונים
+         */
+        function formatMillions(value) {
+            return (value / 1000000).toFixed(1) + ' מיליון ';
+        }
+
+        /**
+         * פונקציה לקביעת צבע לפי ערך ההשקעה
+         * @param {number} value - ערך ההשקעה
+         * @returns {string} - קוד צבע מתאים
+         */
+        function getColor(value) {
+            if (value < 1000000) return 'white';
+            else if (value < 5000000) return 'lightblue';
+            else if (value < 10000000) return 'orange';
+            else if (value < 20000000) return 'red';
+            else return 'black';
+        }
+
+        /**
+         * פונקציה למיון ופורמט של תוכניות השקעה
+         * @param {Array} plans - מערך של שמות תוכניות
+         * @param {Array} investments - מערך של ערכי השקעות
+         * @param {Array} links - מערך של קישורים לתוכניות
+         * @returns {string} - HTML מפורמט של התוכניות
+         */
+        function sortAndFormatPlans(plans, investments, links) {
+            // יצירת מערך משולב של תוכניות, השקעות וקישורים
+            let combined = plans.map((plan, i) => [plan, investments[i], links[i]]);
+            // מיון לפי גודל ההשקעה בסדר יורד
+            combined.sort((a, b) => b[1] - a[1]);
+            // יצירת רשימת HTML של עד 15 תוכניות
+            return combined.slice(0, 50).map(([plan, inv, link]) => 
+                `<a href="${link}" target="_blank">${plan}: ${formatMillions(inv)}</a>`
+            ).join('<br>');
+        }
+
+        /**
+         * פונקציה לקבלת נתונים מגיליון Google
+         * @param {Function} callback - פונקציה שתופעל לאחר קבלת הנתונים
+         */
+		 
+        function fetchGoogleSheetData(callback) {
+            const sheetId = '1OCny01t7BCrdqo1qymKBYk4mCx9RsToR1Cx5joufYt8';
+            const base = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?`;
+            const sheetName = 'Sheet1';
+            const query = encodeURIComponent('Select *');
+            const url = `${base}&sheet=${sheetName}&tq=${query}&tqx=responseHandler:googleSheetDataCallback`;
+            
+            // הגדרת פונקציית callback גלובלית לקבלת הנתונים
+            window.googleSheetDataCallback = function(response) {
+                callback(response);
+                // מחיקת הפונקציה הגלובלית לאחר השימוש
+                delete window.googleSheetDataCallback;
+            };
+            
+            // יצירת תג script דינמי לטעינת הנתונים
+            const script = document.createElement('script');
+            script.src = url;
+            document.body.appendChild(script);
+        }
+
+        /**
+         * פונקציה לעיבוד הנתונים שהתקבלו מהגיליון
+         * @param {Object} response - תגובה מה-API של Google Sheets
+         */
+		 
+        function processData(response) {
+            const data = response.table.rows;
+            log('נתונים התקבלו. מספר שורות: ' + (data.length - 1));
+            
+            let cityInvestments = {};
+            // עיבוד כל שורה בגיליון (מלבד הכותרת)
+            data.slice(1).forEach((row, index) => {
+                try {
+                    // חילוץ נתונים מכל שורה
+                    let city = row.c[0].v;
+                    let investment = parseFloat(row.c[1].v);
+                    let plan = row.c[2].v;
+                    let link = row.c[3].v;
+                    let x = parseFloat(row.c[4].v);
+                    let y = parseFloat(row.c[5].v);
+                    
+                    // בדיקת תקינות הנתונים
+                    if (!city || isNaN(investment) || isNaN(x) || isNaN(y)) {
+                        throw new Error('נתונים חסרים או לא תקינים');
+                    }
+                    
+                    // המרת קואורדינטות למערכת של Leaflet
+                    let [lat, lon] = convertCoordinates(x, y);
+                    
+                    // יצירה או עדכון של אובייקט ההשקעות לכל עיר
+                    if (!cityInvestments[city]) {
+                        cityInvestments[city] = {total: 0, plans: [], investments: [], links: [], lat: lat, lon: lon};
+                    }
+                    cityInvestments[city].total += investment;
+                    cityInvestments[city].plans.push(plan);
+                    cityInvestments[city].investments.push(investment);
+                    cityInvestments[city].links.push(link);
+                } catch (error) {
+                    log(`שגיאה בעיבוד שורה ${index + 1}: ${error.message}`);
+                }
+            });
+
+            log('ערים שעובדו: ' + Object.keys(cityInvestments).length);
+
+            // מציאת ההשקעה המקסימלית
+            let maxInvestment = Math.max(...Object.values(cityInvestments).map(c => c.total));
+            log('השקעה מקסימלית: ' + formatMillions(maxInvestment));
+
+            // הוספת סמנים למפה עבור כל עיר
+            Object.entries(cityInvestments).forEach(([city, data]) => {
+                try {
+                    // חישוב רדיוס הסמן על פי גודל ההשקעה
+                    let radius = 3 + (data.total / maxInvestment) * 20;
+                    log(`מנסה להוסיף סמן עבור ${city} במיקום (${data.lat}, ${data.lon})`);
+                    
+                    // בדיקת תקינות הקואורדינטות
+                    if (isNaN(data.lat) || isNaN(data.lon)) {
+                        throw new Error('קואורדינטות לא תקינות');
+                    }
+
+                    // יצירת סמן עיגול
+                    let marker = L.circleMarker([data.lat, data.lon], {
+                        radius: radius,
+                        color: getColor(data.total),
+                        fillColor: getColor(data.total),
+                        fillOpacity: 0.2
+                    }).addTo(map);
+                    
+                    // שינוי מיקום החלונית הקופצת
+                    marker.bindPopup(`
+                        <div class="custom-popup">
+                            <h2>${city} : ${formatMillions(data.total)} ש"ח</h2><br>
+                            ${sortAndFormatPlans(data.plans, data.investments, data.links)}
+                        </div>
+                    `, {
+                        offset: L.point(-250, 150),  
+                        autoPan: false  // ביטול הזזה אוטומטית של המפה
+                    }).bindTooltip(`${city}: ${formatMillions(data.total)}`);
+                    
+                    log('סמן נוסף עבור: ' + city);
+                } catch (error) {
+                    log(`שגיאה בהוספת סמן עבור ${city}: ${error.message}`);
+                }
+            });
+
+            log('סיום הוספת סמנים');
+        }
+
+        function init() {
+            logMessages = [];
+            initMap();
+            fetchGoogleSheetData(processData);
+        }
+
+        init();
+    </script>
+</body>
+</html>
