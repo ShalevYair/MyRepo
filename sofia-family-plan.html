@@ -71,6 +71,18 @@
   .pic{display:inline-block;background:var(--sky);color:var(--pine-dark);text-decoration:none;font-weight:700;font-size:13px;border-radius:99px;padding:5px 14px}
   .pic:hover{background:#D7EBE0}
   footer{text-align:center;font-size:12.5px;color:#8A8F8C;margin-top:30px}
+
+  .backlog{margin-top:38px}
+  .backlog-title{font-family:'Suez One',serif;font-size:26px;color:var(--pine);margin-bottom:4px}
+  .backlog-sub{font-size:13.5px;color:#6B716E;margin-bottom:16px}
+  .bk-group{background:#fff;border:1px dashed #C9C4B6;border-radius:14px;padding:16px 18px;margin-bottom:12px}
+  .bk-group h3{font-size:16px;color:var(--pine-dark);margin-bottom:8px}
+  .bk-item{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed #EDEAE0;font-size:14.5px}
+  .bk-item:last-child{border-bottom:none}
+  .bk-item .ico{min-width:24px;text-align:center}
+  .bk-item a{color:var(--water);font-weight:700;text-decoration:none;border-bottom:2px solid #BFDCEA}
+  .bk-item a:hover{border-bottom-color:var(--water)}
+  .bk-item .note{display:block;font-size:13px;color:#5B6360;margin-top:1px}
   @media print{.allmap{display:none}}
 </style>
 </head>
@@ -344,6 +356,47 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
       <p>משקה יוגורט קר ומלוח קלות. הבולגרים שותים אותו עם בניצה בבוקר. מרענן מאוד בחום.</p>
       <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=ayran+drink">📷 עוד תמונות</a></div>
 
+  </div>
+</div>
+
+<!-- ======= BACKLOG ======= -->
+<div class="backlog">
+  <h2 class="backlog-title">📌 BACKLOG — אקסטרות אם נרצה</h2>
+  <p class="backlog-sub">רעיונות נוספים שנאספו מהמסמכים הישנים — לא בתכנית, אבל שווים החלפה עם "יום גמיש" או יום שהתפנה</p>
+
+  <div class="bk-group">
+    <h3>🚌 טיולי יום שלא נכנסו</h3>
+    <div class="bk-item"><span class="ico">🏔️</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Seven+Rila+Lakes+Lift">שבעת אגמי רילה</a><span class="note">מסלול הדגל של בולגריה — רכבל + לולאה של ~5 ק"מ בין אגמים קרחוניים (3-4 שעות). יציאה 07:00, לרכבל תורים מ-09:30. מעיל ונעלי הליכה חובה. מתאים בעיקר לשני הגדולים</span></div></div>
+    <div class="bk-item"><span class="ico">🐻</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=BEAR+SANCTUARY+Belitsa">מקלט הדובים BEAR SANCTUARY Belitsa</a><span class="note">30+ דובים חופשיים — אחד הדברים הכי מיוחדים בבולגריה. ~1:30 נסיעה. להזמין מראש: belitsa.four-paws.org. אפשר לשלב עם Rila Fun Park ליד בנסקו</span></div></div>
+    <div class="bk-item"><span class="ico">👁️</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Prohodna+Cave">מערת Prohodna — "עיני האלוהים"</a><span class="note">1:15 צפון-מזרח. מעבר מערה קל וחינמי (~45 דק'). קרוב: מערת Saeva Dupka עם אגם תת-קרקעי + פארק Panega לפיקניק ושכשוך בנהר. במערה ~10°C — מעיל!</span></div></div>
+    <div class="bk-item"><span class="ico">🧊</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Ledenika+Cave">מערת Ledenika — "מערת הקרח"</a><span class="note">שעה צפונה, ליד Vratsa. סיורים מודרכים, 7-8°C בפנים. משלימים עם נופי Vratsa Balkan</span></div></div>
+    <div class="bk-item"><span class="ico">🧗</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Boroland+Rope+Town">Boroland Rope Town (אזור סמוקוב)</a><span class="note">1:15 דרומה — פארק חבלים ביער, זול (4-6 לבה למסלול). באותו כיוון: <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Happy+Donkeys+Bulgaria">Happy Donkeys</a> ו-<a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Ostrich+Fun+Bulgaria">חוות היענים Ostrich Fun</a></span></div></div>
+    <div class="bk-item"><span class="ico">♨️</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Sapareva+Banya+Geyser">הגייזר בסאפרבה באניה</a><span class="note">הגייזר החם באירופה + בריכות מינרליות ב-<a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Aqua+Club+Kotvata+Sapareva+Banya">Aqua Club Kotvata</a> (טמפרטורות שונות, מתקני טיפוס). יום רגוע אחרי יום הרים</span></div></div>
+    <div class="bk-item"><span class="ico">🏰</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Tsari+Mali+Grad+Belchin">Tsari Mali Grad</a><span class="note">~שעה דרומה — פוניקולר, מבצר, גשר חבלים ומתחם משחקים. שילוב מנצח לגילאים האלה</span></div></div>
+    <div class="bk-item"><span class="ico">🚡</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Borovets+Bulgaria">בורובץ</a><span class="note">עיירת הרים ~70 ק"מ מסופיה: רכבל Yastrebets ל-2,369 מ', רכיבת סוסים ופוני, השכרת אופניים. אפשרי כטיול יום ארוך</span></div></div>
+    <div class="bk-item"><span class="ico">💦</span><div>אקסטרות לפלובדיב (יום 9)<span class="note"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Aqualand+Plovdiv">פארק המים Aqualand</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Singing+Fountains+Plovdiv">המזרקות המזמרות</a> (הופעת ערב בשעות קבועות) · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Museum+of+Aviation+Plovdiv">מוזיאון התעופה</a> — אם מאריכים את היום או חוזרים שנית</span></div></div>
+  </div>
+
+  <div class="bk-group">
+    <h3>🏙️ עוד בעיר</h3>
+    <div class="bk-item"><span class="ico">🌀</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Museum+of+Illusions+Sofia">מוזיאון האשליות</a><span class="note">במרכז, 10 דק' הליכה מהמדרחוב — משלים טוב יום עיר או גיבוי לגשם</span></div></div>
+    <div class="bk-item"><span class="ico">🔬</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=TechnoMagicLand+Sofia">TechnoMagicLand</a><span class="note">פארק מדע וטכנולוגיה אינטראקטיבי במזרח העיר — 3+ שעות, חלופה/תוספת ל-Muzeiko</span></div></div>
+    <div class="bk-item"><span class="ico">🎪</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Balkan+Circus+Sofia">קרקס Balkan Circus</a><span class="note">הופעת ערב — לבדוק תכנית בקיץ</span></div></div>
+    <div class="bk-item"><span class="ico">🔔</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Kambanite+Bells+Park+Sofia">פארק הפעמונים Kambanite</a><span class="note">פארק שקט עם מאות פעמונים מכל העולם — הילדים מצלצלים בכולם. קרוב: <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Park+Boby+and+Kelly+Sofia">Park Boby & Kelly</a> עם בעלי חיים</span></div></div>
+    <div class="bk-item"><span class="ico">⛪</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Boyana+Church+Sofia">כנסיית בויאנה + Arboretum</a><span class="note">אתר מורשת עולמית ליד תחילת מסלול המפל (יום 16) — תוספת קצרה למי שרוצה קצת תרבות</span></div></div>
+    <div class="bk-item"><span class="ico">🪖</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=National+Museum+of+Military+History+Sofia">מוזיאון ההיסטוריה הצבאית</a><span class="note">טנקים, מטוסים וטילים בחצר ענקית בחוץ — דווקא כיף לילדים, וזול</span></div></div>
+  </div>
+
+  <div class="bk-group">
+    <h3>🎉 פסטיבלים באוגוסט 2026 — לבדוק תאריכים לפני</h3>
+    <div class="bk-item"><span class="ico">🎭</span><div>Sofia Summer Fest<span class="note">פעיל לכל אורך הטיול (עד 13.9) ליד NDK — תיאטרון, קולנוע ותכנית ילדים. חלק חינם. sofiasummerfest.bg</span></div></div>
+    <div class="bk-item"><span class="ico">🎨</span><div>6Fest Street Arts Festival<span class="note">9-23 באוגוסט ברחבי העיר — אמנות רחוב ומצעדים, חינם. מתלבש מצוין על ערבים פנויים</span></div></div>
+    <div class="bk-item"><span class="ico">🎶</span><div>Sofia Breathes<span class="note">סופי שבוע באוגוסט — רחובות המרכז נסגרים לרכבים: שוק, מוסיקה ואמנות</span></div></div>
+  </div>
+
+  <div class="bk-group">
+    <h3>💡 טיפ שנאסף מהמסמכים</h3>
+    <div class="bk-item"><span class="ico">🍔</span><div>Happy Bar & Grill<span class="note">רשת בולגרית ידידותית לילדים עם תפריט ענק — פתרון בטוח כשאין כוח לחפש מסעדה</span></div></div>
   </div>
 </div>
 
