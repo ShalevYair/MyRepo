@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סופיה עם הילדים — 3–19 באוגוסט 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=Suez+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --pine:#1E5B4F;      /* ירוק ויטושה */
+    --pine-dark:#123B33;
+    --sun:#F2B441;       /* שמש אוגוסט */
+    --sky:#E8F1EE;
+    --paper:#FBF9F4;
+    --ink:#1C2321;
+    --water:#2E7FA3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Heebo',sans-serif;background:var(--paper);color:var(--ink);line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:24px 20px 80px}
+
+  header{background:var(--pine);color:#fff;border-radius:18px;padding:36px 28px;margin-bottom:14px;position:relative;overflow:hidden}
+  header::after{content:"⛰️";position:absolute;left:18px;bottom:-8px;font-size:110px;opacity:.15}
+  header h1{font-family:'Suez One',serif;font-size:clamp(28px,5vw,44px);line-height:1.15}
+  header p{margin-top:10px;font-size:17px;opacity:.92}
+  .badge{display:inline-block;background:var(--sun);color:var(--pine-dark);font-weight:700;border-radius:99px;padding:4px 14px;font-size:14px;margin-top:14px}
+
+  .allmap{display:flex;align-items:center;gap:12px;background:var(--pine-dark);color:#fff;border-radius:14px;padding:16px 20px;text-decoration:none;margin-bottom:30px;font-weight:700;font-size:17px;transition:transform .15s}
+  .allmap:hover{transform:translateY(-2px)}
+  .allmap span.icon{font-size:26px}
+  .allmap small{display:block;font-weight:400;opacity:.8;font-size:13px}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px;font-size:13px}
+  .legend span{background:var(--sky);border-radius:99px;padding:4px 12px}
+
+  .day{background:#fff;border:1px solid #E3E0D8;border-radius:14px;margin-bottom:14px;overflow:hidden}
+  .day-head{display:flex;align-items:baseline;gap:12px;padding:14px 18px;background:var(--sky)}
+  .day-num{font-family:'Suez One',serif;font-size:22px;color:var(--pine);min-width:74px}
+  .day-title{font-weight:700;font-size:17px}
+  .day-tag{margin-inline-start:auto;font-size:12px;font-weight:700;border-radius:99px;padding:3px 10px;white-space:nowrap}
+  .tag-city{background:#FCE8C0;color:#7A5300}
+  .tag-nature{background:#D7EBE0;color:var(--pine-dark)}
+  .tag-water{background:#D6E9F2;color:#1B5570}
+  .tag-trip{background:#F0DDF2;color:#6B2A73}
+  .tag-chill{background:#EEECE5;color:#555}
+  .day-body{padding:14px 18px 18px}
+  .stop{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed #E3E0D8}
+  .stop:last-child{border-bottom:none}
+  .stop .t{min-width:52px;font-weight:700;color:var(--pine);font-size:14px;padding-top:2px}
+  .stop .what a{color:var(--water);font-weight:700;text-decoration:none;border-bottom:2px solid #BFDCEA}
+  .stop .what a:hover{border-bottom-color:var(--water)}
+  .stop .what .note{display:block;font-size:13.5px;color:#5B6360;margin-top:1px}
+
+  .tips{background:var(--pine-dark);color:#fff;border-radius:14px;padding:22px;margin-top:34px}
+  .tips h2{font-family:'Suez One',serif;font-size:22px;margin-bottom:10px;color:var(--sun)}
+  .tips li{margin-inline-start:20px;margin-bottom:6px;font-size:15px}
+
+  .food-section{margin-top:38px}
+  .food-title{font-family:'Suez One',serif;font-size:26px;color:var(--pine);margin-bottom:4px}
+  .food-sub{font-size:13.5px;color:#6B716E;margin-bottom:16px}
+  .food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+  .dish{background:#fff;border:1px solid #E3E0D8;border-radius:14px;padding:16px;position:relative}
+  .dish-emoji{font-size:34px;display:block;margin-bottom:6px}
+  .dish-names{font-size:15.5px;margin-bottom:5px}
+  .dish-names .bg{color:#7A6A2F;font-weight:500}
+  .dish p{font-size:13.5px;color:#4A514E;margin-bottom:10px}
+  .pic{display:inline-block;background:var(--sky);color:var(--pine-dark);text-decoration:none;font-weight:700;font-size:13px;border-radius:99px;padding:5px 14px}
+  .pic:hover{background:#D7EBE0}
+  footer{text-align:center;font-size:12.5px;color:#8A8F8C;margin-top:30px}
+  @media print{.allmap{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>סופיה עם הילדים</h1>
+  <p>3–19 באוגוסט 2026 · שלושה ילדים (7–12) · תוכנית "לשרוף אנרגיה"</p>
+  <span class="badge">16 ימים · 20+ אטרקציות</span>
+</header>
+
+<div id="allmap" style="height:420px;border-radius:14px;margin-bottom:10px;border:1px solid #E3E0D8"></div>
+<p style="font-size:12.5px;color:#6B716E;margin-bottom:26px">🗺️ מפה אינטראקטיבית — כל 21 המקומות. לחיצה על סמן = שם + קישור לניווט בגוגל מפות. (דורשת אינטרנט)</p>
+
+<script>
+const spots=[
+ [42.659798,23.3550824,"Muzeiko — יום 2","Muzeiko Sofia"],
+ [42.677933,23.3524868,"Kokolandia — יום 10","Kokolandia Adventure Park Sofia"],
+ [42.6748046,23.3394442,"Borisova Gradina — יום 2","Borisova Gradina Sofia"],
+ [42.6096115,23.2390451,"נהר האבנים — יום 3","Zlatnite Mostove Vitosha"],
+ [42.7201908,23.1957344,"Aquapark Sofia — יום 4","Aquapark Sofia Bankya"],
+ [42.6951217,23.3213799,"חדר בריחה — יום 5","Hour Escape for Kids Sofia"],
+ [42.6956091,23.3284659,"מוזיאון הטבע — יום 5","National Museum of Natural History Sofia"],
+ [42.6858566,23.3178699,"מדרחוב ויטושה — יום 5","Vitosha Boulevard Sofia"],
+ [42.6177675,23.3483167,"רכבל Simeonovo — יום 6 (לוודא שפועל!)","Simeonovo Lift Sofia"],
+ [42.60,23.407778,"אגם Pancharevo — יום 7","Lake Pancharevo"],
+ [42.6244418,23.3526158,"Ring Mall: טרמפולינות+קרטינג+קרח — יום 8","Sofia Ring Mall"],
+ [42.1517849,24.7519552,"פלובדיב — יום 9","Nebet Tepe Plovdiv"],
+ [42.1334828,23.3401919,"מנזר רילה — יום 11","Rila Monastery"],
+ [42.6598113,23.3340165,"גן החיות — יום 12","Sofia Zoo"],
+ [42.6672962,23.3081321,"South Park — ימים 1,12","South Park Sofia"],
+ [42.6997127,23.6900749,"Hidropark טחנות הרוח — יום 13","Hidropark Vyatarnite Melnitsi"],
+ [42.6361225,24.3602919,"קופריבשטיצה — אופציה יום 14","Koprivshtitsa"],
+ [42.6952951,23.3055096,"Vazrazhdane בריכות — אופציה יום 14","Vazrazhdane Aqua Park Sofia"],
+ [42.6565017,23.3902053,"Just Place — יום 15","Just Place Sofia"],
+ [42.6576426,23.3150385,"Paradise Center — יום 15","Paradise Center Sofia"],
+ [42.6295284,23.2541853,"מפל בויאנה — יום 16","Boyana Waterfall"]
+];
+const map=L.map('allmap');
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:19}).addTo(map);
+const grp=[];
+spots.forEach((s,i)=>{
+ const ic=L.divIcon({className:'',html:'<div style="background:#1E5B4F;color:#fff;border:2px solid #fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font:700 12px Heebo,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.4)">'+(i+1)+'</div>',iconSize:[26,26],iconAnchor:[13,13]});
+ const m=L.marker([s[0],s[1]],{icon:ic}).addTo(map);
+ m.bindPopup('<div dir="rtl" style="font-family:Heebo,sans-serif"><b>'+s[2]+'</b><br><a target="_blank" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s[3])+'">פתח בגוגל מפות ↗</a></div>');
+ grp.push(m);
+});
+map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
+</script>
+
+<div class="legend">
+  <span>🏙️ עיר</span><span>🌲 טבע</span><span>💦 מים</span><span>🚌 טיול יום</span><span>😌 רגוע</span>
+  <span>כל שם אטרקציה = קישור שנפתח בגוגל מפות</span>
+</div>
+
+<!-- ======= DAYS ======= -->
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 1</span><span class="day-title">ב׳ 3.8 — נחיתה והתאקלמות</span><span class="day-tag tag-chill">😌 רגוע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">צהריים</span><div class="what">צ׳ק-אין, מנוחה קצרה, קניות בסיס בסופר<span class="note">Billa / Fantastico — יש בכל שכונה</span></div></div>
+    <div class="stop"><span class="t">17:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=South+Park+Sofia&query_place_id=ChIJcWowTPmEqkARHFXD1_28fHk">South Park</a><span class="note">מגרשי משחקים, שטח ענק לריצות — פריקת אנרגיה אחרי הטיסה</span></div></div>
+    <div class="stop"><span class="t">ערב</span><div class="what">ארוחת ערב ליד הפארק<span class="note">מסעדות רבות סביב הכניסה הצפונית</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 2</span><span class="day-title">ג׳ 4.8 — מדע ופארק</span><span class="day-tag tag-city">🏙️ עיר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Muzeiko+Sofia&query_place_id=ChIJhXbCXi6EqkARo3EwIk5RsY0">Muzeiko — מוזיאון מדע לילדים</a><span class="note">3 קומות אינטראקטיביות + פלנטריום. 2-3 שעות. סגור בימי שני!</span></div></div>
+    <div class="stop"><span class="t">14:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Borisova+Gradina+Sofia&query_place_id=ChIJ65Nz8rqFqkARm33PnM4M1Jk">פארק Borisova Gradina</a><span class="note">גלידה, מגרשי משחקים, השכרת קורקינטים</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 3</span><span class="day-title">ד׳ 5.8 — ויטושה: הגשרים המוזהבים</span><span class="day-tag tag-nature">🌲 טבע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">09:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Zlatnite+Mostove+Golden+Bridges+Vitosha">Zlatnite Mostove — "נהר האבנים"</a><span class="note">שדה סלעים ענק שהילדים מטפסים עליו. נגיש ברכב/מונית גם באמצע שבוע</span></div></div>
+    <div class="stop"><span class="t">13:00</span><div class="what">פיקניק + מסלול קצר ביער<span class="note">קריר ב-8-10 מעלות מהעיר — קחו סווטשירט</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 4</span><span class="day-title">ה׳ 6.8 — פארק מים</span><span class="day-tag tag-water">💦 מים</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Aquapark+Sofia+Bankya&query_place_id=ChIJnR98FwCbqkARkbARN1paS74">Aquapark Sofia (Bankya)</a><span class="note">יום שלם. מגלשות לכל הגילאים, מצילים בכל פינה. האוכל שם יקר — תתקצבו מראש</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 5</span><span class="day-title">ו׳ 7.8 — מרכז העיר + חדר בריחה</span><span class="day-tag tag-city">🏙️ עיר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Hour+Escape+for+Kids+Sofia&query_place_id=ChIJWxW48ueFqkARZOn8WqntvVw">Hour Escape for Kids</a><span class="note">חדר בריחה ייעודי לגילאי 10-13, יש באנגלית. להזמין מראש בטלפון +359-89-736-2333</span></div></div>
+    <div class="stop"><span class="t">12:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=National+Museum+of+Natural+History+Sofia&query_place_id=ChIJFyN9AnSFqkAR-SMazXeN8pA">מוזיאון הטבע הלאומי</a><span class="note">חיות מפוחלצות בגודל מלא, מינרלים. שעה-שעה וחצי</span></div></div>
+    <div class="stop"><span class="t">15:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Vitosha+Boulevard+Sofia">שדרת ויטושה (מדרחוב)</a><span class="note">גלידה, מזרקות, אווירה</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 6</span><span class="day-title">ש׳ 8.8 — רכבל ויטושה</span><span class="day-tag tag-nature">🌲 טבע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">09:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Simeonovo+Lift+Vitosha+Sofia">רכבל Simeonovo → Aleko</a><span class="note">הרכבל פועל בעיקר בסופ"ש בקיץ — לכן קבענו לשבת. לצאת מוקדם לפני התור</span></div></div>
+    <div class="stop"><span class="t">11:00</span><div class="what">מסלול קצר מ-Aleko + נוף על כל סופיה<span class="note">מי שרוצה: עלייה לפסגת Cherni Vrah (2-3 שעות הלוך-חזור, מתאים לגדולה)</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 7</span><span class="day-title">א׳ 9.8 — אגם וקיאקים</span><span class="day-tag tag-water">💦 מים</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Lake+Pancharevo&query_place_id=ChIJVdYGx72AqkARc_MnC7rgUEo">אגם Pancharevo</a><span class="note">השכרת קיאקים וסירות פדלים, 20 דק' מהעיר. עמוס בסופ"ש — להגיע מוקדם</span></div></div>
+    <div class="stop"><span class="t">אחה"צ</span><div class="what">בתי קפה על שפת האגם / חזרה מוקדמת ובריכה</div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 8</span><span class="day-title">ב׳ 10.8 — יום Ring Mall</span><span class="day-tag tag-city">🏙️ עיר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">11:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Area+52+Trampoline+Park+Sofia&query_place_id=ChIJ-elX3SyBqkAR4Fq4htevqck">Area 52 — טרמפולינות</a><span class="note">שעה-שעתיים קפיצות. כולם ביחד</span></div></div>
+    <div class="stop"><span class="t">13:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Sofia+Karting+Ring&query_place_id=ChIJ9yVbzNKGqkARWjfUKUzF7CI">Sofia Karting Ring</a><span class="note">קרטינג לגדולה (מגיל ~12, מינימום גובה). ~€20 ל-15 דק'</span></div></div>
+    <div class="stop"><span class="t">13:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Fun+Ring+Park+Sofia&query_place_id=ChIJZSrUJkyBqkAR3Lv9eo4kXJE">Fun Ring Park — לקטנים במקביל</a><span class="note">החלקה על קרח, רכבת, ג'ימבורי — הורה אחד עם הצעירים בזמן הקרטינג</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 9</span><span class="day-title">ג׳ 11.8 — טיול יום: פלובדיב</span><span class="day-tag tag-trip">🚌 טיול יום</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">08:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Plovdiv+Old+Town">פלובדיב — העיר העתיקה</a><span class="note">שעתיים נסיעה. תיאטרון רומי, סמטאות צבעוניות, גבעת Nebet Tepe לטיפוס</span></div></div>
+    <div class="stop"><span class="t">14:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Kapana+district+Plovdiv">רובע Kapana</a><span class="note">אוכל רחוב, גלידריות, אווירה</span></div></div>
+    <div class="stop"><span class="t">17:00</span><div class="what">חזרה לסופיה</div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 10</span><span class="day-title">ד׳ 12.8 — פארק חבלים</span><span class="day-tag tag-nature">🌲 טבע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">בוקר</span><div class="what">בוקר חופשי — מנוחה אחרי פלובדיב</div></div>
+    <div class="stop"><span class="t">15:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Kokolandia+Adventure+Park+Sofia&query_place_id=ChIJ39TefMeFqkARyM1c-FczhFE">Kokolandia — פארק חבלים ואומגות</a><span class="note">8 רמות קושי: הקטן ברמות 1-2, הגדולה 4-5. חובה כפפות! תשלום בכרטיס במכונה</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 11</span><span class="day-title">ה׳ 13.8 — טיול יום: מנזר רילה</span><span class="day-tag tag-trip">🚌 טיול יום</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">08:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Rila+Monastery">מנזר רילה</a><span class="note">שעתיים נסיעה. אתר מורשת עולמית — ציורי קיר מרהיבים, שעה מספיקה עם ילדים</span></div></div>
+    <div class="stop"><span class="t">12:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Stob+Earth+Pyramids+Bulgaria">פירמידות החול של Stob</a><span class="note">בדרך חזרה — מסלול הליכה קצר (40 דק') בין תצורות סלע מוזרות. הילדים יאהבו</span></div></div>
+    <div class="stop"><span class="t">בדרך</span><div class="what">דגי פורל טריים במסעדות לאורך נהר Rilska<span class="note">מסורת מקומית</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 12</span><span class="day-title">ו׳ 14.8 — גן חיות</span><span class="day-tag tag-city">🏙️ עיר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Sofia+Zoo&query_place_id=ChIJHeoJ_8CLW0ARcsCZiwDXFV8">גן החיות של סופיה</a><span class="note">כניסה ~€5. גדול — 3+ שעות. בכוונה ביום שישי, בסופ"ש עמוס מאוד</span></div></div>
+    <div class="stop"><span class="t">15:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=South+Park+Sofia&query_place_id=ChIJcWowTPmEqkARHFXD1_28fHk">South Park (5 דק' מגן החיות)</a><span class="note">סגירת יום רגועה</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 13</span><span class="day-title">ש׳ 15.8 — בריכות בטבע</span><span class="day-tag tag-water">💦 מים</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Hidropark+Vyatarnite+Melnitsi+Gorna+Malina&query_place_id=ChIJZykbgtNlqkARElMkmI_jaFM">Hidropark "טחנות הרוח" (Gorna Malina)</a><span class="note">30 דק' מהעיר. בריכות, דשא, אגם, אזור משחקים — יום שלם רגוע יותר מפארק מים</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 14</span><span class="day-title">א׳ 16.8 — יום גמיש / השלמות</span><span class="day-tag tag-chill">😌 רגוע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">אופציה</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Koprivshtitsa+Bulgaria">קופריבשטיצה — עיירה היסטורית</a><span class="note">שעה וחצי נסיעה, בתים צבעוניים מהמאה ה-19, נהר קטן לשכשוך</span></div></div>
+    <div class="stop"><span class="t">אופציה</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Vazrazhdane+Aqua+Park+Sofia&query_place_id=ChIJTdwUPlCFqkARiK4IqgRhcFg">Vazrazhdane Aqua Park — בריכות בתוך העיר</a><span class="note">3 מגלשות, זול יחסית, בלי נסיעה ארוכה</span></div></div>
+    <div class="stop"><span class="t">אופציה</span><div class="what">חזרה למקום שהילדים הכי אהבו<span class="note">אחרי שבועיים כבר תדעו מה זה</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 15</span><span class="day-title">ב׳ 17.8 — טרמפולינות + קניות</span><span class="day-tag tag-city">🏙️ עיר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">13:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Just+Place+Sofia&query_place_id=ChIJ45c-4YqGqkARw2A98513hGA">Just Place — פארק טרמפולינות ופרקור</a><span class="note">נפתח ב-13:00 בימי חול. הכי גדול בעיר, בורות ספוג. יום שני = פחות עמוס</span></div></div>
+    <div class="stop"><span class="t">16:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Paradise+Center+Sofia">קניות מזכרות — Paradise Center</a></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 16</span><span class="day-title">ג׳ 18.8 — יום אחרון מלא</span><span class="day-tag tag-nature">🌲 טבע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Boyana+Waterfall+Vitosha">מפל בויאנה (ויטושה)</a><span class="note">מסלול ~שעה וחצי כל כיוון מרובע בויאנה — פרידה מההר. או בוקר רגוע בפארק</span></div></div>
+    <div class="stop"><span class="t">ערב</span><div class="what">ארוחת סיום חגיגית + אריזות</div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 17</span><span class="day-title">ד׳ 19.8 — טיסה הביתה ✈️</span><span class="day-tag tag-chill">😌 רגוע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">בוקר</span><div class="what">ארוחת בוקר אחרונה, בהתאם לשעת הטיסה — פארק שכונתי לשריפת אנרגיה לפני המטוס</div></div>
+  </div>
+</div>
+
+<!-- ======= FOOD ======= -->
+<div class="food-section">
+  <h2 class="food-title">🍽️ מה אוכלים בבולגריה</h2>
+  <p class="food-sub">לחיצה על 📷 פותחת תמונות של המנה בגוגל</p>
+  <div class="food-grid">
+
+    <div class="dish"><span class="dish-emoji">🥧</span>
+      <div class="dish-names"><b>בניצה</b> · Banitsa · <span class="bg">баница</span></div>
+      <p>מאפה פילו במילוי גבינה לבנה (סירנה) ויוגורט. ארוחת הבוקר הלאומית — מוכר בכל מאפייה, זול וילדים אוהבים.</p>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=banitsa+%D0%B1%D0%B0%D0%BD%D0%B8%D1%86%D0%B0">📷 תמונות</a></div>
+
+    <div class="dish"><span class="dish-emoji">🥗</span>
+      <div class="dish-names"><b>סלט שופסקה</b> · Shopska Salad · <span class="bg">шопска салата</span></div>
+      <p>עגבניות, מלפפונים, פלפל ובצל תחת הר של גבינת סירנה מגוררת. המנה המזוהה ביותר עם בולגריה.</p>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=shopska+salad">📷 תמונות</a></div>
+
+    <div class="dish"><span class="dish-emoji">🥣</span>
+      <div class="dish-names"><b>טרטור</b> · Tarator · <span class="bg">таратор</span></div>
+      <p>מרק יוגורט קר עם מלפפון, שום, שמיר ואגוזים. מושלם לצהרי אוגוסט חמים — כמו צזיקי נוזלי.</p>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=tarator+bulgarian+soup">📷 תמונות</a></div>
+
+    <div class="dish"><span class="dish-emoji">🌭</span>
+      <div class="dish-names"><b>קבפצ'ה</b> · Kebapche · <span class="bg">кебапче</span></div>
+      <p>נקניקיית בשר טחון בצורת אצבע, מתובלת בכמון, מהגריל. שימו לב: בדרך כלל תערובת חזיר-בקר — מי שנמנע מחזיר, לשאול לפני.</p>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=kebapche">📷 תמונות</a></div>
+
+    <div class="dish"><span class="dish-emoji">🍩</span>
+      <div class="dish-names"><b>מקיצה</b> · Mekitsa · <span class="bg">мекица</span></div>
+      <p>בצק מטוגן שמנמן — כמו סופגנייה שטוחה — עם ריבה, דבש או אבקת סוכר. להיט הילדים מספר 1 בארוחות בוקר.</p>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=mekitsa+%D0%BC%D0%B5%D0%BA%D0%B8%D1%86%D0%B0">📷 תמונות</a></div>
+
+    <div class="dish"><span class="dish-emoji">🧀</span>
+      <div class="dish-names"><b>קשקבל פנה</b> · Kashkaval Pane · <span class="bg">кашкавал пане</span></div>
+      <p>גבינה צהובה מטוגנת בציפוי פירורים — "שניצל גבינה". המנה שכל ילד בררן יאכל בלי ויכוחים.</p>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=kashkaval+pane">📷 תמונות</a></div>
+
+    <div class="dish"><span class="dish-emoji">🍅</span>
+      <div class="dish-names"><b>ליוטניצה</b> · Lyutenitsa · <span class="bg">лютеница</span></div>
+      <p>ממרח עגבניות ופלפלים קלויים — מורחים על לחם עם גבינה. יש גרסה מתונה וגרסה חריפה, לבדוק לפני שנותנים לקטן.</p>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=lyutenitsa">📷 תמונות</a></div>
+
+    <div class="dish"><span class="dish-emoji">🥛</span>
+      <div class="dish-names"><b>יוגורט בולגרי</b> · Kiselo Mlyako · <span class="bg">кисело мляко</span></div>
+      <p>הגאווה הלאומית — החיידק Lactobacillus bulgaricus קרוי על שם המדינה. סמיך וחמצמץ, שווה השוואה ליוגורט מהבית.</p>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=kiselo+mlyako+bulgarian+yogurt">📷 תמונות</a></div>
+
+    <div class="dish"><span class="dish-emoji">🥞</span>
+      <div class="dish-names"><b>פלצ'ינקי</b> · Palachinki · <span class="bg">палачинки</span></div>
+      <p>קרפים דקים מגולגלים עם שוקולד, ריבה או גבינה. נמכרים בדוכנים בכל פארק — הפסקת סוכר מובטחת.</p>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=palachinki+bulgarian">📷 תמונות</a></div>
+
+    <div class="dish"><span class="dish-emoji">🥤</span>
+      <div class="dish-names"><b>איראן</b> · Ayran · <span class="bg">айран</span></div>
+      <p>משקה יוגורט קר ומלוח קלות. הבולגרים שותים אותו עם בניצה בבוקר. מרענן מאוד בחום.</p>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=ayran+drink">📷 תמונות</a></div>
+
+  </div>
+</div>
+
+<!-- ======= TIPS ======= -->
+<div class="tips">
+  <h2>טיפים חשובים</h2>
+  <ul>
+    <li><b>מוניות:</b> רק דרך אפליקציות Bolt או TaxiMe. לא לעצור מונית ברחוב — עוקצים תיירים.</li>
+    <li><b>מזג אוויר:</b> אוגוסט חם בעיר (28-32°) אבל ויטושה קרירה ב-8-10 מעלות — תמיד שכבה נוספת בתיק.</li>
+    <li><b>Muzeiko סגור בימי שני</b> — לכן שני = ימי קניון/טרמפולינות.</li>
+    <li><b>רכבל ויטושה</b> פועל בקיץ בעיקר בסופ"ש — לוודא באתר לפני יום 6.</li>
+    <li><b>מטבע:</b> בולגריה עברה לאירו ב-2026. כרטיס עובד כמעט בכל מקום.</li>
+    <li><b>הזמנות מראש:</b> חדר בריחה (יום 5) — חובה. קרטינג — מומלץ בקבוצה.</li>
+    <li><b>מגרשי חנייה בגן החיות קטנים</b> — עדיף מונית.</li>
+    <li>סדר הימים גמיש — אם יורד גשם, מחליפים יום טבע ביום Ring Mall / Just Place.</li>
+  </ul>
+</div>
+
+<footer>נבנה עבור משפחה × 3 ילדים אנרגטיים · אוגוסט 2026 · כל קישור נפתח ישירות בגוגל מפות</footer>
+</div>
+</body>
+</html>
