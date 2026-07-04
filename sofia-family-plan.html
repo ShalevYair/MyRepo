@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>סופיה עם הילדים — 3–19 באוגוסט 2026</title>
+<title>בולגריה עם הילדים — רואד-טריפ 3–19.8.2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&family=Suez+One&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -102,6 +102,18 @@
   .impress li{margin-inline-start:18px;margin-bottom:3px}
   .klara-verdict{background:var(--pine-dark);color:#fff;border-radius:12px;padding:14px 16px;font-size:14.5px;margin-top:6px}
   .klara-verdict b{color:var(--sun)}
+
+  .fold{margin-bottom:14px;border:1px solid #E3E0D8;border-radius:14px;background:#fff;overflow:hidden}
+  .fold>summary{cursor:pointer;padding:15px 18px;font-weight:700;font-size:16.5px;background:var(--sky);list-style:none;display:flex;align-items:center;gap:10px;user-select:none}
+  .fold>summary::-webkit-details-marker{display:none}
+  .fold>summary .arr{margin-inline-start:auto;transition:transform .25s;font-size:14px;color:var(--pine)}
+  .fold[open]>summary .arr{transform:rotate(180deg)}
+  .fold>summary small{font-weight:400;color:#5B6360;font-size:12.5px}
+  .fold-body{padding:16px 18px}
+  .fold .klara{border:none;background:transparent;padding:0;margin-bottom:0}
+  .fold .backlog,.fold-body>.day:first-child{margin-top:0}
+  .plan-title{font-family:'Suez One',serif;font-size:26px;color:var(--pine);margin:6px 0 4px}
+  .plan-sub{font-size:13.5px;color:#6B716E;margin-bottom:16px}
   @media print{.allmap{display:none}}
 </style>
 </head>
@@ -109,37 +121,37 @@
 <div class="wrap">
 
 <header>
-  <h1>סופיה עם הילדים</h1>
-  <p>3–19 באוגוסט 2026 · שלושה ילדים (7–12) · תוכנית "לשרוף אנרגיה"</p>
-  <span class="badge">16 ימים · 20+ אטרקציות</span>
+  <h1>בולגריה עם הילדים — רואד-טריפ</h1>
+  <p>3–19 באוגוסט 2026 · שלושה ילדים (7–12) · המסלול של קלרה: וראצה → רילה → בנסקו → סנדנסקי → סופיה</p>
+  <span class="badge">17 ימים · 5 בסיסים · מלון בנסקו מוזמן ✓</span>
 </header>
 
 <div id="allmap" style="height:420px;border-radius:14px;margin-bottom:10px;border:1px solid #E3E0D8"></div>
-<p style="font-size:12.5px;color:#6B716E;margin-bottom:26px">🗺️ מפה אינטראקטיבית — כל 21 המקומות. לחיצה על סמן = שם + קישור לניווט בגוגל מפות. (דורשת אינטרנט)</p>
+<p style="font-size:12.5px;color:#6B716E;margin-bottom:26px">🗺️ מפת הרואד-טריפ — כל תחנות המסלול מצפון לדרום. לחיצה על סמן = שם + קישור לניווט בגוגל מפות. (דורשת אינטרנט)</p>
 
 <script>
 const spots=[
- [42.659798,23.3550824,"Muzeiko — יום 2","Muzeiko Sofia"],
- [42.677933,23.3524868,"Kokolandia — יום 10","Kokolandia Adventure Park Sofia"],
- [42.6748046,23.3394442,"Borisova Gradina — יום 2","Borisova Gradina Sofia"],
- [42.6096115,23.2390451,"נהר האבנים — יום 3","Zlatnite Mostove Vitosha"],
- [42.7201908,23.1957344,"Aquapark Sofia — יום 4","Aquapark Sofia Bankya"],
- [42.6951217,23.3213799,"חדר בריחה — יום 5","Hour Escape for Kids Sofia"],
- [42.6956091,23.3284659,"מוזיאון הטבע — יום 5","National Museum of Natural History Sofia"],
- [42.6858566,23.3178699,"מדרחוב ויטושה — יום 5","Vitosha Boulevard Sofia"],
- [42.6177675,23.3483167,"רכבל Simeonovo — יום 6 (לוודא שפועל!)","Simeonovo Lift Sofia"],
- [42.60,23.407778,"אגם Pancharevo — יום 7","Lake Pancharevo"],
- [42.6244418,23.3526158,"Ring Mall: טרמפולינות+קרטינג+קרח — יום 8","Sofia Ring Mall"],
- [42.1517849,24.7519552,"פלובדיב — יום 9","Nebet Tepe Plovdiv"],
- [42.1334828,23.3401919,"מנזר רילה — יום 11","Rila Monastery"],
- [42.6598113,23.3340165,"גן החיות — יום 12","Sofia Zoo"],
- [42.6672962,23.3081321,"South Park — ימים 1,12","South Park Sofia"],
- [42.6997127,23.6900749,"Hidropark טחנות הרוח — יום 13","Hidropark Vyatarnite Melnitsi"],
- [42.6361225,24.3602919,"קופריבשטיצה — אופציה יום 14","Koprivshtitsa"],
- [42.6952951,23.3055096,"Vazrazhdane בריכות — אופציה יום 14","Vazrazhdane Aqua Park Sofia"],
- [42.6565017,23.3902053,"Just Place — יום 15","Just Place Sofia"],
- [42.6576426,23.3150385,"Paradise Center — יום 15","Paradise Center Sofia"],
- [42.6295284,23.2541853,"מפל בויאנה — יום 16","Boyana Waterfall"]
+ [42.6932701,23.407865,"נמל התעופה סופיה — נחיתה יום 1 / המראה יום 17","Sofia Airport"],
+ [43.1748719,24.0743809,"מערת פרוחודנה — יום 1","Prohodna Cave"],
+ [43.2045426,23.4937212,"מערת לדניקה — יום 2","Ledenika Cave"],
+ [43.156718,23.5125094,"Vratsa Balkan — יום 2 (בסיס: וראצה)","Vratsa Balkan"],
+ [43.1883037,24.1467842,"נהר פאנגה — יום 3","Golden Panega Eco Trail"],
+ [43.0468065,24.1858157,"מערת סאבה דופקה — יום 3","Saeva Dupka Cave"],
+ [42.47,23.57,"אגם איסקר — עצירה יום 4","Iskar Reservoir"],
+ [42.2687,23.6063,"בורוביץ — בסיס ימים 4-6","Borovets Bulgaria"],
+ [42.203734,23.3125853,"שבעת אגמי רילה — יום 5","Seven Rila Lakes Lift"],
+ [42.2867,23.2618,"סאפרבה באניה: גייזר + Kotvata — יום 6","Sapareva Banya Geyser"],
+ [41.8382,23.4885,"בנסקו — בסיס ימים 7-9 (מלון מוזמן)","Bansko"],
+ [42.0333443,23.5835662,"שמורת הדובים בליצה — יום 8","BEAR SANCTUARY Belitsa"],
+ [42.0221264,23.5785189,"Rila Fun Park — יום 8","Rila Fun Park Belitsa"],
+ [41.7419,23.1559,"ראפטינג קניון קרסנה — יום 10","Rafting Kresna Gorge Bulgaria"],
+ [41.5667,23.28,"סנדנסקי — בסיס ימים 10-13","Sandanski"],
+ [41.524,23.396,"מלניק — יום 12","Melnik Bulgaria"],
+ [42.659798,23.3550824,"Muzeiko — יום 14","Muzeiko Sofia"],
+ [42.6672962,23.3081321,"South Park — יום 14","South Park Sofia"],
+ [42.6244418,23.3526158,"Ring Mall — יום 15","Sofia Ring Mall"],
+ [42.677933,23.3524868,"Kokolandia — יום 16","Kokolandia Adventure Park Sofia"],
+ [42.6858566,23.3178699,"מדרחוב ויטושה — יום 16","Vitosha Boulevard Sofia"]
 ];
 const map=L.map('allmap');
 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:19}).addTo(map);
@@ -158,6 +170,153 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
   <span>כל שם אטרקציה = קישור שנפתח בגוגל מפות</span>
 </div>
 
+<!-- ======= KLARA DAY-BY-DAY ======= -->
+<h2 class="plan-title">🗓️ התכנית יום-יום — המסלול של קלרה</h2>
+<p class="plan-sub">וראצה (3 לילות) → בורוביץ (3) → בנסקו (3, מלון מוזמן ✓) → סנדנסקי (3) → סופיה (3). הימים בתוך כל בסיס גמישים — מחליפים לפי מזג אוויר ומצב רוח</p>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 1</span><span class="day-title">ב׳ 3.8 — נחיתה → עיני האלוהים → וראצה</span><span class="day-tag tag-trip">🚌 מעבר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">בוקר</span><div class="what">נחיתה בסופיה, קבלת רכב שכור (SUV/מיניוואן)<span class="note">לקנות ויניאטה (אגרת כבישים) בשדה או אונליין</span></div></div>
+    <div class="stop"><span class="t">בדרך</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Prohodna+Cave">מערת פרוחודנה — "עיני האלוהים"</a><span class="note">~1:15 מהשדה, מעבר קל וחינמי (~45 דק'). וואו מובטח כבר ביום הראשון</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Prohodna-eyes-refl.JPG"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Prohodna-eyes-refl.JPG?width=320" alt="עיני האלוהים" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+    <div class="stop"><span class="t">אחה"צ</span><div class="what">המשך לוראצה (~1:10), צ'ק-אין וקניות בסופר<span class="note">יום נחיתה — לשמור קליל, לא לדחוס</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 2</span><span class="day-title">ג׳ 4.8 — מערת לדניקה + וראצה</span><span class="day-tag tag-nature">🌲 טבע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Ledenika+Cave">מערת לדניקה + הרכבל</a><span class="note">סיור מודרך, 7-8° בפנים — מעילים לכולם! 20 דק' מוראצה</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Ledenika_cave_045.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ledenika_cave_045.jpg?width=320" alt="מערת לדניקה" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+    <div class="stop"><span class="t">אחה"צ</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Vratsa+Balkan">Vratsa Balkan</a> — נוף ומסלול קצר<span class="note">או סתם מרכז וראצה: מדרחוב, גלידה, מגרש משחקים</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 3</span><span class="day-title">ד׳ 5.8 — נהר פאנגה + מערת סאבה דופקה</span><span class="day-tag tag-water">💦 מים</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">09:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Golden+Panega+Eco+Trail">Golden Panega Eco Trail</a><span class="note">מסלול קל לאורך נהר טורקיז + פיקניק ושכשוך. ~1:05 נסיעה מזרחה</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Zlatna_Panega_River_-_Lukovit.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Zlatna_Panega_River_-_Lukovit.jpg?width=320" alt="נהר פאנגה" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+    <div class="stop"><span class="t">13:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Saeva+Dupka+Cave">מערת סאבה דופקה</a><span class="note">מערה מרהיבה עם אולמות ענק (30 דק' נסיעה מפאנגה). שוב — קריר בפנים</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Bulgaria_-_Съева_Дупка_(Saeva_dupka_cave)_-_panoramio.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Bulgaria_-_Съева_Дупка_(Saeva_dupka_cave)_-_panoramio.jpg?width=320" alt="סאבה דופקה" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 4</span><span class="day-title">ה׳ 6.8 — מעבר להרי הרילה (בורוביץ)</span><span class="day-tag tag-trip">🚌 מעבר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">09:00</span><div class="what">יציאה דרומה דרך קניון האיסקר<span class="note">אופציה בדרך: <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Skaklya+Waterfall+Zasele">שביל ואזוב / מפל סקאקליה</a> — באוגוסט המפל דל מים, לתאם ציפיות</span></div></div>
+    <div class="stop"><span class="t">צהריים</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Iskar+Reservoir">אגם איסקר</a> — עצירת פיקניק<span class="note">האגם הגדול בבולגריה, על הדרך לבורוביץ</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Iskar-reservoir-1.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Iskar-reservoir-1.jpg?width=320" alt="אגם איסקר" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+    <div class="stop"><span class="t">אחה"צ</span><div class="what">צ'ק-אין בבורוביץ, סיבוב ערב בעיירה<span class="note">~2:15 נסיעה נטו מוראצה</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Hotel_Rila_Borovets.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Hotel_Rila_Borovets.jpg?width=320" alt="בורוביץ" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 5</span><span class="day-title">ו׳ 7.8 — שבעת אגמי רילה ⭐ שיא הטיול</span><span class="day-tag tag-nature">🌲 טבע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">07:30</span><div class="what">יציאה לתחנת הרכבל (Pionerska, ~1:00 נסיעה)<span class="note">התורים מתחילים ב-9:30 — מי שמקדים מנצח</span></div></div>
+    <div class="stop"><span class="t">08:45</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Seven+Rila+Lakes+Lift">רכבל שבעת האגמים + מסלול בין האגמים</a><span class="note">עם בן ה-7: עד אגם Bliznaka ובחזרה זה מושלם. מעיל ונעליים סגורות חובה — מזג האוויר מתהפך</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Rila_lakes.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Rila_lakes.jpg?width=320" alt="שבעת אגמי רילה" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+    <div class="stop"><span class="t">ערב</span><div class="what">חזרה לבורוביץ, ערב רגוע<span class="note">כולם יהיו גמורים — וזה טוב 😄</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 6</span><span class="day-title">ש׳ 8.8 — סאפרבה באניה: גייזר ובריכות</span><span class="day-tag tag-water">💦 מים</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Sapareva+Banya+Geyser">הגייזר של סאפרבה באניה</a><span class="note">הגייזר החם באירופה (103°) — עצירת צילום קצרה</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Sapareva_banya_Artificial_geyser.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sapareva_banya_Artificial_geyser.jpg?width=320" alt="הגייזר" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+    <div class="stop"><span class="t">10:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Aqua+Club+Kotvata+Sapareva+Banya">Aqua Club Kotvata</a> — עד הערב<span class="note">בריכות מינרליות בטמפרטורות שונות + מתקני טיפוס. שבת = עמוס, להגיע מוקדם</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 7</span><span class="day-title">א׳ 9.8 — בורוביץ → בנסקו</span><span class="day-tag tag-trip">🚌 מעבר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">בוקר</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Yastrebets+Gondola+Borovets">רכבל Yastrebets</a> או רכיבת פוני בבורוביץ<span class="note">פרידה מהרילה בגובה 2,369 מ'</span></div></div>
+    <div class="stop"><span class="t">14:00</span><div class="what">נסיעה לבנסקו (~1:30) — צ'ק-אין במלון המוזמן ✓</div></div>
+    <div class="stop"><span class="t">ערב</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Bansko+Old+Town">העיירה העתיקה של בנסקו</a><span class="note">סמטאות אבן, מחאנות (טברנות) — ערב ראשון נעים</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Pirin_Street_in_Bansko_(48867823688).jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Pirin_Street_in_Bansko_(48867823688).jpg?width=320" alt="בנסקו" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 8</span><span class="day-title">ב׳ 10.8 — יום הדובים 🐻</span><span class="day-tag tag-trip">🚌 טיול יום</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">09:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=BEAR+SANCTUARY+Belitsa">שמורת הדובים BEAR SANCTUARY Belitsa</a><span class="note">~40 דק' מבנסקו. להזמין מראש: belitsa.four-paws.org. אסור להיכנס עם אוכל!</span></div></div>
+    <div class="stop"><span class="t">13:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Rila+Fun+Park+Belitsa">Rila Fun Park</a> / פארק "Не се отказвай"<span class="note">באותו כיוון — אטרקציות, אומגות, משחקים. משלים יום מושלם</span></div></div>
+    <div class="stop"><span class="t">ערב</span><div class="what">חזרה לבנסקו</div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 9</span><span class="day-title">ג׳ 11.8 — סוסים ודגים</span><span class="day-tag tag-nature">🌲 טבע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Konna+Baza+Kagan+Bansko">רכיבת סוסים — Konna Baza Kagan</a><span class="note">לתאם שעה מראש; יש מסלולים קצרים לילדים</span></div></div>
+    <div class="stop"><span class="t">16:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Rila+Fish+restaurant+Bansko">RILA FISH — דגים ואוכלים</a><span class="note">הילדים דגים פורל והמסעדה מבשלת. להביא בגדי החלפה 😄</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 10</span><span class="day-title">ד׳ 12.8 — ראפטינג → סנדנסקי</span><span class="day-tag tag-water">💦 מים</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Rafting+Kresna+Gorge+Bulgaria">ראפטינג בקניון קרסנה — RAFTING-BG</a><span class="note">בדיוק על הדרך בנסקו→סנדנסקי! להזמין מראש ולוודא גיל מינימום לבן ה-7 (במקטע המשפחתי בד"כ 6-7+)</span></div></div>
+    <div class="stop"><span class="t">16:00</span><div class="what">המשך לסנדנסקי (~30 דק'), צ'ק-אין<span class="note">ערב ראשון: טיילת + גלידה</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 11</span><span class="day-title">ה׳ 13.8 — פארק המים Complex Pirin</span><span class="day-tag tag-water">💦 מים</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Complex+Pirin+Sandanski+aquapark">פארק המים ב-Complex Pirin</a> — יום שלם<span class="note">סנדנסקי היא העיר החמה בבולגריה (35°+ באוגוסט) — היום הזה בנוי בדיוק בשביל זה</span></div></div>
+    <div class="stop"><span class="t">ערב</span><div class="what">העיר העתיקה של סנדנסקי<span class="note">שרידים רומיים קטנים + מסעדות</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 12</span><span class="day-title">ו׳ 14.8 — מלניק ופירמידות החול</span><span class="day-tag tag-trip">🚌 טיול יום</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">09:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Melnik+Bulgaria">מלניק — העיר הקטנה בבולגריה</a><span class="note">30 דק' נסיעה. פירמידות חול לטיפוס, בתים עתיקים — לפני החום של הצהריים</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:The_'Byzantine_House',_Melnik_1.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/The_'Byzantine_House',_Melnik_1.jpg?width=320" alt="מלניק" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+    <div class="stop"><span class="t">12:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Rozhen+Monastery">מנזר רוז'ן</a> — אופציה (10 דק' נוספות)<span class="note">נוף מטורף על הפירמידות מלמעלה</span></div></div>
+    <div class="stop"><span class="t">אחה"צ</span><div class="what">חזרה לסנדנסקי — בריכה / מעיינות חמים</div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 13</span><span class="day-title">ש׳ 15.8 — יום רגוע בסנדנסקי</span><span class="day-tag tag-chill">😌 רגוע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">בוקר</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Sveti+Vrach+Park+Sandanski">פארק סווטי וראץ'</a><span class="note">מהפארקים הגדולים והיפים בבולגריה — מגרשי משחקים, אגמים, צל</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:St._Vrach_park,_Sandanski,_Bulgaria_2015_25.JPG"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/St._Vrach_park,_Sandanski,_Bulgaria_2015_25.JPG?width=320" alt="פארק סנדנסקי" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+    <div class="stop"><span class="t">אחה"צ</span><div class="what">מעיינות חמים / בריכת המלון<span class="note">ערב: אריזה לקראת המעבר האחרון</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 14</span><span class="day-title">א׳ 16.8 — נסיעה לסופיה + Muzeiko</span><span class="day-tag tag-city">🏙️ עיר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">09:00</span><div class="what">נסיעה לסופיה (~2:00), צ'ק-אין</div></div>
+    <div class="stop"><span class="t">13:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Muzeiko+Sofia">Muzeiko — מוזיאון המדע לילדים</a><span class="note">דווקא היום! מחר (שני) הוא סגור. להזמין כרטיסים מראש — עמוס בקיץ</span></div></div>
+    <div class="stop"><span class="t">17:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=South+Park+Sofia">South Park</a><span class="note">פריקת אנרגיה + ארוחת ערב ליד הפארק</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:South_Park,_Sofia,_Южен_Парк,_София.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/South_Park,_Sofia,_Южен_Парк,_София.jpg?width=320" alt="South Park" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 15</span><span class="day-title">ב׳ 17.8 — יום Ring Mall</span><span class="day-tag tag-city">🏙️ עיר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">11:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Area+52+Trampoline+Park+Sofia">Area 52 — טרמפולינות</a><span class="note">Muzeiko סגור בשני — בגלל זה היום קניון ממוזג</span></div></div>
+    <div class="stop"><span class="t">13:30</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Sofia+Karting+Ring">קרטינג לגדולה</a> + <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Fun+Ring+Park+Sofia">Fun Ring לקטנים</a><span class="note">הורה אחד עם הקטנים בהחלקה על קרח/ג'ימבורי בזמן הקרטינג</span></div></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 16</span><span class="day-title">ג׳ 18.8 — סופיה אחרונה</span><span class="day-tag tag-city">🏙️ עיר</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Kokolandia+Adventure+Park+Sofia">Kokolandia — פארק חבלים</a><span class="note">בתוך פארק בוריסובה גרדינה. חובה כפפות!</span></div></div>
+    <div class="stop"><span class="t">14:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Vitosha+Boulevard+Sofia">מדרחוב ויטושה</a> — גלידה ומזכרות<span class="note">ערב: ארוחת סיום חגיגית + החזרת רכב אם לא הוחזר בכניסה לעיר</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Sofia_Vitosha_Boulevard.JPG"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sofia_Vitosha_Boulevard.JPG?width=320" alt="מדרחוב ויטושה" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="day-head"><span class="day-num">יום 17</span><span class="day-title">ד׳ 19.8 — טיסה הביתה ✈️</span><span class="day-tag tag-chill">😌 רגוע</span></div>
+  <div class="day-body">
+    <div class="stop"><span class="t">בוקר</span><div class="what">לפי שעת הטיסה — פארק שכונתי לפריקת אנרגיה אחרונה, ונסיעה לשדה</div></div>
+  </div>
+</div>
+
+<details class="fold"><summary>💭 סקירת 5 המקטעים + הרשמים שלי<span class="arr">▾</span></summary><div class="fold-body">
 <!-- ======= KLARA ROADTRIP ======= -->
 <div class="klara">
   <h2 class="klara-title">🚗 המסלול של קלרה — רואד-טריפ ב-5 תחנות</h2>
@@ -219,6 +378,9 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
   <div class="klara-verdict"><b>שורה תחתונה:</b> המסלול של קלרה מכניס פנימה כמעט את כל ה-BACKLOG (פרוחודנה, לדניקה, שבעת האגמים, Kotvata, הדובים, Beli Iskar) עם נסיעות קצרות של 1.5–2 שעות בין תחנות — במחיר של 4 צ'ק-אינים במקום אחד. מכיוון שהמלון בבנסקו כבר מוזמן, זו כנראה התכנית בפועל 🙂 התכנית היומית למטה נשארת רלוונטית בעיקר לימי סופיה (16–19.8) וכמאגר רעיונות לשאר התחנות.</div>
 </div>
 
+
+</div></details>
+<details class="fold"><summary>🗂️ התכנית הקודמת — בסיס אחד בסופיה (16 ימים)<span class="arr">▾</span></summary><div class="fold-body">
 <!-- ======= DAYS ======= -->
 
 <div class="day">
@@ -360,6 +522,8 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
   </div>
 </div>
 
+
+</div></details>
 <!-- ======= FOOD ======= -->
 <div class="food-section">
   <h2 class="food-title">🍽️ מה אוכלים בבולגריה</h2>
@@ -439,9 +603,9 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
   </div>
 </div>
 
+<details class="fold"><summary>📌 BACKLOG — אקסטרות אם נרצה<span class="arr">▾</span></summary><div class="fold-body">
 <!-- ======= BACKLOG ======= -->
 <div class="backlog">
-  <h2 class="backlog-title">📌 BACKLOG — אקסטרות אם נרצה</h2>
   <p class="backlog-sub">רעיונות נוספים שנאספו מהמסמכים הישנים — לא בתכנית, אבל שווים החלפה עם "יום גמיש" או יום שהתפנה</p>
 
   <div class="bk-group">
@@ -480,6 +644,8 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
   </div>
 </div>
 
+
+</div></details>
 <!-- ======= TIPS ======= -->
 <div class="tips">
   <h2>טיפים חשובים</h2>
