@@ -86,6 +86,22 @@
   .bk-item a{color:var(--water);font-weight:700;text-decoration:none;border-bottom:2px solid #BFDCEA}
   .bk-item a:hover{border-bottom-color:var(--water)}
   .bk-item .note{display:block;font-size:13px;color:#5B6360;margin-top:1px}
+
+  .klara{background:#FFF8EA;border:2px solid var(--sun);border-radius:18px;padding:22px;margin-bottom:30px}
+  .klara-title{font-family:'Suez One',serif;font-size:26px;color:var(--pine);margin-bottom:2px}
+  .klara-sub{font-size:13.5px;color:#6B716E;margin-bottom:14px}
+  .leg{background:#fff;border:1px solid #EAD9AE;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+  .leg-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .leg-dates{font-family:'Suez One',serif;font-size:18px;color:#B07900;white-space:nowrap}
+  .leg-name{font-weight:700;font-size:16px}
+  .leg-what{font-size:14.5px;margin-bottom:8px}
+  .leg-what a{color:var(--water);font-weight:700;text-decoration:none;border-bottom:2px solid #BFDCEA}
+  .leg-what a:hover{border-bottom-color:var(--water)}
+  .impress{background:var(--sky);border-radius:10px;padding:10px 12px;font-size:13.5px}
+  .impress b{color:var(--pine-dark)}
+  .impress li{margin-inline-start:18px;margin-bottom:3px}
+  .klara-verdict{background:var(--pine-dark);color:#fff;border-radius:12px;padding:14px 16px;font-size:14.5px;margin-top:6px}
+  .klara-verdict b{color:var(--sun)}
   @media print{.allmap{display:none}}
 </style>
 </head>
@@ -140,6 +156,67 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
 <div class="legend">
   <span>🏙️ עיר</span><span>🌲 טבע</span><span>💦 מים</span><span>🚌 טיול יום</span><span>😌 רגוע</span>
   <span>כל שם אטרקציה = קישור שנפתח בגוגל מפות</span>
+</div>
+
+<!-- ======= KLARA ROADTRIP ======= -->
+<div class="klara">
+  <h2 class="klara-title">🚗 המסלול של קלרה — רואד-טריפ ב-5 תחנות</h2>
+  <p class="klara-sub">גרסה חלופית לתכנית: במקום בסיס אחד בסופיה — מסלול נודד צפון→דרום. המלון בבנסקו כבר מוזמן. למטה כל תחנה + הרשמים שלי · <a target="_blank" href="https://www.facebook.com/groups/HulWithKids/posts/2428408407561320/" style="color:var(--water)">הפוסט מקבוצת חו"ל עם ילדים ↗</a></p>
+
+  <div class="leg">
+    <div class="leg-head"><span class="leg-dates">3.8–6.8</span><span class="leg-name">צפון-מערב — אזור וראצה</span></div>
+    <div class="leg-what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Prohodna+Cave">מערת פרוחודנה "עיני האלוהים"</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Golden+Panega+Eco+Trail">Golden Panega Eco Trail</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Skaklya+Waterfall+Zasele">מפל סקאקליה</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Ledenika+Cave">רכבל + מערת לדניקה</a></div>
+    <div class="impress"><b>💭 הרשמים שלי:</b><ul>
+      <li><b>לשאלת הפיצול בטבלה — לא לוותר, כן לפצל:</b> פרוחודנה ופאנגה הן ליד לוקוביט (~1:10 מזרחית לוראצה). הכי חסכוני: לעצור בהן ביום הנחיתה בדרך צפונה (סטייה קטנה מהמסלול), ואת לדניקה+וראצה לעשות ביום נפרד. ככה אין יום שלם של נסיעות כפולות.</li>
+      <li><b>יום נחיתה עם 3 ילדים + שעה וחצי נהיגה</b> — להשאיר קליל: מערה אחת, צ'ק-אין, סופר. לא לדחוס.</li>
+      <li><b>מפל סקאקליה באוגוסט כמעט יבש</b> — שביל ואזוב עדיין יפה, אבל לתאם ציפיות מראש. אם המים חשובים — עדיף להשקיע בפאנגה (נהר כחול-טורקיז זורם כל השנה).</li>
+      <li>בלדניקה 7-8° — מעילים לכולם, גם באוגוסט.</li>
+    </ul></div>
+  </div>
+
+  <div class="leg">
+    <div class="leg-head"><span class="leg-dates">6.8–9.8</span><span class="leg-name">הרי הרילה — כיוון בורוביץ</span></div>
+    <div class="leg-what">עצירה ב<a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Iskar+Reservoir">אגם איסקר</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Aqua+Club+Kotvata+Sapareva+Banya">Aqua Club Kotvata</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Seven+Rila+Lakes+Lift">רכבל שבעת האגמים</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Beli+Iskar+eco+trail">Beli Iskar — מסלול 7 הגשרים</a></div>
+    <div class="impress"><b>💭 הרשמים שלי:</b><ul>
+      <li><b>שבעת האגמים = שיא הטיול, אבל לצאת מוקדם:</b> ברכבל (תחנת Pionerska) התורים מתחילים ב-9:30. עם בן 7 לא חייבים את כל הלולאה — עד אגם Bliznaka ובחזרה זה יום מושלם. מעיל ונעליים סגורות חובה, מזג האוויר מתהפך שם מהר.</li>
+      <li><b>Kotvata משתלב עם הגייזר של סאפרבה באניה</b> — אותה עיירה, 5 דקות ביניהם. יום מנוחה אידיאלי אחרי יום האגמים.</li>
+      <li>הערה קטנה לטבלה: "שבעת המפלים" — הכוונה כנראה לשבעת האגמים; מסלול "7 הגשרים" הוא ה-Beli Iskar. הכל בסדר, זה אותו אזור.</li>
+      <li>אם ישנים בבורוביץ: רכבל Yastrebets, פוני ואופניים — הכל במרחק הליכה מהמלונות.</li>
+    </ul></div>
+  </div>
+
+  <div class="leg">
+    <div class="leg-head"><span class="leg-dates">9.8–12.8</span><span class="leg-name">בנסקו ✓ (מלון מוזמן)</span></div>
+    <div class="leg-what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Konna+baza+Kagan+Bansko">רכיבת סוסים — Konna Baza Kagan</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=BEAR+SANCTUARY+Belitsa">שמורת הדובים בליצה</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Rila+Fish+restaurant+Bansko">מסעדת RILA FISH — דיג</a></div>
+    <div class="impress"><b>💭 הרשמים שלי:</b><ul>
+      <li><b>שמורת הדובים — להזמין עכשיו</b> (belitsa.four-paws.org). ~40 דק' מבנסקו, ואסור להיכנס עם אוכל.</li>
+      <li><b>באותו כיוון של בליצה</b> יש את Rila Fun Park ופארק האטרקציות "Не се отказвай" (מהמסמכים הקודמים) — ביחד עם הדובים זה יום שלם מצוין.</li>
+      <li>הדיג ב-RILA FISH הוא להיט עם ילדים — דגים פורל והמסעדה מבשלת. להביא בגדי החלפה 😄</li>
+      <li>אם נשאר זמן: רכבל בנסקו לוודא שפועל בקיץ, והעיירה העתיקה נחמדה לערב.</li>
+    </ul></div>
+  </div>
+
+  <div class="leg">
+    <div class="leg-head"><span class="leg-dates">12.8–15.8</span><span class="leg-name">סנדנסקי</span></div>
+    <div class="leg-what">מעיינות חמים · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Complex+Pirin+Sandanski+aquapark">פארק המים Complex Pirin</a> · העיר העתיקה · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Rafting+Kresna+Gorge+Bulgaria">ראפטינג RAFTING-BG</a></div>
+    <div class="impress"><b>💭 הרשמים שלי:</b><ul>
+      <li><b>הראפטינג בקניון קרסנה נמצא בדיוק על הדרך בנסקו→סנדנסקי</b> — לעשות אותו ביום המעבר (12.8) ולחסוך נסיעה. להזמין מראש ולוודא גיל מינימום לבן ה-7 (בדרך כלל 6-7+ במקטע המשפחתי).</li>
+      <li><b>סנדנסקי היא העיר החמה בבולגריה</b> — באוגוסט 35°+. פעילות בבוקר, מים ומעיינות אחה"צ.</li>
+      <li>אופציה ליום משם: מלניק — העיר הקטנה בבולגריה — עם פירמידות החול (30 דק' נסיעה). קצר, יפה, וילדים אוהבים לטפס שם.</li>
+    </ul></div>
+  </div>
+
+  <div class="leg">
+    <div class="leg-head"><span class="leg-dates">16.8–19.8</span><span class="leg-name">סופיה — סיום</span></div>
+    <div class="leg-what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Muzeiko+Sofia">Muzeiko</a> · קניות · פארק מים/בילויים · טיסה חזרה</div>
+    <div class="impress"><b>💭 הרשמים שלי:</b><ul>
+      <li><b>שימו לב: 17.8 הוא יום שני — Muzeiko סגור בימי שני!</b> לתכנן לראשון 16.8 או שלישי 18.8, ולהזמין כרטיסים מראש.</li>
+      <li>את הימים האלה ממלאים בקלות מהתכנית למטה: Ring Mall (טרמפולינות+קרטינג+קרח), Kokolandia, גן החיות, מדרחוב ויטושה.</li>
+      <li><b>את הרכב אפשר להחזיר כבר בכניסה לסופיה</b> — בעיר הוא רק כאב ראש (חניה כחולה/ירוקה, קנסות). Bolt/TaxiMe זולים.</li>
+    </ul></div>
+  </div>
+
+  <div class="klara-verdict"><b>שורה תחתונה:</b> המסלול של קלרה מכניס פנימה כמעט את כל ה-BACKLOG (פרוחודנה, לדניקה, שבעת האגמים, Kotvata, הדובים, Beli Iskar) עם נסיעות קצרות של 1.5–2 שעות בין תחנות — במחיר של 4 צ'ק-אינים במקום אחד. מכיוון שהמלון בבנסקו כבר מוזמן, זו כנראה התכנית בפועל 🙂 התכנית היומית למטה נשארת רלוונטית בעיקר לימי סופיה (16–19.8) וכמאגר רעיונות לשאר התחנות.</div>
 </div>
 
 <!-- ======= DAYS ======= -->
