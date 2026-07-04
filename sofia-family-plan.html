@@ -132,9 +132,9 @@
 <script>
 const spots=[
  [42.6932701,23.407865,"נמל התעופה סופיה — נחיתה יום 1 / המראה יום 17","Sofia Airport"],
- [43.1748719,24.0743809,"מערת פרוחודנה — יום 1","Prohodna Cave"],
- [43.2045426,23.4937212,"מערת לדניקה — יום 2","Ledenika Cave"],
- [43.156718,23.5125094,"Vratsa Balkan — יום 2 (בסיס: וראצה)","Vratsa Balkan"],
+ [43.1748719,24.0743809,"מערת פרוחודנה — יום 2","Prohodna Cave"],
+ [43.2045426,23.4937212,"מערת לדניקה — אקסטרה (ירדה מהתכנית, 20 דק' מוראצה)","Ledenika Cave"],
+ [43.156718,23.5125094,"וראצה — בסיס ימים 1-3 (Vratsa Balkan — אופציה)","Vratsa Balkan"],
  [43.1883037,24.1467842,"נהר פאנגה — יום 3","Golden Panega Eco Trail"],
  [43.0468065,24.1858157,"מערת סאבה דופקה — יום 3","Saeva Dupka Cave"],
  [42.47,23.57,"אגם איסקר — עצירה יום 4","Iskar Reservoir"],
@@ -175,20 +175,22 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
 <p class="plan-sub">וראצה (3 לילות) → בורוביץ (3) → בנסקו (3, מלון מוזמן ✓) → סנדנסקי (3) → סופיה (3). הימים בתוך כל בסיס גמישים — מחליפים לפי מזג אוויר ומצב רוח</p>
 
 <div class="day">
-  <div class="day-head"><span class="day-num">יום 1</span><span class="day-title">ב׳ 3.8 — נחיתה → עיני האלוהים → וראצה</span><span class="day-tag tag-trip">🚌 מעבר</span></div>
+  <div class="day-head"><span class="day-num">יום 1</span><span class="day-title">ב׳ 3.8 — נחיתה → וראצה</span><span class="day-tag tag-trip">🚌 מעבר</span></div>
   <div class="day-body">
     <div class="stop"><span class="t">בוקר</span><div class="what">נחיתה בסופיה, קבלת רכב שכור (SUV/מיניוואן)<span class="note">לקנות ויניאטה (אגרת כבישים) בשדה או אונליין</span></div></div>
-    <div class="stop"><span class="t">בדרך</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Prohodna+Cave">מערת פרוחודנה — "עיני האלוהים"</a><span class="note">~1:15 מהשדה, מעבר קל וחינמי (~45 דק'). וואו מובטח כבר ביום הראשון</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Prohodna-eyes-refl.JPG"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Prohodna-eyes-refl.JPG?width=320" alt="עיני האלוהים" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
-    <div class="stop"><span class="t">אחה"צ</span><div class="what">המשך לוראצה (~1:10), צ'ק-אין וקניות בסופר<span class="note">יום נחיתה — לשמור קליל, לא לדחוס</span></div></div>
-    <div class="impress"><b>💭 קלרה:</b> בטבלה המקורית עלתה שאלה אם לפצל בין המערות לוראצה בגלל המרחק — התשובה: כן לפצל. לעצור בפרוחודנה (וגם בפאנגה, יום 3) בדרך צפונה כבר ביום הנחיתה, ואת לדניקה+וראצה לעשות ביום נפרד. כך אין יום שלם של נסיעות כפולות.</div>
+    <div class="stop"><span class="t">צהריים</span><div class="what">נסיעה ישירה לוראצה (~1:15), צ'ק-אין וקניות בסופר<span class="note">יום נחיתה נקי — בלי אטרקציות, רק להתמקם ולנוח</span></div></div>
+    <div class="stop"><span class="t">ערב</span><div class="what">מרכז וראצה — מדרחוב, גלידה, מגרש משחקים<span class="note">פריקת אנרגיה קלה אחרי הטיסה</span></div></div>
+    <div class="impress"><b>💭 קלרה:</b> הגרסה הקודמת דחסה את פרוחודנה לתוך יום הנחיתה — עמוס מדי (טיסה + מערה + שתי נסיעות). פרוחודנה עברה ליום 2, ומערת לדניקה ירדה מהתכנית לרשימת האקסטרות. אם יתפנה זמן — לדניקה במרחק 20 דק' בלבד מהבסיס בוראצה.</div>
   </div>
 </div>
 
 <div class="day">
-  <div class="day-head"><span class="day-num">יום 2</span><span class="day-title">ג׳ 4.8 — מערת לדניקה + וראצה</span><span class="day-tag tag-nature">🌲 טבע</span></div>
+  <div class="day-head"><span class="day-num">יום 2</span><span class="day-title">ג׳ 4.8 — מערת פרוחודנה — "עיני האלוהים"</span><span class="day-tag tag-nature">🌲 טבע</span></div>
   <div class="day-body">
-    <div class="stop"><span class="t">10:00</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Ledenika+Cave">מערת לדניקה + הרכבל</a><span class="note">סיור מודרך, 7-8° בפנים — מעילים לכולם! 20 דק' מוראצה</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Ledenika_cave_045.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ledenika_cave_045.jpg?width=320" alt="מערת לדניקה" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
-    <div class="stop"><span class="t">אחה"צ</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Vratsa+Balkan">Vratsa Balkan</a> — נוף ומסלול קצר<span class="note">או סתם מרכז וראצה: מדרחוב, גלידה, מגרש משחקים</span></div></div>
+    <div class="stop"><span class="t">09:00</span><div class="what">יציאה מזרחה מוראצה (~1:05 נסיעה)<span class="note">לצאת רגוע — הביקור עצמו קצר</span></div></div>
+    <div class="stop"><span class="t">10:15</span><div class="what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Prohodna+Cave">מערת פרוחודנה — "עיני האלוהים"</a><span class="note">מעבר קל וחינמי (~45 דק'). וואו מובטח. קריר בפנים — מעיל!</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Prohodna-eyes-refl.JPG"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Prohodna-eyes-refl.JPG?width=320" alt="עיני האלוהים" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+    <div class="stop"><span class="t">אחה"צ</span><div class="what">חזרה לוראצה — בריכה / מרכז העיר<span class="note">אופציה למי שנשאר עם כוח: <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Vratsa+Balkan">Vratsa Balkan</a> — נוף ומסלול קצר ליד הבסיס</span></div></div>
+    <div class="impress"><b>💭 קלרה:</b> פרוחודנה ופאנגה (יום 3) נמצאות באותו כיוון בדיוק (~15 דק' זו מזו). מי שמעדיף לחסוך נסיעת שעה כפולה — אפשר לאחד את פרוחודנה עם פאנגה ביום אחד, ואז יום 3 מתפנה כולו למנוחה או ללדניקה. אופציה מתקדמת: ללון לילה באזור לוקוביט במקום לחזור לוראצה.</div>
   </div>
 </div>
 
@@ -331,7 +333,7 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
 
   <div class="leg">
     <div class="leg-head"><span class="leg-dates">3.8–6.8 · ימים 1-3</span><span class="leg-name">צפון-מערב — אזור וראצה</span></div>
-    <div class="leg-what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Prohodna+Cave">מערת פרוחודנה "עיני האלוהים"</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Golden+Panega+Eco+Trail">Golden Panega Eco Trail</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Skaklya+Waterfall+Zasele">מפל סקאקליה</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Ledenika+Cave">רכבל + מערת לדניקה</a></div>
+    <div class="leg-what"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Prohodna+Cave">מערת פרוחודנה "עיני האלוהים"</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Golden+Panega+Eco+Trail">Golden Panega Eco Trail</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Skaklya+Waterfall+Zasele">מפל סקאקליה</a> · <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Ledenika+Cave">רכבל + מערת לדניקה</a> (ירדה לרשימת האקסטרות)</div>
   </div>
 
   <div class="leg">
@@ -592,7 +594,7 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
     <div class="bk-item"><span class="ico">🏔️</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Seven+Rila+Lakes+Lift">שבעת אגמי רילה</a><span class="note">מסלול הדגל של בולגריה — רכבל + לולאה של ~5 ק"מ בין אגמים קרחוניים (3-4 שעות). יציאה 07:00, לרכבל תורים מ-09:30. מעיל ונעלי הליכה חובה. מתאים בעיקר לשני הגדולים</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Rila_lakes.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Rila_lakes.jpg?width=320" alt="שבעת אגמי רילה" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
     <div class="bk-item"><span class="ico">🐻</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=BEAR+SANCTUARY+Belitsa">מקלט הדובים BEAR SANCTUARY Belitsa</a><span class="note">30+ דובים חופשיים — אחד הדברים הכי מיוחדים בבולגריה. ~1:30 נסיעה. להזמין מראש: belitsa.four-paws.org. אפשר לשלב עם Rila Fun Park ליד בנסקו</span></div></div>
     <div class="bk-item"><span class="ico">👁️</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Prohodna+Cave">מערת Prohodna — "עיני האלוהים"</a><span class="note">1:15 צפון-מזרח. מעבר מערה קל וחינמי (~45 דק'). קרוב: מערת Saeva Dupka עם אגם תת-קרקעי + פארק Panega לפיקניק ושכשוך בנהר. במערה ~10°C — מעיל!</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Prohodna-eyes-refl.JPG"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Prohodna-eyes-refl.JPG?width=320" alt="עיני האלוהים — Prohodna" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
-    <div class="bk-item"><span class="ico">🧊</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Ledenika+Cave">מערת Ledenika — "מערת הקרח"</a><span class="note">שעה צפונה, ליד Vratsa. סיורים מודרכים, 7-8°C בפנים. משלימים עם נופי Vratsa Balkan</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Ledenika_cave_045.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ledenika_cave_045.jpg?width=320" alt="מערת Ledenika" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
+    <div class="bk-item"><span class="ico">🧊</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Ledenika+Cave">מערת Ledenika — "מערת הקרח"</a><span class="note">ירדה מהתכנית בגרסה הנוכחית — אבל היא רק 20 דק' מהבסיס בוראצה (ימים 1-3), אז קל להחזיר אותה אם מתחשק. סיורים מודרכים, 7-8°C בפנים. משלימים עם נופי Vratsa Balkan</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Ledenika_cave_045.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ledenika_cave_045.jpg?width=320" alt="מערת Ledenika" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
     <div class="bk-item"><span class="ico">🧗</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Boroland+Rope+Town">Boroland Rope Town (אזור סמוקוב)</a><span class="note">1:15 דרומה — פארק חבלים ביער, זול (4-6 לבה למסלול). באותו כיוון: <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Happy+Donkeys+Bulgaria">Happy Donkeys</a> ו-<a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Ostrich+Fun+Bulgaria">חוות היענים Ostrich Fun</a></span></div></div>
     <div class="bk-item"><span class="ico">♨️</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Sapareva+Banya+Geyser">הגייזר בסאפרבה באניה</a><span class="note">הגייזר החם באירופה + בריכות מינרליות ב-<a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Aqua+Club+Kotvata+Sapareva+Banya">Aqua Club Kotvata</a> (טמפרטורות שונות, מתקני טיפוס). יום רגוע אחרי יום הרים</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Sapareva_banya_Artificial_geyser.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sapareva_banya_Artificial_geyser.jpg?width=320" alt="הגייזר בסאפרבה באניה" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
     <div class="bk-item"><span class="ico">🏰</span><div><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=Tsari+Mali+Grad+Belchin">Tsari Mali Grad</a><span class="note">~שעה דרומה — פוניקולר, מבצר, גשר חבלים ומתחם משחקים. שילוב מנצח לגילאים האלה</span></div><a class="ph" target="_blank" href="https://commons.wikimedia.org/wiki/File:Palakaria-hill-of-Tsari-Mali-Grad.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Palakaria-hill-of-Tsari-Mali-Grad.jpg?width=320" alt="Tsari Mali Grad" loading="lazy" onerror="this.parentNode.style.display='none'"></a></div>
@@ -629,14 +631,14 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
 <div class="tips">
   <h2>טיפים חשובים</h2>
   <ul>
-    <li><b>מוניות:</b> רק דרך אפליקציות Bolt או TaxiMe. לא לעצור מונית ברחוב — עוקצים תיירים.</li>
-    <li><b>מזג אוויר:</b> אוגוסט חם בעיר (28-32°) אבל ויטושה קרירה ב-8-10 מעלות — תמיד שכבה נוספת בתיק.</li>
-    <li><b>Muzeiko סגור בימי שני</b> — לכן שני = ימי קניון/טרמפולינות.</li>
-    <li><b>רכבל ויטושה</b> פועל בקיץ בעיקר בסופ"ש — לוודא באתר לפני יום 6.</li>
+    <li><b>מוניות בסופיה:</b> רק דרך אפליקציות Bolt או TaxiMe. לא לעצור מונית ברחוב — עוקצים תיירים.</li>
+    <li><b>מזג אוויר:</b> אוגוסט חם (28-35°) אבל בהרים — רילה, פירין, שבעת האגמים — קריר ב-8-10 מעלות. תמיד שכבה נוספת בתיק, ובמערות (~8-10°) מעיל של ממש.</li>
+    <li><b>הזמנות מראש:</b> שמורת הדובים (יום 8, belitsa.four-paws.org) · ראפטינג (יום 10 — לוודא גיל מינימום לבן ה-7) · רכיבת סוסים (יום 9 — לתאם שעה) · Muzeiko (יום 14 — עמוס בקיץ).</li>
+    <li><b>Muzeiko סגור בימי שני</b> — בגלל זה הוא ביום 14 (ראשון) ויום 15 (שני) הוא Ring Mall.</li>
+    <li><b>רכבל שבעת האגמים (יום 5):</b> תורים מ-09:30 — לצאת מבורוביץ עד 07:30.</li>
     <li><b>מטבע:</b> בולגריה עברה לאירו ב-2026. כרטיס עובד כמעט בכל מקום.</li>
-    <li><b>הזמנות מראש:</b> חדר בריחה (יום 5) — חובה. קרטינג — מומלץ בקבוצה.</li>
-    <li><b>מגרשי חנייה בגן החיות קטנים</b> — עדיף מונית.</li>
-    <li>סדר הימים גמיש — אם יורד גשם, מחליפים יום טבע ביום Ring Mall / Just Place.</li>
+    <li><b>ויניאטה (אגרת כבישים):</b> חובה מהיום הראשון — לקנות בשדה או אונליין (bgtoll.bg).</li>
+    <li>סדר הימים בתוך כל בסיס גמיש — אם יורד גשם, מחליפים יום טבע ביום מערות/קניון.</li>
   </ul>
 </div>
 
