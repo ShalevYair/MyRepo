@@ -62,6 +62,8 @@
   .food-sub{font-size:13.5px;color:#6B716E;margin-bottom:16px}
   .food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
   .dish{background:#fff;border:1px solid #E3E0D8;border-radius:14px;padding:16px;position:relative}
+  .dish-photo{display:block;margin:-16px -16px 12px;border-radius:14px 14px 0 0;overflow:hidden;background:#F1EEE6}
+  .dish-photo img{display:block;width:100%;height:170px;object-fit:cover}
   .dish-emoji{font-size:34px;display:block;margin-bottom:6px}
   .dish-names{font-size:15.5px;margin-bottom:5px}
   .dish-names .bg{color:#7A6A2F;font-weight:500}
@@ -269,58 +271,78 @@ map.fitBounds(L.featureGroup(grp).getBounds().pad(0.08));
 <!-- ======= FOOD ======= -->
 <div class="food-section">
   <h2 class="food-title">🍽️ מה אוכלים בבולגריה</h2>
-  <p class="food-sub">לחיצה על 📷 פותחת תמונות של המנה בגוגל</p>
+  <p class="food-sub">התמונות מוויקישיתוף (Wikimedia Commons) — לחיצה על תמונה פותחת את המקור, ו-📷 פותח עוד תמונות בגוגל</p>
   <div class="food-grid">
 
-    <div class="dish"><span class="dish-emoji">🥧</span>
+    <div class="dish">
+      <a class="dish-photo" target="_blank" href="https://commons.wikimedia.org/wiki/File:Banitsa_and_yogurt.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Banitsa_and_yogurt.jpg?width=640" alt="בניצה" loading="lazy" onerror="this.parentNode.style.display='none'"></a>
+      <span class="dish-emoji">🥧</span>
       <div class="dish-names"><b>בניצה</b> · Banitsa · <span class="bg">баница</span></div>
       <p>מאפה פילו במילוי גבינה לבנה (סירנה) ויוגורט. ארוחת הבוקר הלאומית — מוכר בכל מאפייה, זול וילדים אוהבים.</p>
-      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=banitsa+%D0%B1%D0%B0%D0%BD%D0%B8%D1%86%D0%B0">📷 תמונות</a></div>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=banitsa+%D0%B1%D0%B0%D0%BD%D0%B8%D1%86%D0%B0">📷 עוד תמונות</a></div>
 
-    <div class="dish"><span class="dish-emoji">🥗</span>
+    <div class="dish">
+      <a class="dish-photo" target="_blank" href="https://commons.wikimedia.org/wiki/File:Shopska_Salad.JPG"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Shopska_Salad.JPG?width=640" alt="סלט שופסקה" loading="lazy" onerror="this.parentNode.style.display='none'"></a>
+      <span class="dish-emoji">🥗</span>
       <div class="dish-names"><b>סלט שופסקה</b> · Shopska Salad · <span class="bg">шопска салата</span></div>
       <p>עגבניות, מלפפונים, פלפל ובצל תחת הר של גבינת סירנה מגוררת. המנה המזוהה ביותר עם בולגריה.</p>
-      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=shopska+salad">📷 תמונות</a></div>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=shopska+salad">📷 עוד תמונות</a></div>
 
-    <div class="dish"><span class="dish-emoji">🥣</span>
+    <div class="dish">
+      <a class="dish-photo" target="_blank" href="https://commons.wikimedia.org/wiki/File:TaratorBg.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/TaratorBg.jpg?width=640" alt="טרטור" loading="lazy" onerror="this.parentNode.style.display='none'"></a>
+      <span class="dish-emoji">🥣</span>
       <div class="dish-names"><b>טרטור</b> · Tarator · <span class="bg">таратор</span></div>
       <p>מרק יוגורט קר עם מלפפון, שום, שמיר ואגוזים. מושלם לצהרי אוגוסט חמים — כמו צזיקי נוזלי.</p>
-      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=tarator+bulgarian+soup">📷 תמונות</a></div>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=tarator+bulgarian+soup">📷 עוד תמונות</a></div>
 
-    <div class="dish"><span class="dish-emoji">🌭</span>
+    <div class="dish">
+      <a class="dish-photo" target="_blank" href="https://commons.wikimedia.org/wiki/File:Kebapcheta.JPG"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Kebapcheta.JPG?width=640" alt="קבפצ'ה" loading="lazy" onerror="this.parentNode.style.display='none'"></a>
+      <span class="dish-emoji">🌭</span>
       <div class="dish-names"><b>קבפצ'ה</b> · Kebapche · <span class="bg">кебапче</span></div>
       <p>נקניקיית בשר טחון בצורת אצבע, מתובלת בכמון, מהגריל. שימו לב: בדרך כלל תערובת חזיר-בקר — מי שנמנע מחזיר, לשאול לפני.</p>
-      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=kebapche">📷 תמונות</a></div>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=kebapche">📷 עוד תמונות</a></div>
 
-    <div class="dish"><span class="dish-emoji">🍩</span>
+    <div class="dish">
+      <a class="dish-photo" target="_blank" href="https://commons.wikimedia.org/wiki/File:Mekici_and_jam.JPG"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Mekici_and_jam.JPG?width=640" alt="מקיצה" loading="lazy" onerror="this.parentNode.style.display='none'"></a>
+      <span class="dish-emoji">🍩</span>
       <div class="dish-names"><b>מקיצה</b> · Mekitsa · <span class="bg">мекица</span></div>
       <p>בצק מטוגן שמנמן — כמו סופגנייה שטוחה — עם ריבה, דבש או אבקת סוכר. להיט הילדים מספר 1 בארוחות בוקר.</p>
-      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=mekitsa+%D0%BC%D0%B5%D0%BA%D0%B8%D1%86%D0%B0">📷 תמונות</a></div>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=mekitsa+%D0%BC%D0%B5%D0%BA%D0%B8%D1%86%D0%B0">📷 עוד תמונות</a></div>
 
-    <div class="dish"><span class="dish-emoji">🧀</span>
+    <div class="dish">
+      <a class="dish-photo" target="_blank" href="https://commons.wikimedia.org/wiki/File:Sma%C5%BEen%C3%BD_s%C3%BDr,_hranolky,_tatarsk%C3%A1_om%C3%A1%C4%8Dka,_obloha.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sma%C5%BEen%C3%BD_s%C3%BDr,_hranolky,_tatarsk%C3%A1_om%C3%A1%C4%8Dka,_obloha.jpg?width=640" alt="קשקבל פנה" loading="lazy" onerror="this.parentNode.style.display='none'"></a>
+      <span class="dish-emoji">🧀</span>
       <div class="dish-names"><b>קשקבל פנה</b> · Kashkaval Pane · <span class="bg">кашкавал пане</span></div>
       <p>גבינה צהובה מטוגנת בציפוי פירורים — "שניצל גבינה". המנה שכל ילד בררן יאכל בלי ויכוחים.</p>
-      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=kashkaval+pane">📷 תמונות</a></div>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=kashkaval+pane">📷 עוד תמונות</a></div>
 
-    <div class="dish"><span class="dish-emoji">🍅</span>
+    <div class="dish">
+      <a class="dish-photo" target="_blank" href="https://commons.wikimedia.org/wiki/File:%D0%A1%D0%B8%D1%82%D0%BD%D0%BE_%D1%81%D0%BC%D0%BB%D1%8F%D0%BD%D0%B0_%D0%BB%D1%8E%D1%82%D0%B5%D0%BD%D0%B8%D1%86%D0%B0.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/%D0%A1%D0%B8%D1%82%D0%BD%D0%BE_%D1%81%D0%BC%D0%BB%D1%8F%D0%BD%D0%B0_%D0%BB%D1%8E%D1%82%D0%B5%D0%BD%D0%B8%D1%86%D0%B0.jpg?width=640" alt="ליוטניצה" loading="lazy" onerror="this.parentNode.style.display='none'"></a>
+      <span class="dish-emoji">🍅</span>
       <div class="dish-names"><b>ליוטניצה</b> · Lyutenitsa · <span class="bg">лютеница</span></div>
       <p>ממרח עגבניות ופלפלים קלויים — מורחים על לחם עם גבינה. יש גרסה מתונה וגרסה חריפה, לבדוק לפני שנותנים לקטן.</p>
-      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=lyutenitsa">📷 תמונות</a></div>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=lyutenitsa">📷 עוד תמונות</a></div>
 
-    <div class="dish"><span class="dish-emoji">🥛</span>
+    <div class="dish">
+      <a class="dish-photo" target="_blank" href="https://commons.wikimedia.org/wiki/File:Bulgarian_yogurt.JPG"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Bulgarian_yogurt.JPG?width=640" alt="יוגורט בולגרי" loading="lazy" onerror="this.parentNode.style.display='none'"></a>
+      <span class="dish-emoji">🥛</span>
       <div class="dish-names"><b>יוגורט בולגרי</b> · Kiselo Mlyako · <span class="bg">кисело мляко</span></div>
       <p>הגאווה הלאומית — החיידק Lactobacillus bulgaricus קרוי על שם המדינה. סמיך וחמצמץ, שווה השוואה ליוגורט מהבית.</p>
-      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=kiselo+mlyako+bulgarian+yogurt">📷 תמונות</a></div>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=kiselo+mlyako+bulgarian+yogurt">📷 עוד תמונות</a></div>
 
-    <div class="dish"><span class="dish-emoji">🥞</span>
+    <div class="dish">
+      <a class="dish-photo" target="_blank" href="https://commons.wikimedia.org/wiki/File:Pancake_palachinki.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Pancake_palachinki.jpg?width=640" alt="פלצ'ינקי" loading="lazy" onerror="this.parentNode.style.display='none'"></a>
+      <span class="dish-emoji">🥞</span>
       <div class="dish-names"><b>פלצ'ינקי</b> · Palachinki · <span class="bg">палачинки</span></div>
       <p>קרפים דקים מגולגלים עם שוקולד, ריבה או גבינה. נמכרים בדוכנים בכל פארק — הפסקת סוכר מובטחת.</p>
-      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=palachinki+bulgarian">📷 תמונות</a></div>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=palachinki+bulgarian">📷 עוד תמונות</a></div>
 
-    <div class="dish"><span class="dish-emoji">🥤</span>
+    <div class="dish">
+      <a class="dish-photo" target="_blank" href="https://commons.wikimedia.org/wiki/File:Ayran_in_a_big_glass.jpg"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Ayran_in_a_big_glass.jpg?width=640" alt="איראן" loading="lazy" onerror="this.parentNode.style.display='none'"></a>
+      <span class="dish-emoji">🥤</span>
       <div class="dish-names"><b>איראן</b> · Ayran · <span class="bg">айран</span></div>
       <p>משקה יוגורט קר ומלוח קלות. הבולגרים שותים אותו עם בניצה בבוקר. מרענן מאוד בחום.</p>
-      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=ayran+drink">📷 תמונות</a></div>
+      <a class="pic" target="_blank" href="https://www.google.com/search?tbm=isch&q=ayran+drink">📷 עוד תמונות</a></div>
 
   </div>
 </div>
