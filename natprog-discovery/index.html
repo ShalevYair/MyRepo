@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NATPROG Discovery — סורק קבצי Natural/SYSOBJH</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <h1>NATPROG&nbsp;Discovery</h1>
+    <span class="ver">v1.0 · סריקה מקומית בדפדפן · הקובץ לא עוזב את המחשב</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ 1. INPUT ============ -->
+<section class="card" id="sec-input">
+  <h2>1 · בחירת קובץ</h2>
+
+  <div class="row">
+    <label class="filebtn">
+      <input type="file" id="file" hidden>
+      <span>בחר קובץ…</span>
+    </label>
+    <div id="fileinfo" class="muted">לא נבחר קובץ</div>
+  </div>
+
+  <div class="grid-opts">
+    <label>קידוד
+      <select id="encoding">
+        <option value="auto" selected>אוטומטי (מומלץ)</option>
+        <option value="utf-8">UTF-8</option>
+        <option value="windows-1255">Windows-1255 (עברית)</option>
+        <option value="iso-8859-8">ISO-8859-8</option>
+        <option value="latin1">Latin-1 / בינארי גולמי</option>
+        <option value="cp862">CP862 (DOS עברית)</option>
+        <option value="cp424">CP424 (EBCDIC עברית)</option>
+        <option value="cp037">CP037 (EBCDIC US)</option>
+      </select>
+    </label>
+
+    <label>חלוקה לרשומות
+      <select id="linemode">
+        <option value="auto" selected>אוטומטי</option>
+        <option value="lf">לפי שורות (LF/CRLF)</option>
+        <option value="fixed">אורך קבוע…</option>
+      </select>
+    </label>
+
+    <label id="reclen-wrap" class="hidden">אורך רשומה (תווים)
+      <input type="number" id="reclen" value="80" min="1" max="32760">
+    </label>
+
+    <label>היקף סריקה
+      <select id="limit">
+        <option value="0" selected>כל הקובץ</option>
+        <option value="10">10 MB ראשונים (בדיקה מהירה)</option>
+        <option value="100">100 MB ראשונים</option>
+        <option value="500">500 MB ראשונים</option>
+      </select>
+    </label>
+
+    <label>פרופיל מבנה
+      <select id="profile">
+        <option value="natural-sysobjh" selected>Natural SYSOBJH / SYSTRANS unload</option>
+        <option value="none">ללא — סריקה גנרית בלבד</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="row">
+    <button id="run" class="primary" disabled>הרץ סריקה</button>
+    <button id="cancel" class="ghost hidden">עצור</button>
+  </div>
+
+  <div id="progwrap" class="hidden">
+    <div class="bar"><div id="bar" class="bar-fill"></div></div>
+    <div id="progtext" class="muted mono"></div>
+  </div>
+</section>
+
+<!-- ============ 2. VERDICT ============ -->
+<section class="card hidden" id="sec-verdict">
+  <h2>2 · שורה תחתונה</h2>
+  <div id="verdict"></div>
+</section>
+
+<!-- ============ 3. RESULTS ============ -->
+<section class="card hidden" id="sec-results">
+  <h2>3 · ממצאים</h2>
+  <nav class="tabs" id="tabs">
+    <button data-tab="t-overview" class="active">סקירה</button>
+    <button data-tab="t-structure">מבנה גולמי</button>
+    <button data-tab="t-objects">אובייקטים</button>
+    <button data-tab="t-deps">תלויות</button>
+    <button data-tab="t-samples">דגימות קוד</button>
+    <button data-tab="t-anom">חריגות</button>
+  </nav>
+  <div id="t-overview"  class="tab active"></div>
+  <div id="t-structure" class="tab"></div>
+  <div id="t-objects"   class="tab"></div>
+  <div id="t-deps"      class="tab"></div>
+  <div id="t-samples"   class="tab"></div>
+  <div id="t-anom"      class="tab"></div>
+</section>
+
+<!-- ============ 4. EXPORT ============ -->
+<section class="card hidden" id="sec-export">
+  <h2>4 · ייצוא לוג לניתוח</h2>
+  <p class="muted">
+    ה־JSON הזה נועד להישלח בחזרה לניתוח. הוא מכיל אגרגציות, דגימות וכל החריגות —
+    בלי להעתיק את כל תוכן הקובץ.
+  </p>
+  <div class="row">
+    <button id="dl-json" class="primary">הורד discovery-log.json</button>
+    <button id="copy-json" class="ghost">העתק ללוח</button>
+    <button id="dl-csv" class="ghost">הורד objects.csv (מלא)</button>
+    <span id="expinfo" class="muted mono"></span>
+  </div>
+</section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
