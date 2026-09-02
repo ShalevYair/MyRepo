@@ -292,27 +292,53 @@ const NAT_PROFILE = {
      NOT from the standard Natural user-facing letter set (which differs:
      there P=Program, A=PDA, G=GDA).  Confidence is per-letter. */
   typeMap: {
-    F: { name: 'Program',             kind: 'exec', conf: 'inferred',
-         evidence: 'Bodies contain DEFINE DATA + executable statements; no DEFINE FUNCTION found.' },
-    N: { name: 'Subprogram',          kind: 'exec', conf: 'high',
-         evidence: 'Bodies self-describe as "SUBPROGRAM : <name>".' },
-    S: { name: 'Subroutine',          kind: 'exec', conf: 'high',
-         evidence: 'Bodies self-describe as "SUBROUTINE".' },
-    M: { name: 'Map',                 kind: 'map',  conf: 'high',
-         evidence: 'Bodies carry the map prototype header + DEFINE DATA PARAMETER.' },
-    L: { name: 'Local Data Area',     kind: 'data', conf: 'high',
-         evidence: 'Bodies are internal data-area format (**DF/**DR/**C lines).' },
-    P: { name: 'Parameter Data Area', kind: 'data', conf: 'inferred',
-         evidence: 'Data-area format; bodies self-describe as "PARAMETER : <name>".' },
-    C: { name: 'Global Data Area',    kind: 'data', conf: 'inferred',
-         evidence: 'Data-area format; every observed name ends in "G".' },
-    T: { name: 'Text',                kind: 'text', conf: 'high',
-         evidence: 'Free-form text, no Natural syntax.' },
-    G: { name: 'Global Data Area?',   kind: 'data', conf: 'guess', evidence: 'not seen in sample' },
+    // "confirmed" = cross-referenced by name+library+timestamp against a real
+    // SYSOBJH job-log report, which spells the type out as a full word
+    // (PROGRAM/MAP/LOCAL/GLOBAL/SUBPROGRAM/PARAMETER/SUBROUTINE/TEXT/COPYCODE/
+    // HELPROUTINE). That report is not vendor documentation either, but it is
+    // Software AG's own tool naming its own objects, so it outranks our
+    // source-body heuristics.
+    F: { name: 'Program',             kind: 'exec', conf: 'confirmed',
+         evidence: 'Bodies contain DEFINE DATA + executable statements, no DEFINE FUNCTION; ' +
+                    'confirmed via SYSOBJH report (A/ASKZBTP1, 2015-03-08 15:00:15 -> "PROGRAM").' },
+    N: { name: 'Subprogram',          kind: 'exec', conf: 'confirmed',
+         evidence: 'Bodies self-describe as "SUBPROGRAM : <name>"; confirmed via SYSOBJH report ' +
+                    '(ADLDMF/ADLCSTO -> "SUBPROGRAM").' },
+    S: { name: 'Subroutine',          kind: 'exec', conf: 'confirmed',
+         evidence: 'Bodies self-describe as "SUBROUTINE"; confirmed via SYSOBJH report ' +
+                    '(ADLIVP/ADBXPAS1 -> "SUBROUTINE").' },
+    M: { name: 'Map',                 kind: 'map',  conf: 'confirmed',
+         evidence: 'Bodies carry the map prototype header + DEFINE DATA PARAMETER; confirmed via ' +
+                    'SYSOBJH report (ADLDMF/#L9902D -> "MAP").' },
+    L: { name: 'Local Data Area',     kind: 'data', conf: 'confirmed',
+         evidence: 'Bodies are internal data-area format (**DF/**DR/**C lines); confirmed via ' +
+                    'SYSOBJH report (ADLDMF/ADBLOC-D -> "LOCAL").' },
+    P: { name: 'Parameter Data Area', kind: 'data', conf: 'confirmed',
+         evidence: 'Data-area format; bodies self-describe as "PARAMETER : <name>"; confirmed via ' +
+                    'SYSOBJH report (ADLDMF/ADLECB-A -> "PARAMETER").' },
+    C: { name: 'Global Data Area',    kind: 'data', conf: 'confirmed',
+         evidence: 'Data-area format; confirmed via SYSOBJH report (ADLDMF/ADBGLOBA -> "GLOBAL").' },
+    T: { name: 'Text',                kind: 'text', conf: 'confirmed',
+         evidence: 'Free-form text, no Natural syntax; confirmed via SYSOBJH report ' +
+                    '(ADLDMF/USR0010T -> "TEXT").' },
+    G: { name: 'Copycode',            kind: 'exec', conf: 'inferred',
+         evidence: 'NOT "Global Data Area" as earlier guessed. Two independent signals: (1) in a ' +
+                    'SYSOBJH report sample, COPYCODE:GLOBAL rows were 154:35 (ratio 4.4), matching ' +
+                    'this scan\'s G:C ratio of 1066:240 (ratio 4.44) almost exactly, while C is now ' +
+                    'confirmed as GLOBAL; (2) 24 of 25 declared_type_vs_body_mismatch samples in this ' +
+                    'very scan are type G with a body that "looks like exec" — expected for reusable ' +
+                    'code fragments (copycode), not for a data area.' },
+    H: { name: 'Helproutine',         kind: 'exec', conf: 'inferred',
+         evidence: 'Confirmed as a real type via SYSOBJH report ("HELPROUTINE", e.g. ALEX/AL0002H0); ' +
+                    'kind=exec not independently verified against a body sample yet.' },
     A: { name: 'Parameter Data Area?',kind: 'data', conf: 'guess', evidence: 'not seen in sample' },
-    H: { name: 'Helproutine?',        kind: 'exec', conf: 'guess', evidence: 'not seen in sample' },
     4: { name: 'Class?',              kind: 'exec', conf: 'guess', evidence: 'not seen in sample' },
-    8: { name: 'Adapter?',            kind: 'exec', conf: 'guess', evidence: 'not seen in sample' }
+    8: { name: 'Adapter?',            kind: 'exec', conf: 'guess', evidence: 'not seen in sample' },
+    7: { name: 'UNKNOWN',             kind: '?',    conf: 'none',
+         evidence: 'Seen 18x in a real 770MB scan (e.g. SYSEXPG/FUNCAX02, SYSEXV/V82FUNCA) but no ' +
+                    'matching row found in the SYSOBJH report sample. Needs a source-body sample to classify.' },
+    5: { name: 'UNKNOWN',             kind: '?',    conf: 'none',
+         evidence: 'Seen once in a real 770MB scan (NCSTDEMO/NCPDEMO). Needs a source-body sample to classify.' }
   }
 };
 
@@ -484,8 +510,19 @@ class Analyzer {
     }
 
     switch (tag) {
-      case '*S**': {
+      case '*S**': case '-S**': {
+        // '-S**' is a real, recurring variant (confirmed on a 770 MB scan: it was
+        // 100% of that run's "unknown record" anomaly, ~1.1% of all records,
+        // mechanically identical to '*S**' — same width, same offset-4 payload,
+        // valid Natural content). Observed payloads look like internal DDM/view
+        // structure directives (e.g. "/*DS ... 1AL0002A1", "/*DV ... GN-GLUFA-VIEW")
+        // rather than plain statement text. Parsed the same way as '*S**' so source
+        // counts and dependency extraction aren't silently short, but tracked under
+        // its own tag (not folded into '*S**') and flagged so it stays auditable —
+        // the exact reason Natural marks these with '-' instead of '*' is not
+        // confirmed against vendor documentation.
         bump(p.rec, tag);
+        if (tag === '-S**') this.note('source_line_dash_variant', this.lineNo, line);
         if (!this.cur) { this.note('orphan_source_line', this.lineNo, line); return; }
         this.feedSource(line);
         return;
@@ -940,16 +977,40 @@ function buildReport(an, file) {
       distinctPrefix4: g.prefix4.size
     },
 
-    encodingDamage: {
-      replacementCharsFound: g.replacementChars,
-      recordsAffected: g.linesWithReplacement,
-      meaning: g.replacementChars > 0
-        ? 'U+FFFD characters are present in the decoded text. These are NOT recoverable from this file: ' +
-          'the original (most likely EBCDIC Hebrew) bytes were destroyed during an earlier conversion. ' +
-          'To recover the Hebrew, the file must be re-exported from the mainframe as raw bytes and decoded ' +
-          'with the correct Hebrew codepage (CP424 / CP803 / CP12712), not the codepage named in the *D04 record.'
-        : 'No replacement characters detected.'
-    },
+    encodingDamage: (() => {
+      if (g.replacementChars === 0) return { replacementCharsFound: 0, recordsAffected: 0, likelyCause: null,
+        meaning: 'No replacement characters detected.' };
+      // Two very different situations produce the same symptom:
+      //  (a) U+FFFD was already baked into the bytes (EF BF BD) before this tool ever saw them
+      //      -> genuinely gone, no encoding choice here can bring it back.
+      //  (b) the chosen codepage is a single-byte table with a handful of UNASSIGNED byte
+      //      values (e.g. windows-1255 leaves several code points undefined) -> the bytes are
+      //      still there, this tool's codepage guess just isn't the right one for them.
+      // sniff.replacementSeqInSample only covers the sniffed head (see SNIFF constant), so a
+      // "0" there is evidence, not proof, for the whole file.
+      const preExisting = m.sniff.replacementSeqInSample > 0;
+      const singleByte = m.encoding !== 'utf-8';
+      let cause, meaning;
+      if (preExisting) {
+        cause = 'pre-existing-in-bytes';
+        meaning = 'U+FFFD was already present in the raw bytes (found ' + m.sniff.replacementSeqInSample +
+          ' EF BF BD sequences in the sniffed sample) — this predates this tool and is NOT recoverable from ' +
+          'this file. The data must be re-exported from source with a codepage that can represent it.';
+      } else if (singleByte) {
+        cause = 'possible-codepage-mismatch';
+        meaning = 'No pre-existing U+FFFD was found in the sniffed sample, and "' + m.encoding + '" is a ' +
+          'single-byte codepage with some unassigned byte values — so these replacement characters were most ' +
+          'likely PRODUCED BY THIS DECODE, not by prior data loss. Before concluding anything is lost, re-run ' +
+          'with a sibling codepage (try ISO-8859-8, CP862, or CP424/CP037 if the source is EBCDIC) and compare ' +
+          'the U+FFFD count and the side-by-side preview on the Overview tab.';
+      } else {
+        cause = 'unclear';
+        meaning = 'No pre-existing U+FFFD was found in the sniffed sample, but the file is large enough that ' +
+          'the sniff (first few MB) may not be representative of where the damage occurs. Treat as unconfirmed.';
+      }
+      return { replacementCharsFound: g.replacementChars, recordsAffected: g.linesWithReplacement,
+               likelyCause: cause, meaning };
+    })(),
 
     profile: an.profileOn ? {
       matched: matchRate > 0.98 && p.objectsSeen > 0,
@@ -994,6 +1055,11 @@ function buildReport(an, file) {
       },
       resolution: {
         note: 'Resolved against objects seen IN THIS SCAN only. On a partial scan, "unresolved" is expected and not an error.',
+        performNote: 'Most PERFORM targets are subroutine labels DEFINEd INSIDE the same source object ' +
+          '(DEFINE SUBROUTINE ... END-SUBROUTINE), not separate catalogued objects — this check can only ' +
+          'resolve PERFORMs of externally catalogued type-S Subroutines. A high unresolved count here is ' +
+          'expected and is not evidence of broken calls; compare the DEFINE/END-SUBROUTINE counts in the ' +
+          'statement-keyword list to sanity-check that most PERFORMs are accounted for internally.',
         using:   resolveTargets(an, p.dep.using,   ['L', 'C', 'P', 'G', 'A'], 60),
         callnat: resolveTargets(an, p.dep.callnat, ['N'], 60),
         perform: resolveTargets(an, p.dep.perform, ['S'], 40),
@@ -1057,11 +1123,12 @@ function buildVerdict(r, an) {
   }
 
   if (r.encodingDamage.replacementCharsFound > 0) {
-    add('err', 'Character data already destroyed: ' + r.encodingDamage.replacementCharsFound.toLocaleString() + ' U+FFFD characters',
-      'Affects ' + r.encodingDamage.recordsAffected.toLocaleString() + ' records. The *D04 record declares codepage "' +
-      (r.profile ? (r.profile.objects.byCodepageField[0] || ['?'])[0] : '?') +
-      '", which is a Latin-1 EBCDIC page and cannot represent Hebrew. The Hebrew text is NOT recoverable from this file — ' +
-      're-export from the mainframe with a Hebrew codepage (CP424/CP803/CP12712) or as raw untranslated bytes.');
+    const cause = r.encodingDamage.likelyCause;
+    add(cause === 'pre-existing-in-bytes' ? 'err' : 'warn',
+      (cause === 'pre-existing-in-bytes' ? 'Character data already destroyed: ' : 'Possible codepage mismatch: ') +
+      r.encodingDamage.replacementCharsFound.toLocaleString() + ' U+FFFD characters (' +
+      r.encodingDamage.recordsAffected.toLocaleString() + ' records)',
+      r.encodingDamage.meaning);
   }
 
   if (r.generic.lengthModulo12.length > 1) {
@@ -1092,6 +1159,12 @@ function buildVerdict(r, an) {
   if (A('orphan_source_line') > 0)
     add('err', A('orphan_source_line').toLocaleString() + ' source records before any object header',
       'Strongly suggests the record framing is wrong — likely the wrong record length or a mid-file format change.');
+
+  if (A('source_line_dash_variant') > 0)
+    add('ok', A('source_line_dash_variant').toLocaleString() + " source records use the '-S**' tag instead of '*S**'",
+      "Parsed the same as '*S**' (confirmed on a real 770MB scan: same width, same offset-4 payload, valid " +
+      'Natural content — commonly internal DDM/view structure lines). Counted in source lines and dependency ' +
+      "extraction; the exact reason Natural uses '-' here is not confirmed against vendor documentation.");
 
   if (A('final_record_truncated') > 0 && r.file.fullFileScanned && !r.file.cancelled)
     add('warn', 'The file ends mid-record',
@@ -1367,6 +1440,9 @@ if (typeof document !== 'undefined') (function () {
           (res ? ' · <span class="muted">' + fmtNum(res.referencesUnresolved) +
                  ' הפניות לא נפתרו מתוך ' + fmtNum(res.referencesResolved + res.referencesUnresolved) + '</span>' : '') +
           '</h3>');
+        if (title.indexOf('PERFORM') === 0 && L.resolution.performNote) {
+          dp.push('<p class="muted" style="direction:ltr;text-align:left">' + esc(L.resolution.performNote) + '</p>');
+        }
         dp.push(scroll(pairs(dd.top, 'target', 'refs')));
         if (res && res.topUnresolved.length) {
           dp.push('<div class="muted" style="font-size:12px;margin:4px 0 10px">יעדים שלא נמצאו בסריקה: ' +
