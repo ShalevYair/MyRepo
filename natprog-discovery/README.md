@@ -50,6 +50,22 @@ tags vs. the report's fixed-column date fingerprint) and picks the right profile
 type and it's handled correctly, no manual switch needed. Both profiles can also be forced manually,
 and picking the wrong one on purpose is a good way to see the tool correctly refuse to match.
 
+### Cross-checking a pair (the "הצלבה" tab)
+
+A second, optional file input lets you load a raw unload and its matching job-log report **together**.
+Once both finish scanning, every report row with `STATUS=UNLOADED` is looked up in the raw file's
+object index; anything the report claims succeeded but that isn't actually in the raw unload is
+surfaced as a concrete list (library, name, type, date, time, user) — not just a count. A row the
+report itself flagged as failed is skipped here (its own status already says so).
+
+Verified against a synthetic full-coverage pair built from the real 216-object sample: 215/215 matched
+with zero false positives, and a deliberately deleted object was caught as exactly one miss, nothing
+else. **Important**: if either file was only partially scanned (a byte limit, or these are excerpts of
+larger files — like the two ~1 MB samples this tool was validated against), a large "missing" count is
+expected and does **not** mean data was lost — it means the two scanned windows don't cover the same
+objects. The tool detects this and downgrades its own verdict accordingly; treat cross-check numbers as
+meaningful only when both sides were fully scanned.
+
 ## Output
 
 * **`discovery-log.json`** — the analysis log, capped and aggregated (~60–90 KB even for a 250 MB
@@ -94,9 +110,16 @@ that anomaly is what caught `G` being wrong in the first place.
 | `T` | Text | confirmed | free-form text, no Natural syntax; report confirms |
 | `G` | **Copycode** | inferred | **not** "Global Data Area" as first guessed — that guess was never seen in the original small sample. On a real scan, COPYCODE:GLOBAL rows in the report (154:35) match this scan's G:C ratio (1066:240) almost exactly once C is pinned to GLOBAL, and 24 of 25 `declared_type_vs_body_mismatch` samples were type G with an executable-looking body — expected for copycode, not a data area |
 | `H` | Helproutine | inferred | confirmed as a real type via the report; body shape not independently verified |
+| `V` | **DDM** (Adabas field layout) | confirmed | report confirms (`SYSTEM/ACCOUNTING`, saved 2015-08-05 09:55:09, is type V here and "DDM" there). A DDM describes one physical Adabas file's field layout — name/format/length/description rows — not executable Natural, and not the same internal shape as an `L`/`P`/`C` data area either; it just lands in the same `kind: data` bucket |
 
 Letters `7` and `5` are seen in real scans (18× and 1×) but absent from the report sample — still
 unclassified. If the scan reports `unknown_object_type_letter`, send the log so the map can extend.
+
+**DDM has the same raw+report pairing as the programs above** — a DDM unload uses the identical
+`*H**`/`*C**`/`*D01-04`/`*S**` structure (this profile parses it with no changes needed), and Software
+AG's own DDM job-log report uses the identical 132-column table, just with `TYPE=DDM` and (in the one
+real pair examined) a different Adabas file number (`DBID/FNR` `240/10` for DDMs vs `240/9` for
+programs) — cross-check works across this pair exactly the same way.
 
 ## Record layout used: job-log report
 

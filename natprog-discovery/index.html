@@ -24,10 +24,23 @@
   <div class="row">
     <label class="filebtn">
       <input type="file" id="file" hidden>
-      <span>בחר קובץ…</span>
+      <span>בחר קובץ ראשי…</span>
     </label>
     <div id="fileinfo" class="muted">לא נבחר קובץ</div>
   </div>
+
+  <div class="row">
+    <label class="filebtn secondary">
+      <input type="file" id="file2" hidden>
+      <span>+ קובץ להצלבה (אופציונלי)</span>
+    </label>
+    <button id="clear-file2" class="ghost hidden" style="padding:5px 12px;font-size:12px">בטל</button>
+    <div id="fileinfo2" class="muted"></div>
+  </div>
+  <p class="muted" style="font-size:12px;margin:-4px 0 12px">
+    אם אחד הקבצים הוא unload גולמי (*H**/*C**/*S**) והשני הוא דוח SYSOBJH (טבלת UNLOADED/LIBRARY/...) —
+    הכלי יבדוק שכל אובייקט שהדוח מסמן כ-UNLOADED אכן קיים ב-unload הגולמי, ויסמן פערים.
+  </p>
 
   <div class="grid-opts">
     <label>קידוד
@@ -96,6 +109,7 @@
   <h2>3 · ממצאים</h2>
   <nav class="tabs" id="tabs">
     <button data-tab="t-overview" class="active">סקירה</button>
+    <button data-tab="t-cross" id="tab-cross" class="hidden">הצלבה</button>
     <button data-tab="t-structure">מבנה גולמי</button>
     <button data-tab="t-objects">אובייקטים</button>
     <button data-tab="t-deps">תלויות</button>
@@ -103,6 +117,7 @@
     <button data-tab="t-anom">חריגות</button>
   </nav>
   <div id="t-overview"  class="tab active"></div>
+  <div id="t-cross"     class="tab"></div>
   <div id="t-structure" class="tab"></div>
   <div id="t-objects"   class="tab"></div>
   <div id="t-deps"      class="tab"></div>

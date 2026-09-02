@@ -57,6 +57,7 @@ button.primary:hover:not(:disabled){filter:brightness(1.12);color:#07121d}
   border-radius:6px;padding:9px 18px;cursor:pointer;font-size:13px;
 }
 .filebtn:hover{border-color:var(--accent);color:var(--accent)}
+.filebtn.secondary{padding:7px 14px;font-size:12px;opacity:.85}
 
 /* ---------- progress ---------- */
 .bar{height:7px;background:var(--panel2);border-radius:4px;overflow:hidden;margin-bottom:7px}

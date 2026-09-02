@@ -338,7 +338,12 @@ const NAT_PROFILE = {
          evidence: 'Seen 18x in a real 770MB scan (e.g. SYSEXPG/FUNCAX02, SYSEXV/V82FUNCA) but no ' +
                     'matching row found in the SYSOBJH report sample. Needs a source-body sample to classify.' },
     5: { name: 'UNKNOWN',             kind: '?',    conf: 'none',
-         evidence: 'Seen once in a real 770MB scan (NCSTDEMO/NCPDEMO). Needs a source-body sample to classify.' }
+         evidence: 'Seen once in a real 770MB scan (NCSTDEMO/NCPDEMO). Needs a source-body sample to classify.' },
+    V: { name: 'DDM (Adabas field layout)', kind: 'data', conf: 'confirmed',
+         evidence: 'Confirmed via a SYSOBJH job-log report cross-reference (SYSTEM/ACCOUNTING, saved ' +
+                    '2015-08-05 09:55:09, appears as type V here and as "DDM" there). A DDM describes the ' +
+                    "field layout of one physical Adabas file — not a program; its body is a field list " +
+                    "(name, format N/A/B/D/T, length, description), not executable Natural." }
   }
 };
 
@@ -357,7 +362,7 @@ const NAT_PROFILE = {
  * ================================================================== */
 const REPORT_TYPE_TO_LETTER = {
   PROGRAM: 'F', SUBPROGRAM: 'N', MAP: 'M', LOCAL: 'L', PARAMETER: 'P',
-  GLOBAL: 'C', TEXT: 'T', COPYCODE: 'G', SUBROUTINE: 'S', HELPROUTINE: 'H'
+  GLOBAL: 'C', TEXT: 'T', COPYCODE: 'G', SUBROUTINE: 'S', HELPROUTINE: 'H', DDM: 'V'
 };
 
 const NAT_REPORT_PROFILE = {
@@ -1379,6 +1384,74 @@ function buildVerdict(r, an) {
 }
 
 /* ================================================================== *
+ * Cross-check: one raw-unload scan + one job-log report scan, compared
+ *
+ * The report's job-log tells you what SHOULD be in the raw unload (every
+ * row with STATUS=UNLOADED). This confirms it actually is, by looking each
+ * one up in the raw file's object index. A row already flagged with a
+ * non-UNLOADED status by the report's own verdict is skipped here — it
+ * already told you it didn't make it, no need to re-discover that.
+ * ================================================================== */
+function buildCrossCheck(anA, rA, anB, rB) {
+  let raw, rawR, rep, repR;
+  if (anA.profileOn && anB.reportOn) { raw = anA; rawR = rA; rep = anB; repR = rB; }
+  else if (anB.profileOn && anA.reportOn) { raw = anB; rawR = rB; rep = anA; repR = rA; }
+  else {
+    return {
+      compatible: false,
+      fileA: { name: rA.file.name, profile: rA.tool.profile },
+      fileB: { name: rB.file.name, profile: rB.tool.profile },
+      note: 'Cross-check needs one raw-unload file and one job-log report file. Got "' +
+        rA.tool.profile + '" and "' + rB.tool.profile + '" — nothing to compare.'
+    };
+  }
+
+  const idx = raw.p.nameIndex;                    // "LETTER|LIBRARY|NAME" -> true
+  const libNameOnly = new Set();                  // "LIBRARY|NAME" -> exists (any type)
+  for (const k of idx.keys()) libNameOnly.add(k.slice(k.indexOf('|') + 1));
+
+  let checked = 0, matched = 0;
+  const missing = [];
+  for (const row of rep.rep.rows) {
+    const [library, name, typeWord, letter, , , date, time, user, status] = row;
+    if (status !== 'UNLOADED') continue;
+    checked++;
+    const found = letter ? idx.has(letter + '|' + library + '|' + name)
+                          : libNameOnly.has(library + '|' + name);
+    if (found) matched++;
+    else missing.push({ library, name, type: typeWord, letter: letter || null,
+                        date, time, user, typeUnmapped: !letter });
+  }
+
+  const reportKeys = new Set(rep.rep.rows.map(r => (r[3] || '?') + '|' + r[0] + '|' + r[1]));
+  let extraInRawNotInReport = 0;
+  for (const k of idx.keys()) if (!reportKeys.has(k)) extraInRawNotInReport++;
+
+  const bothFullyScanned = rawR.file.fullFileScanned && repR.file.fullFileScanned;
+
+  return {
+    compatible: true,
+    bothFullyScanned,
+    rawFile: { name: rawR.file.name, objects: rawR.profile.objects.countInScan, fullyScanned: rawR.file.fullFileScanned },
+    reportFile: { name: repR.file.name, rows: repR.jobLog.rows.seen, fullyScanned: repR.file.fullFileScanned },
+    reportRowsWithStatusUnloaded: checked,
+    matchedInRawUnload: matched,
+    missingFromRawUnload: missing.length,
+    missingSamples: missing.slice(0, 500),
+    missingTruncated: missing.length > 500,
+    partialScanCaveat: bothFullyScanned ? null :
+      'At least one side was a PARTIAL scan (byte limit, or these are excerpts of larger files). A high ' +
+      '"missing" count here most likely just means the two files\' scanned windows do not cover the same ' +
+      'objects — it is NOT evidence of a real problem. Re-run with the full files (or the same scan limit on ' +
+      'both) before treating any of this as a genuine gap.',
+    extraInRawNotInReport,
+    extraInRawNote: 'Objects present in the raw unload but not mentioned in the report at all. ' +
+      'NOT necessarily a problem — a report is often filtered by object type or library on purpose ' +
+      '(this tool has already seen reports filtered to just Programs, or just DDMs).'
+  };
+}
+
+/* ================================================================== *
  * CSV inventory
  * ================================================================== */
 const CSV_HEADER = ['library','name','type','type_meaning','nat_version','saved','cataloged',
@@ -1412,8 +1485,8 @@ function buildReportCsv(an) {
  * Node export (for headless testing)
  * ================================================================== */
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { Analyzer, runScan, buildReport, buildCsv, buildReportCsv, sniffEncoding,
-                     makeDecoder, NAT_PROFILE, NAT_REPORT_PROFILE, REPORT_TYPE_TO_LETTER,
+  module.exports = { Analyzer, runScan, buildReport, buildCsv, buildReportCsv, buildCrossCheck,
+                     sniffEncoding, makeDecoder, NAT_PROFILE, NAT_REPORT_PROFILE, REPORT_TYPE_TO_LETTER,
                      sniffFileProfile, parseNatTs, detectRecordLength, CAPS };
 }
 
@@ -1460,6 +1533,7 @@ if (typeof document !== 'undefined') (function () {
 
   /* ------------------------- state ------------------------- */
   let file = null, report = null, analyzer = null, cancelled = false;
+  let file2 = null, report2 = null, analyzer2 = null, crossCheck = null;
 
   /* ------------------------- inputs ------------------------ */
   $('linemode').addEventListener('change', e => {
@@ -1473,6 +1547,18 @@ if (typeof document !== 'undefined') (function () {
       ? '<b>' + esc(file.name) + '</b> — ' + fmtBytes(file.size) +
         ' <span class="muted">(' + fmtNum(file.size) + ' bytes)</span>'
       : 'לא נבחר קובץ';
+  });
+
+  $('file2').addEventListener('change', e => {
+    file2 = e.target.files[0] || null;
+    $('clear-file2').classList.toggle('hidden', !file2);
+    $('fileinfo2').innerHTML = file2
+      ? '<b>' + esc(file2.name) + '</b> — ' + fmtBytes(file2.size)
+      : '';
+  });
+  $('clear-file2').addEventListener('click', () => {
+    file2 = null; $('file2').value = '';
+    $('clear-file2').classList.add('hidden'); $('fileinfo2').innerHTML = '';
   });
 
   $('cancel').addEventListener('click', () => { cancelled = true; });
@@ -1494,20 +1580,28 @@ if (typeof document !== 'undefined') (function () {
       profile: $('profile').value
     };
 
-    try {
-      analyzer = await runScan(file, opts, (off, lim, ms, an) => {
-        const pct = lim ? (off / lim) * 100 : 100;
-        $('bar').style.width = pct.toFixed(1) + '%';
-        const mb = off / 1048576, sec = ms / 1000;
-        $('progtext').textContent =
-          pct.toFixed(1) + '%  ·  ' + fmtBytes(off) + ' / ' + fmtBytes(lim) +
-          '  ·  ' + (mb / Math.max(sec, .001)).toFixed(1) + ' MB/s' +
-          '  ·  ' + fmtNum(an.g.lines) + ' רשומות' +
-          '  ·  ' + fmtNum(an.p.objectsSeen) + ' אובייקטים' +
-          '  ·  ' + sec.toFixed(0) + 's';
-      }, () => cancelled);
+    const makeProgress = tag => (off, lim, ms, an) => {
+      const pct = lim ? (off / lim) * 100 : 100;
+      $('bar').style.width = pct.toFixed(1) + '%';
+      const mb = off / 1048576, sec = ms / 1000;
+      $('progtext').textContent =
+        tag + pct.toFixed(1) + '%  ·  ' + fmtBytes(off) + ' / ' + fmtBytes(lim) +
+        '  ·  ' + (mb / Math.max(sec, .001)).toFixed(1) + ' MB/s' +
+        '  ·  ' + fmtNum(an.g.lines) + ' רשומות' +
+        '  ·  ' + sec.toFixed(0) + 's';
+    };
 
+    try {
+      analyzer = await runScan(file, opts, makeProgress(file2 ? 'קובץ 1/2 · ' : ''), () => cancelled);
       report = buildReport(analyzer, file);
+
+      analyzer2 = null; report2 = null; crossCheck = null;
+      if (file2 && !cancelled) {
+        analyzer2 = await runScan(file2, opts, makeProgress('קובץ 2/2 · '), () => cancelled);
+        report2 = buildReport(analyzer2, file2);
+        crossCheck = buildCrossCheck(analyzer, report, analyzer2, report2);
+      }
+
       render(report);
     } catch (err) {
       $('sec-verdict').classList.remove('hidden');
@@ -1524,12 +1618,60 @@ if (typeof document !== 'undefined') (function () {
   });
 
   /* ------------------------- render ------------------------ */
+  function renderCrossCheck(cc) {
+    const out = [];
+    if (!cc.compatible) {
+      out.push('<div class="v warn"><div class="t">לא ניתן להצליב</div><div class="d">' + esc(cc.note) + '</div></div>');
+      return out.join('');
+    }
+
+    const pct = cc.reportRowsWithStatusUnloaded
+      ? (cc.matchedInRawUnload / cc.reportRowsWithStatusUnloaded * 100) : 100;
+    const level = cc.missingFromRawUnload === 0 ? 'ok' : !cc.bothFullyScanned ? 'warn' : 'err';
+    out.push('<div class="v ' + level + '"><div class="t">' +
+      fmtNum(cc.matchedInRawUnload) + ' מתוך ' + fmtNum(cc.reportRowsWithStatusUnloaded) +
+      ' שורות "UNLOADED" בדוח נמצאו ב-unload הגולמי (' + pct.toFixed(2) + '%)' +
+      '</div><div class="d" style="direction:rtl">' +
+      (cc.missingFromRawUnload === 0
+        ? 'כל האובייקטים שהדוח מסמן כהצליחו אכן נמצאים בקובץ הגולמי.'
+        : fmtNum(cc.missingFromRawUnload) + ' אובייקטים שהדוח אומר שהצליחו — לא נמצאו בקובץ הגולמי.') +
+      '</div></div>');
+
+    if (cc.partialScanCaveat) out.push('<div class="v warn"><div class="t">סריקה חלקית</div><div class="d">' +
+      esc(cc.partialScanCaveat) + '</div></div>');
+
+    out.push(stats([
+      ['קובץ unload גולמי', esc(cc.rawFile.name)],
+      ['אובייקטים ב-unload', fmtNum(cc.rawFile.objects)],
+      ['קובץ דוח', esc(cc.reportFile.name)],
+      ['שורות בדוח', fmtNum(cc.reportFile.rows)],
+      ['נבדקו (UNLOADED)', fmtNum(cc.reportRowsWithStatusUnloaded)],
+      ['נמצאו חסרים', fmtNum(cc.missingFromRawUnload)]
+    ]));
+
+    if (cc.missingSamples.length) {
+      out.push('<h3>אובייקטים שהדוח אומר UNLOADED אבל לא נמצאו ב-unload הגולמי' +
+        (cc.missingTruncated ? ' (500 ראשונים מתוך ' + fmtNum(cc.missingFromRawUnload) + ')' : '') + '</h3>');
+      out.push(scroll(table(['library', 'name', 'type', '≈letter', 'date', 'time', 'user'],
+        cc.missingSamples.map(m => [m.library, m.name, m.type, m.letter || '(לא ממופה)', m.date, m.time, m.user]))));
+    }
+
+    out.push('<h3>אובייקטים ב-unload שלא הוזכרו בדוח כלל: ' + fmtNum(cc.extraInRawNotInReport) + '</h3>');
+    out.push('<p class="muted">' + esc(cc.extraInRawNote) + '</p>');
+
+    return out.join('');
+  }
+
   function render(r) {
     /* verdict */
     $('verdict').innerHTML = r.verdict.map(v =>
       '<div class="v ' + v.level + '"><div class="t">' + esc(v.title) +
       '</div><div class="d">' + esc(v.detail) + '</div></div>').join('');
     $('sec-verdict').classList.remove('hidden');
+
+    /* ---------- cross-check ---------- */
+    $('tab-cross').classList.toggle('hidden', !crossCheck);
+    if (crossCheck) $('t-cross').innerHTML = renderCrossCheck(crossCheck);
 
     /* ---------- overview ---------- */
     const o = [];
@@ -1718,9 +1860,15 @@ if (typeof document !== 'undefined') (function () {
 
     $('sec-results').classList.remove('hidden');
     $('sec-export').classList.remove('hidden');
-    const json = JSON.stringify(r, null, 1);
+    const json = JSON.stringify(exportPayload(), null, 1);
     const csvRowCount = analyzer.reportOn ? analyzer.rep.rows.length : analyzer.p.objects.length;
-    $('expinfo').textContent = 'JSON ≈ ' + fmtBytes(json.length) + '  ·  CSV ' + fmtNum(csvRowCount) + ' שורות';
+    $('expinfo').textContent = 'JSON ≈ ' + fmtBytes(json.length) + '  ·  CSV ' + fmtNum(csvRowCount) + ' שורות' +
+      (crossCheck ? '  ·  כולל הצלבה' : '');
+  }
+
+  function exportPayload() {
+    if (!crossCheck) return report;
+    return { fileA: report, fileB: report2, crossCheck };
   }
 
   /* ------------------------- tabs -------------------------- */
@@ -1743,7 +1891,7 @@ if (typeof document !== 'undefined') (function () {
                      new Date().toISOString().slice(0, 19).replace(/[:T]/g, '');
 
   $('dl-json').addEventListener('click', () => {
-    if (report) download(base() + '-discovery-log.json', JSON.stringify(report, null, 1), 'application/json');
+    if (report) download(base() + '-discovery-log.json', JSON.stringify(exportPayload(), null, 1), 'application/json');
   });
   $('dl-csv').addEventListener('click', () => {
     if (!analyzer) return;
@@ -1755,7 +1903,7 @@ if (typeof document !== 'undefined') (function () {
     if (!report) return;
     const btn = $('copy-json');
     try {
-      await navigator.clipboard.writeText(JSON.stringify(report, null, 1));
+      await navigator.clipboard.writeText(JSON.stringify(exportPayload(), null, 1));
       btn.textContent = 'הועתק ✓';
     } catch (e) {
       btn.textContent = 'ההעתקה נחסמה — השתמש בהורדה';
