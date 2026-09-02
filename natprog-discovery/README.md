@@ -9,8 +9,18 @@ Three files, no build step, no dependencies, no network. **The file never leaves
 natprog-discovery/
 ├── index.html
 ├── style.css
-└── app.js
+├── app.js
+└── natural-viewer.html   ← a separate, more advanced tool (see below), not part of this one
 ```
+
+`natural-viewer.html` is a **different, richer tool** that sits on top of an existing external pipeline
+this repo doesn't contain: `natmap2.py` (static call-graph/complexity/DDM-access analysis),
+`natscan_headers.py` (header extraction), an LLM-generated business analysis (`sf_target`,
+`business_purpose`, `key_rules`, one JSON record per program), and a usage/activity log. It also has a
+Gemini-API chat feature — meaning, unlike everything below, **it does send data externally** when that
+feature is used. This tool (the three files above) doesn't try to reproduce or consume any of that; if
+those artifacts exist and get shared, that's a natural next integration, but it needs a real sample
+first — see the discovery-log philosophy below.
 
 ## Running it
 
@@ -119,6 +129,16 @@ Verified against the two real sample files (0/18 resolved, correctly — neither
 so every call is expected to miss) and, to prove the resolver itself works, a synthetic third file
 declaring `PROGRAM-ID. INVERSE.` added to the same set: resolution correctly jumped to 14/18, with
 every `INVERSE` call (the program's own RTL-Hebrew helper, called 14 times) now marked found.
+
+### One screen for everything (the "תמונת מצב כוללת" / dashboard tab)
+
+Appears automatically — and becomes the active tab — the moment more than the single base file is
+loaded (any of: a second file for cross-checking, a JCL folder, a COBOL folder). With just one file,
+it stays hidden and the existing Overview tab already covers it, so there's nothing to switch to.
+Pulls the headline number and verdict out of every loaded source into one table, instead of clicking
+through each tab to piece it together. Explicitly says when JCL and COBOL haven't been linked to each
+other yet (true as of this writing — no sample JCL has shown an `EXEC PGM=` naming a custom COBOL
+program, only vendor utilities), rather than implying a connection that hasn't actually been found.
 
 ## Output
 

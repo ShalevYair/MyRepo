@@ -1909,6 +1909,67 @@ if (typeof document !== 'undefined') (function () {
   });
 
   /* ------------------------- render ------------------------ */
+
+  /** One screen tying every loaded source together — only shown once more
+   *  than the single base file is loaded (a raw+report pair, JCL, or
+   *  COBOL), since with just one file the Overview tab already covers it. */
+  function renderDashboard(r) {
+    const out = [];
+
+    const loaded = [
+      ['unload גולמי / דוח (קובץ 1)', true, file ? file.name : '—'],
+      ['קובץ להצלבה (קובץ 2)', !!file2, file2 ? file2.name : 'לא נטען'],
+      ['JCL', jclFiles.length > 0, jclFiles.length ? fmtNum(jclFiles.length) + ' קבצים' : 'לא נטען'],
+      ['COBOL/CICS', cobolFiles.length > 0, cobolFiles.length ? fmtNum(cobolFiles.length) + ' קבצים' : 'לא נטען']
+    ];
+    out.push('<h3>מה נטען</h3>');
+    out.push(table(['מקור', 'נטען?', 'פרטים'],
+      loaded.map(([name, ok, detail]) => [name, ok ? '✓' : '—', detail])));
+
+    const bigStats = [];
+    if (r.profile) bigStats.push(['אובייקטים (קובץ 1)', fmtNum(r.profile.objects.countInScan)]);
+    else if (r.jobLog) bigStats.push(['שורות דוח (קובץ 1)', fmtNum(r.jobLog.rows.seen)]);
+    if (crossCheck && crossCheck.compatible)
+      bigStats.push(['הצלבה גולמי↔דוח', crossCheck.matchedInRawUnload + '/' + crossCheck.reportRowsWithStatusUnloaded]);
+    if (jclResult)
+      bigStats.push(['JCL → Natural', fmtNum(jclResult.resolution ? jclResult.resolution.resolved : 0) +
+        '/' + fmtNum(jclResult.resolution ? jclResult.resolution.resolved + jclResult.resolution.unresolved : jclResult.totalProgramRefs)]);
+    if (cobolResult)
+      bigStats.push(['COBOL קריאות פנימיות', fmtNum(cobolResult.resolution.resolved) + '/' + fmtNum(cobolResult.resolution.total)]);
+    out.push(stats(bigStats));
+
+    out.push('<h3>שורה תחתונה מכל מקור</h3>');
+    const lines = [];
+    if (r.verdict && r.verdict.length) lines.push(['סקירה (קובץ 1)', r.verdict[0].level, r.verdict[0].title]);
+    if (crossCheck) {
+      if (!crossCheck.compatible) lines.push(['הצלבה', 'warn', crossCheck.note]);
+      else lines.push(['הצלבה', crossCheck.missingFromRawUnload === 0 ? 'ok' : 'warn',
+        fmtNum(crossCheck.matchedInRawUnload) + '/' + fmtNum(crossCheck.reportRowsWithStatusUnloaded) + ' אומתו' +
+        (crossCheck.partialScanCaveat ? ' (סריקה חלקית — לא סופי)' : '')]);
+    }
+    if (jclResult) {
+      const res = jclResult.resolution;
+      lines.push(['JCL', !res ? 'warn' : res.unresolved === 0 ? 'ok' : 'warn',
+        res ? fmtNum(res.resolved) + '/' + fmtNum(res.resolved + res.unresolved) + ' הפניות אומתו' :
+              'לא נטען unload גולמי — אין אימות, רק חילוץ']);
+    }
+    if (cobolResult) {
+      const res = cobolResult.resolution;
+      lines.push(['COBOL/CICS', res.unresolved === 0 ? 'ok' : 'warn',
+        fmtNum(res.resolved) + '/' + fmtNum(res.total) + ' קריאות נמצאו בתוך התיקייה']);
+    }
+    out.push(scroll(table(['מקור', 'סטטוס', 'תקציר'],
+      lines.map(([src, lvl, txt]) => [src, lvl === 'ok' ? '✓' : lvl === 'err' ? '✗' : '!', txt]))));
+
+    out.push('<p class="muted">לפירוט מלא — הטאבים "הצלבה" / JCL / COBOL/CICS.' +
+      (jclResult && cobolResult
+        ? ' JCL ו-COBOL עדיין שני עולמות נפרדים בניתוח הזה — עוד לא נמצאה שורת EXEC PGM= שמצביעה על תוכנית COBOL מתוך JCL, ' +
+          'כך שאין (עדיין) הצלבה ישירה ביניהם.'
+        : '') + '</p>');
+
+    return out.join('');
+  }
+
   function renderCobol(cobol) {
     const out = [];
     out.push(stats([
@@ -2055,6 +2116,19 @@ if (typeof document !== 'undefined') (function () {
     $('tab-cobol').classList.toggle('hidden', !cobolResult);
     $('dl-cobol-csv').classList.toggle('hidden', !cobolResult);
     if (cobolResult) $('t-cobol').innerHTML = renderCobol(cobolResult);
+
+    /* ---------- dashboard: only worth showing once >1 source is loaded ---------- */
+    const multiSource = !!(crossCheck || jclResult || cobolResult);
+    $('tab-dash').classList.toggle('hidden', !multiSource);
+    if (multiSource) $('t-dash').innerHTML = renderDashboard(r);
+    // Every fresh run resets which tab is active: the dashboard when it's relevant,
+    // otherwise Overview — so a hidden tab (e.g. the dashboard after clearing the
+    // extra sources) can never stay stuck as the active one with no way back to it.
+    const defaultTabId = multiSource ? 'tab-dash' : null;
+    const defaultPaneId = multiSource ? 't-dash' : 't-overview';
+    [...$('tabs').children].forEach(x => x.classList.toggle('active',
+      defaultTabId ? x.id === defaultTabId : x.dataset.tab === 't-overview'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === defaultPaneId));
 
     /* ---------- overview ---------- */
     const o = [];

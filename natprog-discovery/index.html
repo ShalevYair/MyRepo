@@ -143,7 +143,8 @@
 <section class="card hidden" id="sec-results">
   <h2>3 · ממצאים</h2>
   <nav class="tabs" id="tabs">
-    <button data-tab="t-overview" class="active">סקירה</button>
+    <button data-tab="t-dash" id="tab-dash" class="hidden">תמונת מצב כוללת</button>
+    <button data-tab="t-overview" class="active" id="tab-overview-btn">סקירה</button>
     <button data-tab="t-cross" id="tab-cross" class="hidden">הצלבה</button>
     <button data-tab="t-jcl" id="tab-jcl" class="hidden">JCL</button>
     <button data-tab="t-cobol" id="tab-cobol" class="hidden">COBOL/CICS</button>
@@ -153,6 +154,7 @@
     <button data-tab="t-samples">דגימות קוד</button>
     <button data-tab="t-anom">חריגות</button>
   </nav>
+  <div id="t-dash"      class="tab"></div>
   <div id="t-overview"  class="tab active"></div>
   <div id="t-cross"     class="tab"></div>
   <div id="t-jcl"       class="tab"></div>
