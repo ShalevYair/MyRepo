@@ -42,6 +42,19 @@
     הכלי יבדוק שכל אובייקט שהדוח מסמן כ-UNLOADED אכן קיים ב-unload הגולמי, ויסמן פערים.
   </p>
 
+  <div class="row">
+    <label class="filebtn secondary">
+      <input type="file" id="filesJcl" multiple hidden>
+      <span>+ קבצי JCL (אפשר לבחור הרבה יחד)</span>
+    </label>
+    <button id="clear-jcl" class="ghost hidden" style="padding:5px 12px;font-size:12px">בטל</button>
+    <div id="jclinfo" class="muted"></div>
+  </div>
+  <p class="muted" style="font-size:12px;margin:-4px 0 12px">
+    לכל קובץ JCL הכלי מחלץ אילו תוכניות Natural הוא מריץ (מזהה LOGON &lt;ספרייה&gt; + שם תוכנית ב-CMSYNIN),
+    ואם קובץ unload גולמי גם נטען — בודק שהתוכניות האלה אכן קיימות בו.
+  </p>
+
   <div class="grid-opts">
     <label>קידוד
       <select id="encoding">
@@ -110,6 +123,7 @@
   <nav class="tabs" id="tabs">
     <button data-tab="t-overview" class="active">סקירה</button>
     <button data-tab="t-cross" id="tab-cross" class="hidden">הצלבה</button>
+    <button data-tab="t-jcl" id="tab-jcl" class="hidden">JCL</button>
     <button data-tab="t-structure">מבנה גולמי</button>
     <button data-tab="t-objects">אובייקטים</button>
     <button data-tab="t-deps">תלויות</button>
@@ -118,6 +132,7 @@
   </nav>
   <div id="t-overview"  class="tab active"></div>
   <div id="t-cross"     class="tab"></div>
+  <div id="t-jcl"       class="tab"></div>
   <div id="t-structure" class="tab"></div>
   <div id="t-objects"   class="tab"></div>
   <div id="t-deps"      class="tab"></div>
@@ -136,6 +151,7 @@
     <button id="dl-json" class="primary">הורד discovery-log.json</button>
     <button id="copy-json" class="ghost">העתק ללוח</button>
     <button id="dl-csv" class="ghost">הורד מלאי מלא (CSV)</button>
+    <button id="dl-jcl-csv" class="ghost hidden">הורד קישורי JCL (CSV)</button>
     <span id="expinfo" class="muted mono"></span>
   </div>
 </section>

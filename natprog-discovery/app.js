@@ -1452,6 +1452,145 @@ function buildCrossCheck(anA, rA, anB, rB) {
 }
 
 /* ================================================================== *
+ * JCL: which programs does a job actually run?
+ *
+ * Verified against 5 real JCL jobs: a Natural batch step doesn't name the
+ * program on the EXEC line at all — it runs a shared PROC (seen here as
+ * "NATB240") and hands the real library+program to that PROC through
+ * in-stream CMSYNIN input:
+ *     //STEP2 EXEC NATB240,COND=(0,NE)
+ *     //CMSYNIN DD *
+ *     LOGON RC
+ *     HICNEWN3
+ *     FIN
+ * The first content line names the library — sometimes as "LOGON <lib>",
+ * sometimes as a bare "<lib>" with no LOGON keyword (both seen in the same
+ * job). Whatever isn't the library and isn't FIN is a program name. A step
+ * that instead reads "EXEC PGM=xxx" (SORT, FTP, or — not yet seen in any
+ * sample — a custom COBOL load module) is captured too, just without a
+ * library, since PGM= steps don't go through a library LOGON.
+ * ================================================================== */
+function parseJcl(text, fileName) {
+  const lines = text.split(/\r\n|\n/);
+  let jobName = null;
+  const steps = [];
+  const programRefs = [];
+  let curStep = null;
+  let inCmsynin = false;
+  let cmsyninLib = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+
+    if (inCmsynin) {
+      if (/^\/\*\s*$/.test(l) || /^\/\//.test(l)) {
+        inCmsynin = false;
+        cmsyninLib = null;
+        // fall through: this line may itself be a real JCL control line
+      } else {
+        const t = l.trim();
+        if (t) {
+          if (cmsyninLib === null) {
+            const m = /^(?:LOGON\s+)?(\S+)/i.exec(t);
+            if (m) cmsyninLib = m[1].toUpperCase();
+          } else if (!/^FIN\b/i.test(t) && t.toUpperCase() !== cmsyninLib) {
+            programRefs.push({ file: fileName, step: curStep, kind: 'natural-batch',
+                               library: cmsyninLib, program: t.split(/\s+/)[0], raw: l });
+          }
+        }
+        continue;
+      }
+    }
+
+    if (!/^\/\//.test(l)) continue;          // not a JCL control line
+    if (/^\/\/\*/.test(l)) continue;         // JCL comment (incl. commented-out steps)
+
+    if (!jobName) {
+      const jm = /^\/\/#?(\S+)\s+JOB\b/.exec(l);
+      if (jm) jobName = jm[1];
+    }
+
+    const em = /^\/\/(\S+)\s+EXEC\s+(.+)$/.exec(l);
+    if (em) {
+      curStep = em[1];
+      const target = em[2].split(',')[0].trim();
+      const pm = /^PGM=(\S+)/.exec(target);
+      if (pm) {
+        steps.push({ step: curStep, kind: 'pgm', target: pm[1] });
+        programRefs.push({ file: fileName, step: curStep, kind: 'direct-pgm',
+                           library: null, program: pm[1], raw: l });
+      } else {
+        steps.push({ step: curStep, kind: 'proc', target });
+      }
+      continue;
+    }
+
+    if (/^\/\/CMSYNIN\s+DD\s+\*/i.test(l)) { inCmsynin = true; cmsyninLib = null; continue; }
+  }
+
+  return { file: fileName, jobName, steps, programRefs };
+}
+
+const UTILITY_PGM_NAMES = new Set(['SORT', 'DFSORT', 'ICETOOL', 'IDCAMS', 'IEBGENER', 'IEBCOPY',
+  'IEFBR14', 'IKJEFT01', 'IKJEFT1B', 'FTP', 'IEWL', 'IEBPTPCH', 'ICEMAN']);
+
+/** Aggregate parseJcl() results across many files, and — if a raw-unload
+ *  Analyzer is available — cross-check every natural-batch reference
+ *  against its object index (library+name, letter-agnostic since JCL
+ *  never says which Natural object-type letter it means). */
+function analyzeJcl(jclFiles, rawAnalyzer) {
+  const parsed = jclFiles.map(f => parseJcl(f.text, f.name));
+  const allRefs = [];
+  for (const p of parsed) for (const r of p.programRefs) allRefs.push(r);
+
+  const byProgram = new Map(), byLibrary = new Map(), byKind = new Map();
+  for (const r of allRefs) {
+    bump(byKind, r.kind, 10);
+    if (r.kind === 'natural-batch') {
+      bump(byLibrary, r.library, 5000);
+      bump(byProgram, r.library + '/' + r.program, 200000);
+    } else {
+      bump(byProgram, r.program, 200000);
+    }
+  }
+
+  const directPgmDistinct = new Set(allRefs.filter(r => r.kind === 'direct-pgm').map(r => r.program));
+  const utilityCount = allRefs.filter(r => r.kind === 'direct-pgm' && UTILITY_PGM_NAMES.has(r.program.toUpperCase())).length;
+  const nonUtilityDirectPgm = [...directPgmDistinct].filter(n => !UTILITY_PGM_NAMES.has(n.toUpperCase()));
+
+  let resolution = null;
+  if (rawAnalyzer && rawAnalyzer.profileOn) {
+    const idx = rawAnalyzer.p.nameIndex;
+    const libNameOnly = new Set();
+    for (const k of idx.keys()) libNameOnly.add(k.slice(k.indexOf('|') + 1));
+    let resolved = 0, unresolved = 0;
+    const rows = allRefs.filter(r => r.kind === 'natural-batch').map(r => {
+      const found = libNameOnly.has(r.library + '|' + r.program);
+      if (found) resolved++; else unresolved++;
+      return { file: r.file, step: r.step, library: r.library, program: r.program, foundInRaw: found };
+    });
+    resolution = { resolved, unresolved, rows,
+      rawFile: rawAnalyzer.opts && rawAnalyzer.opts.fileNameForDisplay || null };
+  }
+
+  return {
+    filesParsed: parsed.length,
+    jobs: parsed.map(p => ({ file: p.file, jobName: p.jobName, steps: p.steps.length, programRefs: p.programRefs.length })),
+    totalProgramRefs: allRefs.length,
+    naturalBatchRefs: (byKind.get('natural-batch') || 0),
+    directPgmRefs: (byKind.get('direct-pgm') || 0),
+    distinctPrograms: byProgram.size,
+    distinctLibraries: byLibrary.size,
+    byLibrary: topN(byLibrary, 100),
+    topPrograms: topN(byProgram, 200),
+    utilityDirectPgmCount: utilityCount,
+    nonUtilityDirectPgm,
+    resolution,
+    allRefs
+  };
+}
+
+/* ================================================================== *
  * CSV inventory
  * ================================================================== */
 const CSV_HEADER = ['library','name','type','type_meaning','nat_version','saved','cataloged',
@@ -1481,11 +1620,25 @@ function buildReportCsv(an) {
   return out.join('\n');
 }
 
+const JCL_CSV_HEADER = ['jcl_file', 'step', 'kind', 'library', 'program', 'found_in_raw_unload'];
+
+function buildJclCsv(jcl) {
+  const out = [JCL_CSV_HEADER.join(',')];
+  const foundByKey = new Map();
+  if (jcl.resolution) for (const r of jcl.resolution.rows) foundByKey.set(r.file + '|' + r.step + '|' + r.program, r.foundInRaw);
+  for (const r of jcl.allRefs) {
+    const found = jcl.resolution ? (r.kind === 'natural-batch' ? String(foundByKey.get(r.file + '|' + r.step + '|' + r.program)) : 'n/a') : '';
+    out.push([r.file, r.step || '', r.kind, r.library || '', r.program, found].map(csvQuote).join(','));
+  }
+  return out.join('\n');
+}
+
 /* ================================================================== *
  * Node export (for headless testing)
  * ================================================================== */
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { Analyzer, runScan, buildReport, buildCsv, buildReportCsv, buildCrossCheck,
+                     parseJcl, analyzeJcl, buildJclCsv,
                      sniffEncoding, makeDecoder, NAT_PROFILE, NAT_REPORT_PROFILE, REPORT_TYPE_TO_LETTER,
                      sniffFileProfile, parseNatTs, detectRecordLength, CAPS };
 }
@@ -1534,6 +1687,7 @@ if (typeof document !== 'undefined') (function () {
   /* ------------------------- state ------------------------- */
   let file = null, report = null, analyzer = null, cancelled = false;
   let file2 = null, report2 = null, analyzer2 = null, crossCheck = null;
+  let jclFiles = [], jclResult = null;
 
   /* ------------------------- inputs ------------------------ */
   $('linemode').addEventListener('change', e => {
@@ -1559,6 +1713,19 @@ if (typeof document !== 'undefined') (function () {
   $('clear-file2').addEventListener('click', () => {
     file2 = null; $('file2').value = '';
     $('clear-file2').classList.add('hidden'); $('fileinfo2').innerHTML = '';
+  });
+
+  $('filesJcl').addEventListener('change', e => {
+    jclFiles = [...e.target.files];
+    $('clear-jcl').classList.toggle('hidden', !jclFiles.length);
+    $('jclinfo').innerHTML = jclFiles.length
+      ? '<b>' + fmtNum(jclFiles.length) + ' קבצי JCL</b> — ' +
+        fmtBytes(jclFiles.reduce((s, f) => s + f.size, 0))
+      : '';
+  });
+  $('clear-jcl').addEventListener('click', () => {
+    jclFiles = []; $('filesJcl').value = '';
+    $('clear-jcl').classList.add('hidden'); $('jclinfo').innerHTML = '';
   });
 
   $('cancel').addEventListener('click', () => { cancelled = true; });
@@ -1602,6 +1769,14 @@ if (typeof document !== 'undefined') (function () {
         crossCheck = buildCrossCheck(analyzer, report, analyzer2, report2);
       }
 
+      jclResult = null;
+      if (jclFiles.length && !cancelled) {
+        $('progtext').textContent = 'קורא ' + fmtNum(jclFiles.length) + ' קבצי JCL…';
+        const texts = await Promise.all(jclFiles.map(async f => ({ name: f.name, text: await f.text() })));
+        const rawAn = analyzer && analyzer.profileOn ? analyzer : (analyzer2 && analyzer2.profileOn ? analyzer2 : null);
+        jclResult = analyzeJcl(texts, rawAn);
+      }
+
       render(report);
     } catch (err) {
       $('sec-verdict').classList.remove('hidden');
@@ -1618,6 +1793,49 @@ if (typeof document !== 'undefined') (function () {
   });
 
   /* ------------------------- render ------------------------ */
+  function renderJcl(jcl) {
+    const out = [];
+    out.push(stats([
+      ['קבצי JCL', fmtNum(jcl.filesParsed)],
+      ['הפניות לתוכניות', fmtNum(jcl.totalProgramRefs)],
+      ['דרך Natural batch', fmtNum(jcl.naturalBatchRefs)],
+      ['PGM= ישיר', fmtNum(jcl.directPgmRefs)],
+      ['תוכניות שונות', fmtNum(jcl.distinctPrograms)],
+      ['ספריות Natural', fmtNum(jcl.distinctLibraries)]
+    ]));
+
+    if (jcl.resolution) {
+      const pct = jcl.resolution.resolved + jcl.resolution.unresolved
+        ? (jcl.resolution.resolved / (jcl.resolution.resolved + jcl.resolution.unresolved) * 100) : 0;
+      out.push('<div class="v ' + (jcl.resolution.unresolved === 0 ? 'ok' : 'warn') + '">' +
+        '<div class="t">' + fmtNum(jcl.resolution.resolved) + ' מתוך ' +
+        fmtNum(jcl.resolution.resolved + jcl.resolution.unresolved) +
+        ' הפניות ל-Natural אומתו מול קובץ ה-unload (' + pct.toFixed(1) + '%)</div>' +
+        '<div class="d">אם הרוב "לא נמצא" — כנראה קובץ ה-unload לא מכסה את הספרייה/הקובץ הזה ' +
+        '(סריקה חלקית או קובץ אחר). לא בהכרח בעיה אמיתית.</div></div>');
+      out.push('<h3>כל ההפניות ל-Natural, עם סטטוס אימות</h3>');
+      out.push(scroll(table(['קובץ JCL', 'step', 'ספרייה', 'תוכנית', 'נמצא ב-unload'],
+        jcl.resolution.rows.map(r => [r.file, r.step, r.library, r.program, r.foundInRaw ? '✓' : '—']))));
+    } else {
+      out.push('<p class="muted">לא נטען קובץ unload גולמי — מוצגות רק ההפניות שחולצו מה-JCL, בלי אימות.</p>');
+      out.push('<h3>כל ההפניות שחולצו</h3>');
+      out.push(scroll(table(['קובץ JCL', 'step', 'סוג', 'ספרייה', 'תוכנית'],
+        jcl.allRefs.map(r => [r.file, r.step, r.kind, r.library || '—', r.program]))));
+    }
+
+    if (jcl.nonUtilityDirectPgm.length) {
+      out.push('<h3>PGM= שאינם utility מוכר (' + fmtNum(jcl.nonUtilityDirectPgm.length) + ')</h3>');
+      out.push('<p class="muted">אלה מועמדים לתוכניות COBOL/Assembler מותאמות אישית שה-JCL מריץ ישירות.</p>');
+      out.push(jcl.nonUtilityDirectPgm.map(n => '<span class="chip">' + esc(n) + '</span>').join(''));
+    }
+
+    out.push('<h3>לפי קובץ JCL</h3>');
+    out.push(scroll(table(['קובץ', 'JOB', 'steps', 'הפניות'],
+      jcl.jobs.map(j => [j.file, j.jobName || '—', j.steps, j.programRefs]))));
+
+    return out.join('');
+  }
+
   function renderCrossCheck(cc) {
     const out = [];
     if (!cc.compatible) {
@@ -1672,6 +1890,11 @@ if (typeof document !== 'undefined') (function () {
     /* ---------- cross-check ---------- */
     $('tab-cross').classList.toggle('hidden', !crossCheck);
     if (crossCheck) $('t-cross').innerHTML = renderCrossCheck(crossCheck);
+
+    /* ---------- JCL ---------- */
+    $('tab-jcl').classList.toggle('hidden', !jclResult);
+    $('dl-jcl-csv').classList.toggle('hidden', !jclResult);
+    if (jclResult) $('t-jcl').innerHTML = renderJcl(jclResult);
 
     /* ---------- overview ---------- */
     const o = [];
@@ -1863,12 +2086,14 @@ if (typeof document !== 'undefined') (function () {
     const json = JSON.stringify(exportPayload(), null, 1);
     const csvRowCount = analyzer.reportOn ? analyzer.rep.rows.length : analyzer.p.objects.length;
     $('expinfo').textContent = 'JSON ≈ ' + fmtBytes(json.length) + '  ·  CSV ' + fmtNum(csvRowCount) + ' שורות' +
-      (crossCheck ? '  ·  כולל הצלבה' : '');
+      (crossCheck ? '  ·  כולל הצלבה' : '') + (jclResult ? '  ·  כולל JCL' : '');
   }
 
   function exportPayload() {
-    if (!crossCheck) return report;
-    return { fileA: report, fileB: report2, crossCheck };
+    if (!crossCheck && !jclResult) return report;
+    const p = crossCheck ? { fileA: report, fileB: report2, crossCheck } : { file: report };
+    if (jclResult) p.jcl = jclResult;
+    return p;
   }
 
   /* ------------------------- tabs -------------------------- */
@@ -1898,6 +2123,9 @@ if (typeof document !== 'undefined') (function () {
     const csv = analyzer.reportOn ? buildReportCsv(analyzer) : buildCsv(analyzer);
     const name = analyzer.reportOn ? '-rows.csv' : '-objects.csv';
     download(base() + name, '﻿' + csv, 'text/csv');
+  });
+  $('dl-jcl-csv').addEventListener('click', () => {
+    if (jclResult) download(base() + '-jcl-refs.csv', '﻿' + buildJclCsv(jclResult), 'text/csv');
   });
   $('copy-json').addEventListener('click', async () => {
     if (!report) return;

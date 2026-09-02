@@ -66,6 +66,26 @@ expected and does **not** mean data was lost — it means the two scanned window
 objects. The tool detects this and downgrades its own verdict accordingly; treat cross-check numbers as
 meaningful only when both sides were fully scanned.
 
+### JCL → Natural program links (the "JCL" tab)
+
+A third input, `#filesJcl`, accepts many files at once (JCL jobs are one file each, not one big dump).
+Each file is parsed for the two ways a job invokes a program, confirmed against 5 real jobs:
+
+* **Natural batch** — the EXEC line doesn't name the program at all; it runs a shared PROC (seen as
+  `NATB240`) and hands the real library + program name through in-stream `CMSYNIN` input:
+  `LOGON RC` (or a bare `RC` with no `LOGON` keyword — both forms appear in the same job) followed by
+  the program name, terminated by `FIN`.
+* **Direct** — `EXEC PGM=xxx`. In every sample seen so far this is always a vendor utility (`SORT`,
+  `FTP`) rather than a custom program; anything that isn't a recognised utility name is called out
+  separately as a likely custom-program candidate.
+
+If a raw-unload file is also loaded (either slot), every Natural-batch reference is looked up in its
+object index by library+name. Verified two ways: a synthetic full-coverage raw file built from 5 real
+object rows the user confirmed independently (`RC/DOHUZDP2`, `RC/GO0701P0`, `RC/HICNEWN3`) resolved
+3/3 with no false positives — including correctly picking the `RC`-library copy of `GO0701P0` over two
+older duplicate copies of the same program sitting in different libraries (`GOCOPY`, `GOGO`), proving
+the match is library-aware, not just name-aware.
+
 ## Output
 
 * **`discovery-log.json`** — the analysis log, capped and aggregated (~60–90 KB even for a 250 MB
