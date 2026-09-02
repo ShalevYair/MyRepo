@@ -342,6 +342,56 @@ const NAT_PROFILE = {
   }
 };
 
+/* ================================================================== *
+ * PROFILE 2: SYSOBJH job-log / print report (SYSPRINT of the SAME
+ * SYSOBJH utility, not the raw *H** / *C** / *D0x / *S** unload above).
+ *
+ * Fixed 132-char lines, CRLF, column 1 is an IBM/ASA print-carriage-
+ * control character (' '=single space, '0'=double space, '-'=triple
+ * space, '1'=new page) — not part of the payload. One data row per
+ * unloaded object, with the object type spelled out as a full word
+ * rather than the single letter the raw unload uses.
+ *
+ * Column offsets (0-based, after decoding) were measured directly off
+ * a real report sample using its own header/dashes line, not guessed.
+ * ================================================================== */
+const REPORT_TYPE_TO_LETTER = {
+  PROGRAM: 'F', SUBPROGRAM: 'N', MAP: 'M', LOCAL: 'L', PARAMETER: 'P',
+  GLOBAL: 'C', TEXT: 'T', COPYCODE: 'G', SUBROUTINE: 'S', HELPROUTINE: 'H'
+};
+
+const NAT_REPORT_PROFILE = {
+  id: 'natural-sysobjh-report',
+  row: {                    // [offset, length]
+    status:  [1, 30], library: [32, 8], name: [41, 32], type: [74, 11],
+    sc: [86, 3], dbidfnr: [90, 11], date: [102, 10], time: [113, 8],
+    user: [122, 8], flag: [131, 1]
+  }
+};
+
+/** Structural fingerprint of a data row: works regardless of STATUS text
+ *  (UNLOADED/ERROR/whatever), so a failed row is still recognised. */
+function isReportDataRow(l) {
+  if (l.length < 112 || l.charCodeAt(0) !== 32) return false;   // ASA "single space" control
+  return /^\d{4}-\d{2}-\d{2}$/.test(l.substr(102, 10));
+}
+
+/** Cheap sniff over a decoded text sample: does this look like the raw
+ *  *H** / *C** / *D0x / *S** unload, the job-log report, or neither? */
+function sniffFileProfile(text) {
+  const lines = text.split(/\r\n|\n/);
+  let rawTags = 0, reportRows = 0, hasBanner = false;
+  const sample = lines.slice(0, 2000);
+  for (const l of sample) {
+    if (l.startsWith('*H**') || l.startsWith('*C**')) rawTags++;
+    else if (isReportDataRow(l)) reportRows++;
+    if (l.indexOf('NATURAL OBJECT HANDLER') >= 0) hasBanner = true;
+  }
+  if (rawTags >= 1) return 'natural-sysobjh';
+  if (reportRows >= 2 || hasBanner) return 'natural-sysobjh-report';
+  return 'none';
+}
+
 function fld(line, spec) {
   const s = line.substr(spec[0], spec[1]);
   return rtrim(s);
@@ -403,6 +453,7 @@ class Analyzer {
   constructor(opts) {
     this.opts = opts;
     this.profileOn = opts.profile === 'natural-sysobjh';
+    this.reportOn = opts.profile === 'natural-sysobjh-report';
 
     /* ---- L1 generic ---- */
     this.g = {
@@ -438,9 +489,18 @@ class Analyzer {
       contentKind: new Map()           // "declaredType>observedKind" -> count
     };
 
+    /* ---- L2 report (job-log profile) ---- */
+    this.rep = {
+      dataRows: 0, rows: [], rowsDropped: 0, seen: new Map(), dupRows: new Map(),
+      byStatus: new Map(), byType: new Map(), byLibrary: new Map(), byUser: new Map(),
+      bySC: new Map(), byYear: new Map(),
+      banner: null, runContext: null, reportMember: null, commandLine: null
+    };
+
     this.anomalies = new Map();
     this.cur = null;                   // object under construction
     this.lineNo = 0;
+    this.lastLine = null;              // for end-of-scan truncation checks
   }
 
   /* -------- anomaly recorder -------- */
@@ -470,6 +530,7 @@ class Analyzer {
     } else if (this.opts.lineMode !== 'fixed') {
       this.g.lfOnly++;
     }
+    this.lastLine = line;
 
     const len = line.length;
     const g = this.g;
@@ -495,11 +556,12 @@ class Analyzer {
         { replacementCharsInLine: c });
     }
 
-    if (!this.profileOn || len === 0) return;
-    this.feedProfile(line, len, truncated);
+    if (len === 0) return;
+    if (this.profileOn) { this.feedProfile(line, len, truncated); return; }
+    if (this.reportOn) { this.feedReportLine(line); return; }
   }
 
-  /* ================= profile layer ================= */
+  /* ================= profile layer: raw *H** / *C** / *D0x / *S** unload ================= */
   feedProfile(line, len, truncated) {
     const p = this.p;
     const tag = line.slice(0, 4);
@@ -755,6 +817,74 @@ class Analyzer {
                       c.os, c.tp, c.codepage, c.user1 || '', c.user2 || '', c.user3 || '']);
     } else p.objectsDropped++;
   }
+
+  /* ================= profile layer: SYSOBJH job-log report ================= */
+  feedReportLine(line) {
+    const rep = this.rep;
+
+    if (!rep.banner && line.indexOf('NATURAL OBJECT HANDLER') >= 0) {
+      const m = line.match(/(\d{2}:\d{2}:\d{2}).*NATURAL OBJECT HANDLER.*?(\d{4}-\d{2}-\d{2})/);
+      rep.banner = { raw: visible(line, 120), time: m ? m[1] : null, date: m ? m[2] : null };
+    }
+    if (!rep.runContext) {
+      const m = line.match(/^\s*USER\s+(\S+)\s+.*LIBRARY\s+(\S+)/);
+      if (m) rep.runContext = { user: m[1], library: m[2] };
+    }
+    if (!rep.reportMember) {
+      const m = line.match(/^\s*REPORT TEXT MEMBER\s+(\S+)/);
+      if (m) rep.reportMember = m[1];
+    }
+    if (!rep.commandLine && /^\s*DATA UNLOAD/.test(line)) rep.commandLine = visible(line.trim(), 140);
+
+    if (!isReportDataRow(line)) return;
+    rep.dataRows++;
+
+    const R = NAT_REPORT_PROFILE.row;
+    const status = fld(line, R.status), library = fld(line, R.library), name = fld(line, R.name),
+          type = fld(line, R.type), sc = fld(line, R.sc), dbidfnr = fld(line, R.dbidfnr),
+          date = fld(line, R.date), time = fld(line, R.time), user = fld(line, R.user);
+
+    bump(rep.byStatus, status || '(empty)', 50);
+    bump(rep.byLibrary, library, CAPS.libKeys);
+    bump(rep.byType, type || '(empty)', 60);
+    bump(rep.byUser, user, 20000);
+    bump(rep.bySC, sc || '(empty)', 10);
+    const year = +date.slice(0, 4);
+    if (date.length === 10 && year > 1900) bump(rep.byYear, year, 200);
+
+    if (status !== 'UNLOADED') {
+      this.note('report_row_status_not_unloaded', this.lineNo, line,
+        { status, object: library + '/' + name, hint: 'Object did NOT come through as UNLOADED — check whether it is missing from the raw unload file.' });
+    }
+    if (type && !REPORT_TYPE_TO_LETTER[type]) {
+      this.note('report_unmapped_type_word', this.lineNo, line, { type });
+    }
+
+    const key = library + '|' + name + '|' + type;
+    if (rep.seen.has(key)) { bump(rep.dupRows, key, 5000); this.note('report_duplicate_row', this.lineNo, line, { object: key }); }
+    else if (rep.seen.size < 1500000) rep.seen.set(key, 1);
+
+    if (rep.rows.length < CAPS.objectsRetained) {
+      rep.rows.push([library, name, type, REPORT_TYPE_TO_LETTER[type] || '', sc, dbidfnr, date, time, user, status]);
+    } else rep.rowsDropped++;
+  }
+
+  /** Called once after the stream ends. A partial scan (byte limit, or a
+   *  sample file that just stops mid-file) can cut the very last physical
+   *  line short, right where isReportDataRow() needs the DATE column — that
+   *  looks identical to a malformed row unless we know it's specifically
+   *  the end of the file. Scoped to the single last line, so a genuine
+   *  short banner line elsewhere in the file is never at risk of matching. */
+  finalizeReport() {
+    if (!this.reportOn || this.lastLine === null) return;
+    const l = this.lastLine;
+    if (isReportDataRow(l)) return;                       // already counted normally
+    if (l.charCodeAt(0) !== 32 || l.length < 40 || l.length >= 112) return;
+    if (!/^[A-Z][A-Z0-9-]{2,20}\b/.test(l.slice(1))) return;
+    this.note('report_final_row_truncated', this.lineNo, l,
+      { hint: 'Looks like the start of a data row cut off before the DATE column. Expected at the end of a ' +
+               'partial scan or a sample file; if the whole file was scanned, the export itself is incomplete.' });
+  }
 }
 
 /* ================================================================== *
@@ -808,9 +938,15 @@ async function runScan(file, opts, onProgress, isCancelled) {
   }
   const SEP = framing.separator || '\n';
 
+  /* ---- 2b. which of the two known Natural formats is this? ---- */
+  let profile = opts.profile;
+  const profileDetection = profile === 'auto' ? sniffFileProfile(probe) : null;
+  if (profile === 'auto') profile = profileDetection;
+
   /* ---- 3. stream ---- */
-  const an = new Analyzer({ ...opts, encoding, lineMode, recLen });
-  an.meta = { sniff, encoding, lineMode, recLen, fixedDetection, framing, separator: SEP, preview };
+  const an = new Analyzer({ ...opts, encoding, lineMode, recLen, profile });
+  an.meta = { sniff, encoding, lineMode, recLen, fixedDetection, framing, separator: SEP, preview,
+              profileRequested: opts.profile, profileUsed: profile, profileDetection };
 
   const dec = makeDecoder(encoding);
   let offset = 0, tail = '';
@@ -848,6 +984,7 @@ async function runScan(file, opts, onProgress, isCancelled) {
   }
 
   an.finalizeObject(true);
+  an.finalizeReport();
   an.durationMs = Date.now() - t0;
   an.scannedBytes = offset;
   an.limit = limit;
@@ -906,7 +1043,7 @@ function resolveTargets(an, depMap, allowedTypes, cap) {
 }
 
 function buildReport(an, file) {
-  const g = an.g, p = an.p, m = an.meta;
+  const g = an.g, p = an.p, m = an.meta, rep2 = an.rep;
   const secs = an.durationMs / 1000;
 
   const anomalies = [...an.anomalies.values()]
@@ -930,7 +1067,9 @@ function buildReport(an, file) {
   });
 
   const report = {
-    tool: { name: 'NATPROG Discovery', version: '1.0', profile: an.profileOn ? NAT_PROFILE.id : 'none' },
+    tool: { name: 'NATPROG Discovery', version: '1.0',
+            profile: an.profileOn ? NAT_PROFILE.id : an.reportOn ? NAT_REPORT_PROFILE.id : 'none',
+            profileRequested: m.profileRequested, profileAutoDetected: m.profileDetection },
     generatedAt: new Date().toISOString(),
 
     file: {
@@ -1074,6 +1213,23 @@ function buildReport(an, file) {
         ]))
       : null,
 
+    jobLog: an.reportOn ? {
+      matched: rep2.dataRows > 0,
+      runInfo: { banner: rep2.banner, context: rep2.runContext, reportMember: rep2.reportMember,
+                 commandLine: rep2.commandLine },
+      rows: { seen: rep2.dataRows, retained: rep2.rows.length, dropped: rep2.rowsDropped },
+      byStatus: topN(rep2.byStatus, 30),
+      byType: topN(rep2.byType, 30).map(([w, n]) => ({ word: w, count: n, letter: REPORT_TYPE_TO_LETTER[w] || null })),
+      byLibrary: topN(rep2.byLibrary, 100), distinctLibraries: rep2.byLibrary.size,
+      byUser: topN(rep2.byUser, 100),
+      bySC: topN(rep2.bySC, 10),
+      byYear: topN(rep2.byYear, 80).sort((a, b) => a[0] - b[0]),
+      duplicateRows: topN(rep2.dupRows, 40),
+      top500Rows: rep2.rows.slice(0, 500).map(r => ({
+        library: r[0], name: r[1], type: r[2], letter: r[3], sc: r[4],
+        dbidFnr: r[5], date: r[6], time: r[7], user: r[8], status: r[9] }))
+    } : null,
+
     anomalies,
     anomalyKindsTruncated: an.anomalies.size >= CAPS.anomalyKinds,
 
@@ -1083,6 +1239,9 @@ function buildReport(an, file) {
       recordPadding: NAT_PROFILE.recordPad,
       H: NAT_PROFILE.H, C: NAT_PROFILE.C, D01: NAT_PROFILE.D01,
       D02: NAT_PROFILE.D02, D03: NAT_PROFILE.D03, D04: NAT_PROFILE.D04
+    } : an.reportOn ? {
+      note: 'Column offsets measured directly off a real report sample\'s own header/dashes line.',
+      row: NAT_REPORT_PROFILE.row
     } : null
   };
 
@@ -1103,23 +1262,50 @@ function buildVerdict(r, an) {
     return v;
   }
 
-  if (!r.profile) {
-    add('warn', 'Generic scan only',
-      'No structural profile was applied. Use the prefix histogram and record-length histogram below to decide what this file is.');
-  } else if (r.profile.objects.countInScan === 0) {
-    add('err', 'PROFILE DOES NOT MATCH — no objects found',
-      'Not a single *C** catalog record was recognised. The file is either a different format, a different encoding, ' +
-      'or split into records differently. Do not trust any object numbers in this report.');
-  } else if (!r.profile.matched) {
-    add('err', 'PROFILE PARTIALLY MATCHES — ' + (r.profile.matchRate * 100).toFixed(2) + '% of records recognised',
-      r.profile.unknownRecords.toLocaleString() + ' records did not start with a known 4-character tag. ' +
-      'Either the layout drifts partway through the file, or a second format is concatenated into it. ' +
-      'See the "unknown_record_prefix" anomaly samples.');
+  if (r.profile) {
+    if (r.profile.objects.countInScan === 0) {
+      add('err', 'PROFILE DOES NOT MATCH — no objects found',
+        'Not a single *C** catalog record was recognised. The file is either a different format, a different encoding, ' +
+        'or split into records differently. Do not trust any object numbers in this report.');
+    } else if (!r.profile.matched) {
+      add('err', 'PROFILE PARTIALLY MATCHES — ' + (r.profile.matchRate * 100).toFixed(2) + '% of records recognised',
+        r.profile.unknownRecords.toLocaleString() + ' records did not start with a known 4-character tag. ' +
+        'Either the layout drifts partway through the file, or a second format is concatenated into it. ' +
+        'See the "unknown_record_prefix" anomaly samples.');
+    } else {
+      add('ok', 'Structure matches the Natural SYSOBJH raw-unload profile',
+        (r.profile.matchRate * 100).toFixed(3) + '% of records recognised across ' +
+        r.generic.records.toLocaleString() + ' records / ' +
+        r.profile.objects.countInScan.toLocaleString() + ' objects.');
+    }
+  } else if (r.jobLog) {
+    if (!r.jobLog.matched) {
+      add('err', 'PROFILE DOES NOT MATCH — no report rows found',
+        'This was detected as a SYSOBJH job-log report, but no row matched the expected column layout ' +
+        '(ASA single-space control + a YYYY-MM-DD date at the expected offset). The layout may have shifted.');
+    } else {
+      add('ok', 'Structure matches the SYSOBJH job-log report profile',
+        fmtNum(r.jobLog.rows.seen) + ' rows recognised across ' + r.generic.records.toLocaleString() + ' lines. ' +
+        'This is a run report (who ran it, when, and per-object status) — it carries no source code.');
+    }
+    const notUnloaded = A('report_row_status_not_unloaded');
+    if (notUnloaded > 0) {
+      const statuses = r.jobLog.byStatus.filter(([s]) => s !== 'UNLOADED').map(([s, n]) => s + '=' + n).join(', ');
+      add('err', notUnloaded.toLocaleString() + ' rows did NOT come through as UNLOADED (' + statuses + ')',
+        'These objects are listed in this report but may be missing or different in the raw unload file — cross-check ' +
+        'them by library/name against the raw-unload scan before assuming the transfer is complete.');
+    }
+    if (A('report_unmapped_type_word') > 0)
+      add('warn', A('report_unmapped_type_word').toLocaleString() + " rows use a TYPE word not in this tool's letter map",
+        'A Natural object type appears here that has no known single-letter equivalent yet. See the anomaly samples.');
+    if (A('report_final_row_truncated') > 0)
+      add('warn', 'The file ends mid-row',
+        'The last row is cut off before its date/time/user/status columns. Expected if this is a sample/excerpt ' +
+        'or a partial scan; if the whole file was scanned, the export itself is incomplete.');
   } else {
-    add('ok', 'Structure matches the Natural SYSOBJH profile',
-      (r.profile.matchRate * 100).toFixed(3) + '% of records recognised across ' +
-      r.generic.records.toLocaleString() + ' records / ' +
-      r.profile.objects.countInScan.toLocaleString() + ' objects.');
+    add('warn', 'Generic scan only',
+      'Neither known Natural profile matched (raw *H**/*C**/*D0x/*S** unload, or the SYSOBJH job-log report). ' +
+      'Use the prefix histogram and record-length histogram below to decide what this file is.');
   }
 
   if (r.encodingDamage.replacementCharsFound > 0) {
@@ -1131,7 +1317,7 @@ function buildVerdict(r, an) {
       r.encodingDamage.meaning);
   }
 
-  if (r.generic.lengthModulo12.length > 1) {
+  if (r.profile && r.generic.lengthModulo12.length > 1) {
     let bad = r.generic.lengthModulo12.filter(x => x[0] !== 0).reduce((s, x) => s + x[1], 0);
     bad -= A('final_record_truncated');            // a cut-off tail record is not a layout problem
     if (bad > 0) add('warn', bad.toLocaleString() + ' records are not a multiple of 12 characters',
@@ -1185,6 +1371,10 @@ function buildVerdict(r, an) {
     add('warn', r.profile.objects.droppedFromInventory.toLocaleString() + ' objects omitted from the CSV inventory',
       'The in-memory inventory cap (' + CAPS.objectsRetained.toLocaleString() + ') was reached. Aggregate counts are still complete.');
 
+  if (r.jobLog && r.jobLog.rows.dropped > 0)
+    add('warn', r.jobLog.rows.dropped.toLocaleString() + ' rows omitted from the CSV inventory',
+      'The in-memory inventory cap (' + CAPS.objectsRetained.toLocaleString() + ') was reached. Aggregate counts are still complete.');
+
   return v;
 }
 
@@ -1195,17 +1385,26 @@ const CSV_HEADER = ['library','name','type','type_meaning','nat_version','saved'
                     'declared_size','src_lines','src_chars','max_src_len','os','tp_monitor',
                     'codepage','user1','user2','user3'];
 
+function csvQuote(s) {
+  s = s === null || s === undefined ? '' : String(s);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
 function buildCsv(an) {
-  const q = s => {
-    s = s === null || s === undefined ? '' : String(s);
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
   const out = [CSV_HEADER.join(',')];
   for (const r of an.p.objects) {
     const meaning = (NAT_PROFILE.typeMap[r[2]] || {}).name || 'UNKNOWN';
     out.push([r[0], r[1], r[2], meaning, r[3], r[4], r[5], r[6], r[7], r[8], r[9],
-              r[10], r[11], r[12], r[13], r[14], r[15]].map(q).join(','));
+              r[10], r[11], r[12], r[13], r[14], r[15]].map(csvQuote).join(','));
   }
+  return out.join('\n');
+}
+
+const REPORT_CSV_HEADER = ['library','name','type_word','type_letter','s_c','dbid_fnr','date','time','user_id','status'];
+
+function buildReportCsv(an) {
+  const out = [REPORT_CSV_HEADER.join(',')];
+  for (const r of an.rep.rows) out.push(r.map(csvQuote).join(','));
   return out.join('\n');
 }
 
@@ -1213,8 +1412,9 @@ function buildCsv(an) {
  * Node export (for headless testing)
  * ================================================================== */
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { Analyzer, runScan, buildReport, buildCsv, sniffEncoding,
-                     makeDecoder, NAT_PROFILE, parseNatTs, detectRecordLength, CAPS };
+  module.exports = { Analyzer, runScan, buildReport, buildCsv, buildReportCsv, sniffEncoding,
+                     makeDecoder, NAT_PROFILE, NAT_REPORT_PROFILE, REPORT_TYPE_TO_LETTER,
+                     sniffFileProfile, parseNatTs, detectRecordLength, CAPS };
 }
 
 /* ================================================================== *
@@ -1337,10 +1537,15 @@ if (typeof document !== 'undefined') (function () {
       ['גודל קובץ', r.file.sizeHuman],
       ['נסרק', r.file.scannedHuman],
       ['רשומות', fmtNum(r.generic.records)],
-      ['אובייקטים', r.profile ? fmtNum(r.profile.objects.countInScan) : '—'],
-      ['שורות מקור', r.profile ? fmtNum(r.profile.objects.sourceLines) : '—'],
+      ['אובייקטים', r.profile ? fmtNum(r.profile.objects.countInScan)
+                   : r.jobLog ? fmtNum(r.jobLog.rows.seen) + ' שורות' : '—'],
+      ['שורות מקור', r.profile ? fmtNum(r.profile.objects.sourceLines)
+                    : r.jobLog ? fmtNum(r.jobLog.distinctLibraries) + ' ספריות' : '—'],
       ['זמן', r.scan.durationSec + 's · ' + r.scan.throughputMBps + ' MB/s']
     ]));
+    o.push('<h3>סוג קובץ שזוהה</h3>');
+    o.push('<dl class="kv"><dt>פרופיל</dt><dd>' + esc(r.tool.profile) +
+      (r.tool.profileRequested === 'auto' ? ' (זוהה אוטומטית)' : ' (נבחר ידנית)') + '</dd></dl>');
     o.push('<h3>קידוד וזיהוי</h3>');
     o.push('<dl class="kv">' +
       ['<dt>קידוד בשימוש</dt><dd>' + esc(r.scan.encodingUsed) + '</dd>',
@@ -1370,6 +1575,18 @@ if (typeof document !== 'undefined') (function () {
         '</dd><dt>שורות מקור משוערות</dt><dd>' + fmtNum(e.estimatedSourceLines) +
         '</dd><dt>הערה</dt><dd>' + esc(e.note) + '</dd></dl>');
     }
+    if (r.jobLog) {
+      const ri = r.jobLog.runInfo;
+      o.push('<h3>פרטי ההרצה (מתוך כותרת הדוח)</h3>');
+      const kv = [];
+      if (ri.banner) kv.push('<dt>תאריך/שעת הרצה</dt><dd>' + esc(ri.banner.date) + ' ' + esc(ri.banner.time) + '</dd>');
+      if (ri.context) kv.push('<dt>משתמש</dt><dd>' + esc(ri.context.user) + '</dd><dt>ספריית הרצה</dt><dd>' + esc(ri.context.library) + '</dd>');
+      if (ri.reportMember) kv.push('<dt>הדוח נשמר כאובייקט Text</dt><dd>' + esc(ri.reportMember) + '</dd>');
+      if (ri.commandLine) kv.push('<dt>פקודת ה-SYSOBJH</dt><dd>' + esc(ri.commandLine) + '</dd>');
+      o.push('<dl class="kv">' + kv.join('') + '</dl>');
+      o.push('<p class="muted">קובץ זה הוא דוח ריצה קריא לבני אדם — אין בו קוד מקור. ' +
+        'טבלה מלאה של השורות בטאב "אובייקטים".</p>');
+    }
     $('t-overview').innerHTML = o.join('');
 
     /* ---------- structure ---------- */
@@ -1392,7 +1609,22 @@ if (typeof document !== 'undefined') (function () {
 
     /* ---------- objects ---------- */
     const ob = [];
-    if (!r.profile) ob.push('<p class="muted">לא הופעל פרופיל מבנה.</p>');
+    if (r.jobLog) {
+      const J = r.jobLog;
+      ob.push('<h3>סוגי אובייקטים (מילה מלאה בדוח + האות המקבילה בקובץ הגולמי)</h3>');
+      ob.push(table(['type word', 'count', '≈ letter'], J.byType.map(t => [t.word, t.count, t.letter || '?']), [1]));
+      ob.push('<h3>סטטוס שורה</h3>' + pairs(J.byStatus, 'status', 'rows'));
+      ob.push('<h3>ספריות (' + fmtNum(J.distinctLibraries) + ')</h3>');
+      ob.push(scroll(pairs(J.byLibrary, 'library', 'rows')));
+      ob.push('<h3>משתמשים (מי שמר את האובייקט)</h3>');
+      ob.push(scroll(pairs(J.byUser, 'user', 'rows')));
+      ob.push('<h3>S/C</h3>' + pairs(J.bySC, 'S/C', 'rows'));
+      ob.push('<h3>שנת שמירה</h3>' + scroll(pairs(J.byYear, 'year', 'rows')));
+      if (J.duplicateRows.length) ob.push('<h3>שורות כפולות</h3>' + scroll(pairs(J.duplicateRows, 'library|name|type', 'count')));
+      const rows = analyzer.rep.rows.slice(0, 500);
+      ob.push('<h3>מלאי שורות (500 ראשונות מתוך ' + fmtNum(analyzer.rep.rows.length) + ' — המלאי המלא ב-CSV)</h3>');
+      ob.push(scroll(table(['library', 'name', 'type', '≈letter', 'S/C', 'dbid/fnr', 'date', 'time', 'user', 'status'], rows)));
+    } else if (!r.profile) ob.push('<p class="muted">לא הופעל פרופיל מבנה.</p>');
     else {
       const P = r.profile.objects;
       ob.push('<h3>סוגי אובייקטים — מיפוי האותיות הוסק מהנתונים, לא מתיעוד</h3>');
@@ -1420,7 +1652,8 @@ if (typeof document !== 'undefined') (function () {
 
     /* ---------- dependencies ---------- */
     const dp = [];
-    if (!r.lexical) dp.push('<p class="muted">לא הופעל פרופיל מבנה.</p>');
+    if (r.jobLog) dp.push('<p class="muted">לא רלוונטי — קובץ מסוג דוח SYSOBJH אינו מכיל קוד מקור, ולכן אין תלויות לחלץ.</p>');
+    else if (!r.lexical) dp.push('<p class="muted">לא הופעל פרופיל מבנה.</p>');
     else {
       const L = r.lexical;
       dp.push('<h3>פקודות Natural נפוצות (' + fmtNum(L.distinctStatementKeywords) + ' שונות)</h3>');
@@ -1455,7 +1688,8 @@ if (typeof document !== 'undefined') (function () {
 
     /* ---------- samples ---------- */
     const sm = [];
-    if (!r.sourceSamples) sm.push('<p class="muted">לא הופעל פרופיל מבנה.</p>');
+    if (r.jobLog) sm.push('<p class="muted">לא רלוונטי — קובץ מסוג דוח SYSOBJH אינו מכיל קוד מקור.</p>');
+    else if (!r.sourceSamples) sm.push('<p class="muted">לא הופעל פרופיל מבנה.</p>');
     else for (const [type, objs] of Object.entries(r.sourceSamples)) {
       sm.push('<h3>' + esc(type) + '</h3>');
       for (const ob2 of objs) {
@@ -1485,8 +1719,8 @@ if (typeof document !== 'undefined') (function () {
     $('sec-results').classList.remove('hidden');
     $('sec-export').classList.remove('hidden');
     const json = JSON.stringify(r, null, 1);
-    $('expinfo').textContent = 'JSON ≈ ' + fmtBytes(json.length) +
-      '  ·  CSV ' + fmtNum(analyzer.p.objects.length) + ' שורות';
+    const csvRowCount = analyzer.reportOn ? analyzer.rep.rows.length : analyzer.p.objects.length;
+    $('expinfo').textContent = 'JSON ≈ ' + fmtBytes(json.length) + '  ·  CSV ' + fmtNum(csvRowCount) + ' שורות';
   }
 
   /* ------------------------- tabs -------------------------- */
@@ -1512,7 +1746,10 @@ if (typeof document !== 'undefined') (function () {
     if (report) download(base() + '-discovery-log.json', JSON.stringify(report, null, 1), 'application/json');
   });
   $('dl-csv').addEventListener('click', () => {
-    if (analyzer) download(base() + '-objects.csv', '﻿' + buildCsv(analyzer), 'text/csv');
+    if (!analyzer) return;
+    const csv = analyzer.reportOn ? buildReportCsv(analyzer) : buildCsv(analyzer);
+    const name = analyzer.reportOn ? '-rows.csv' : '-objects.csv';
+    download(base() + name, '﻿' + csv, 'text/csv');
   });
   $('copy-json').addEventListener('click', async () => {
     if (!report) return;

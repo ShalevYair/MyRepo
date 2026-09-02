@@ -66,7 +66,9 @@
 
     <label>פרופיל מבנה
       <select id="profile">
-        <option value="natural-sysobjh" selected>Natural SYSOBJH / SYSTRANS unload</option>
+        <option value="auto" selected>אוטומטי — זיהוי בין שני הפורמטים</option>
+        <option value="natural-sysobjh">Natural SYSOBJH — unload גולמי (*H**/*C**/*D0x/*S**)</option>
+        <option value="natural-sysobjh-report">Natural SYSOBJH — דוח ריצה (job log)</option>
         <option value="none">ללא — סריקה גנרית בלבד</option>
       </select>
     </label>
@@ -118,7 +120,7 @@
   <div class="row">
     <button id="dl-json" class="primary">הורד discovery-log.json</button>
     <button id="copy-json" class="ghost">העתק ללוח</button>
-    <button id="dl-csv" class="ghost">הורד objects.csv (מלא)</button>
+    <button id="dl-csv" class="ghost">הורד מלאי מלא (CSV)</button>
     <span id="expinfo" class="muted mono"></span>
   </div>
 </section>
