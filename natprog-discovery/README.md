@@ -66,10 +66,17 @@ expected and does **not** mean data was lost — it means the two scanned window
 objects. The tool detects this and downgrades its own verdict accordingly; treat cross-check numbers as
 meaningful only when both sides were fully scanned.
 
+### Loading many files: folder pickers
+
+JCL jobs and COBOL programs are one file each — hundreds or thousands of them, not one big dump —
+so both inputs are folder pickers (`webkitdirectory`): one click selects the whole directory instead
+of hand-picking files one at a time. A secondary "or individual files" button next to each is a plain
+multi-select fallback for when only a handful of files are wanted. Neither streams — these files are
+small (a few KB each), so each one is read in full with `File.text()`.
+
 ### JCL → Natural program links (the "JCL" tab)
 
-A third input, `#filesJcl`, accepts many files at once (JCL jobs are one file each, not one big dump).
-Each file is parsed for the two ways a job invokes a program, confirmed against 5 real jobs:
+Each JCL file is parsed for the two ways a job invokes a program, confirmed against 5 real jobs:
 
 * **Natural batch** — the EXEC line doesn't name the program at all; it runs a shared PROC (seen as
   `NATB240`) and hands the real library + program name through in-stream `CMSYNIN` input:
@@ -85,6 +92,33 @@ object rows the user confirmed independently (`RC/DOHUZDP2`, `RC/GO0701P0`, `RC/
 3/3 with no false positives — including correctly picking the `RC`-library copy of `GO0701P0` over two
 older duplicate copies of the same program sitting in different libraries (`GOCOPY`, `GOGO`), proving
 the match is library-aware, not just name-aware.
+
+### COBOL/CICS call graph (the "COBOL/CICS" tab)
+
+A folder of COBOL programs (one object per file, same convention as everything else here). Each file
+is parsed for its `PROGRAM-ID`, whether it declares itself CICS (`01 SAP-OPTIONS TPMONITOR UTP-CICS.`),
+and every way it can reference another program — confirmed against two real files, one plain batch and
+one CICS transaction:
+
+* `CALL 'name' USING ...` — an ordinary COBOL subroutine call.
+* `EXEC CICS LINK PROGRAM('name') ...` — synchronous call to another CICS program (COMMAREA as the
+  argument buffer).
+* `EXEC CICS XCTL PROGRAM('name') ...` — transfer control to another program. Not seen in either
+  sample yet, but a standard CICS verb, so it's parsed for.
+* `EXEC CICS START TRANSID('name') ...` — starts a separate transaction asynchronously. Its target is
+  a TRANSID, not necessarily a `PROGRAM-ID`, so it's reported in its own table and never counted as
+  "unresolved" alongside the other three.
+
+Unlike the JCL check, this cross-checks against **itself**: every file's `PROGRAM-ID` becomes the
+ground truth, and every `CALL`/`LINK`/`XCTL` target is looked up against that same set — so it only
+resolves well when the whole folder (or at least everything these programs call) was actually
+selected. Comment lines (COBOL's column-7 `*`) are skipped before extraction, so old commented-out
+calls aren't reported as live dependencies.
+
+Verified against the two real sample files (0/18 resolved, correctly — neither file calls the other,
+so every call is expected to miss) and, to prove the resolver itself works, a synthetic third file
+declaring `PROGRAM-ID. INVERSE.` added to the same set: resolution correctly jumped to 14/18, with
+every `INVERSE` call (the program's own RTL-Hebrew helper, called 14 times) now marked found.
 
 ## Output
 

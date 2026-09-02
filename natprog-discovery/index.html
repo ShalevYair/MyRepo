@@ -44,8 +44,12 @@
 
   <div class="row">
     <label class="filebtn secondary">
-      <input type="file" id="filesJcl" multiple hidden>
-      <span>+ קבצי JCL (אפשר לבחור הרבה יחד)</span>
+      <input type="file" id="filesJcl" webkitdirectory hidden>
+      <span>📁 בחר תיקיית JCL</span>
+    </label>
+    <label class="filebtn secondary" style="opacity:.7">
+      <input type="file" id="filesJclManual" multiple hidden>
+      <span>או קבצים בודדים</span>
     </label>
     <button id="clear-jcl" class="ghost hidden" style="padding:5px 12px;font-size:12px">בטל</button>
     <div id="jclinfo" class="muted"></div>
@@ -53,6 +57,24 @@
   <p class="muted" style="font-size:12px;margin:-4px 0 12px">
     לכל קובץ JCL הכלי מחלץ אילו תוכניות Natural הוא מריץ (מזהה LOGON &lt;ספרייה&gt; + שם תוכנית ב-CMSYNIN),
     ואם קובץ unload גולמי גם נטען — בודק שהתוכניות האלה אכן קיימות בו.
+  </p>
+
+  <div class="row">
+    <label class="filebtn secondary">
+      <input type="file" id="filesCobol" webkitdirectory hidden>
+      <span>📁 בחר תיקיית COBOL/CICS</span>
+    </label>
+    <label class="filebtn secondary" style="opacity:.7">
+      <input type="file" id="filesCobolManual" multiple hidden>
+      <span>או קבצים בודדים</span>
+    </label>
+    <button id="clear-cobol" class="ghost hidden" style="padding:5px 12px;font-size:12px">בטל</button>
+    <div id="cobolinfo" class="muted"></div>
+  </div>
+  <p class="muted" style="font-size:12px;margin:-4px 0 12px">
+    לכל קובץ COBOL הכלי מחלץ PROGRAM-ID, האם הוא רץ תחת CICS, וכל קריאה לתוכנית אחרת
+    (<code>CALL '...'</code>, <code>EXEC CICS LINK/XCTL PROGRAM(...)</code>, <code>EXEC CICS START TRANSID(...)</code>) —
+    ובודק שכל תוכנית שנקראת אכן קיימת בתוך אותה תיקייה שנטענה.
   </p>
 
   <div class="grid-opts">
@@ -124,6 +146,7 @@
     <button data-tab="t-overview" class="active">סקירה</button>
     <button data-tab="t-cross" id="tab-cross" class="hidden">הצלבה</button>
     <button data-tab="t-jcl" id="tab-jcl" class="hidden">JCL</button>
+    <button data-tab="t-cobol" id="tab-cobol" class="hidden">COBOL/CICS</button>
     <button data-tab="t-structure">מבנה גולמי</button>
     <button data-tab="t-objects">אובייקטים</button>
     <button data-tab="t-deps">תלויות</button>
@@ -133,6 +156,7 @@
   <div id="t-overview"  class="tab active"></div>
   <div id="t-cross"     class="tab"></div>
   <div id="t-jcl"       class="tab"></div>
+  <div id="t-cobol"     class="tab"></div>
   <div id="t-structure" class="tab"></div>
   <div id="t-objects"   class="tab"></div>
   <div id="t-deps"      class="tab"></div>
@@ -152,6 +176,7 @@
     <button id="copy-json" class="ghost">העתק ללוח</button>
     <button id="dl-csv" class="ghost">הורד מלאי מלא (CSV)</button>
     <button id="dl-jcl-csv" class="ghost hidden">הורד קישורי JCL (CSV)</button>
+    <button id="dl-cobol-csv" class="ghost hidden">הורד קישורי COBOL (CSV)</button>
     <span id="expinfo" class="muted mono"></span>
   </div>
 </section>

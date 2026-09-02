@@ -1634,11 +1634,103 @@ function buildJclCsv(jcl) {
 }
 
 /* ================================================================== *
+ * COBOL / CICS: which programs does one program call?
+ *
+ * Derived from and verified against two real files. A plain batch COBOL
+ * program (no CICS) has ordinary `CALL 'name' USING ...` subroutine calls.
+ * A CICS transaction additionally declares itself via
+ * `01 SAP-OPTIONS TPMONITOR UTP-CICS.` and can reference other programs
+ * three more ways: `EXEC CICS LINK PROGRAM('name') ...` (synchronous call,
+ * COMMAREA as the argument buffer), `EXEC CICS XCTL PROGRAM('name') ...`
+ * (transfer control, never seen in a sample yet but a standard CICS verb),
+ * and `EXEC CICS START TRANSID('name') ...` (starts a separate transaction
+ * asynchronously — its target is a TRANSID, not necessarily a PROGRAM-ID,
+ * so it is reported but never counted as "unresolved").
+ *
+ * Unlike the JCL cross-check (which needs a separate raw-unload file), a
+ * COBOL folder cross-checks against ITSELF: every file's PROGRAM-ID
+ * becomes the ground truth, and every CALL/LINK/XCTL target is looked up
+ * against that same set — this only works well when the whole folder (or
+ * at least everything these programs call) was actually selected.
+ * ================================================================== */
+function parseCobol(text, fileName) {
+  const lines = text.split(/\r\n|\n/);
+  let programId = null;
+  let usesCics = false;
+  const calls = [];
+  for (const line of lines) {
+    if (/^\s*\*/.test(line)) continue;              // COBOL comment line (col 7 '*')
+    if (!programId) {
+      const m = /PROGRAM-ID\.\s*([A-Z0-9#$@\-]+)/i.exec(line);
+      if (m) programId = m[1].toUpperCase();
+    }
+    if (/TPMONITOR\s+UTP-CICS/i.test(line)) usesCics = true;
+
+    let m;
+    const callRe = /\bCALL\s+'([^']+)'/gi;
+    while ((m = callRe.exec(line))) calls.push({ kind: 'call', target: m[1].toUpperCase() });
+    const linkRe = /EXEC\s+CICS\s+LINK\s+PROGRAM\(['"]?([A-Z0-9#$@\-]+)['"]?\)/gi;
+    while ((m = linkRe.exec(line))) calls.push({ kind: 'cics-link', target: m[1].toUpperCase() });
+    const xctlRe = /EXEC\s+CICS\s+XCTL\s+PROGRAM\(['"]?([A-Z0-9#$@\-]+)['"]?\)/gi;
+    while ((m = xctlRe.exec(line))) calls.push({ kind: 'cics-xctl', target: m[1].toUpperCase() });
+    const startRe = /EXEC\s+CICS\s+START\s+TRANSID\s*\(\s*'([^']+)'/gi;
+    while ((m = startRe.exec(line))) calls.push({ kind: 'cics-start', target: m[1].toUpperCase() });
+  }
+  return { file: fileName, programId, usesCics, calls };
+}
+
+function analyzeCobol(cobolFiles) {
+  const parsed = cobolFiles.map(f => parseCobol(f.text, f.name));
+  const programIndex = new Set();
+  for (const p of parsed) if (p.programId) programIndex.add(p.programId);
+
+  const allCalls = [];
+  for (const p of parsed) for (const c of p.calls) allCalls.push({ file: p.file, from: p.programId, kind: c.kind, target: c.target });
+
+  const byKind = new Map(), byTarget = new Map();
+  let cicsPrograms = 0;
+  for (const p of parsed) if (p.usesCics) cicsPrograms++;
+  for (const c of allCalls) { bump(byKind, c.kind, 10); bump(byTarget, c.target, 200000); }
+
+  const resolvable = allCalls.filter(c => c.kind !== 'cics-start');
+  let resolved = 0;
+  const rows = resolvable.map(c => {
+    const found = programIndex.has(c.target);
+    if (found) resolved++;
+    return { file: c.file, from: c.from, kind: c.kind, target: c.target, foundInFolder: found };
+  });
+  const startRows = allCalls.filter(c => c.kind === 'cics-start')
+    .map(c => ({ file: c.file, from: c.from, kind: c.kind, target: c.target }));
+
+  return {
+    filesParsed: parsed.length,
+    programsWithId: programIndex.size,
+    cicsPrograms,
+    totalCalls: allCalls.length,
+    byKind: topN(byKind, 10),
+    distinctTargets: byTarget.size,
+    topTargets: topN(byTarget, 200),
+    resolution: { resolved, unresolved: resolvable.length - resolved, total: resolvable.length, rows },
+    cicsStarts: startRows,
+    programs: parsed.map(p => ({ file: p.file, programId: p.programId, usesCics: p.usesCics, calls: p.calls.length }))
+  };
+}
+
+const COBOL_CSV_HEADER = ['file', 'from_program', 'kind', 'target', 'found_in_folder'];
+
+function buildCobolCsv(cobol) {
+  const out = [COBOL_CSV_HEADER.join(',')];
+  for (const r of cobol.resolution.rows) out.push([r.file, r.from || '', r.kind, r.target, r.foundInFolder].map(csvQuote).join(','));
+  for (const r of cobol.cicsStarts) out.push([r.file, r.from || '', r.kind, r.target, 'n/a'].map(csvQuote).join(','));
+  return out.join('\n');
+}
+
+/* ================================================================== *
  * Node export (for headless testing)
  * ================================================================== */
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { Analyzer, runScan, buildReport, buildCsv, buildReportCsv, buildCrossCheck,
-                     parseJcl, analyzeJcl, buildJclCsv,
+                     parseJcl, analyzeJcl, buildJclCsv, parseCobol, analyzeCobol, buildCobolCsv,
                      sniffEncoding, makeDecoder, NAT_PROFILE, NAT_REPORT_PROFILE, REPORT_TYPE_TO_LETTER,
                      sniffFileProfile, parseNatTs, detectRecordLength, CAPS };
 }
@@ -1688,6 +1780,7 @@ if (typeof document !== 'undefined') (function () {
   let file = null, report = null, analyzer = null, cancelled = false;
   let file2 = null, report2 = null, analyzer2 = null, crossCheck = null;
   let jclFiles = [], jclResult = null;
+  let cobolFiles = [], cobolResult = null;
 
   /* ------------------------- inputs ------------------------ */
   $('linemode').addEventListener('change', e => {
@@ -1715,17 +1808,33 @@ if (typeof document !== 'undefined') (function () {
     $('clear-file2').classList.add('hidden'); $('fileinfo2').innerHTML = '';
   });
 
-  $('filesJcl').addEventListener('change', e => {
-    jclFiles = [...e.target.files];
+  function pickMultiFiles(inputId, onPicked) {
+    $(inputId).addEventListener('change', e => onPicked([...e.target.files]));
+  }
+  const setJclFiles = list => {
+    jclFiles = list;
     $('clear-jcl').classList.toggle('hidden', !jclFiles.length);
     $('jclinfo').innerHTML = jclFiles.length
-      ? '<b>' + fmtNum(jclFiles.length) + ' קבצי JCL</b> — ' +
-        fmtBytes(jclFiles.reduce((s, f) => s + f.size, 0))
+      ? '<b>' + fmtNum(jclFiles.length) + ' קבצי JCL</b> — ' + fmtBytes(jclFiles.reduce((s, f) => s + f.size, 0))
       : '';
-  });
+  };
+  pickMultiFiles('filesJcl', setJclFiles);
+  pickMultiFiles('filesJclManual', setJclFiles);
   $('clear-jcl').addEventListener('click', () => {
-    jclFiles = []; $('filesJcl').value = '';
-    $('clear-jcl').classList.add('hidden'); $('jclinfo').innerHTML = '';
+    setJclFiles([]); $('filesJcl').value = ''; $('filesJclManual').value = '';
+  });
+
+  const setCobolFiles = list => {
+    cobolFiles = list;
+    $('clear-cobol').classList.toggle('hidden', !cobolFiles.length);
+    $('cobolinfo').innerHTML = cobolFiles.length
+      ? '<b>' + fmtNum(cobolFiles.length) + ' קבצי COBOL</b> — ' + fmtBytes(cobolFiles.reduce((s, f) => s + f.size, 0))
+      : '';
+  };
+  pickMultiFiles('filesCobol', setCobolFiles);
+  pickMultiFiles('filesCobolManual', setCobolFiles);
+  $('clear-cobol').addEventListener('click', () => {
+    setCobolFiles([]); $('filesCobol').value = ''; $('filesCobolManual').value = '';
   });
 
   $('cancel').addEventListener('click', () => { cancelled = true; });
@@ -1777,6 +1886,13 @@ if (typeof document !== 'undefined') (function () {
         jclResult = analyzeJcl(texts, rawAn);
       }
 
+      cobolResult = null;
+      if (cobolFiles.length && !cancelled) {
+        $('progtext').textContent = 'קורא ' + fmtNum(cobolFiles.length) + ' קבצי COBOL…';
+        const texts = await Promise.all(cobolFiles.map(async f => ({ name: f.name, text: await f.text() })));
+        cobolResult = analyzeCobol(texts);
+      }
+
       render(report);
     } catch (err) {
       $('sec-verdict').classList.remove('hidden');
@@ -1793,6 +1909,45 @@ if (typeof document !== 'undefined') (function () {
   });
 
   /* ------------------------- render ------------------------ */
+  function renderCobol(cobol) {
+    const out = [];
+    out.push(stats([
+      ['קבצי COBOL', fmtNum(cobol.filesParsed)],
+      ['עם PROGRAM-ID', fmtNum(cobol.programsWithId)],
+      ['תוכניות CICS', fmtNum(cobol.cicsPrograms)],
+      ['קריאות סה"כ', fmtNum(cobol.totalCalls)],
+      ['יעדים שונים', fmtNum(cobol.distinctTargets)]
+    ]));
+
+    const r = cobol.resolution;
+    const pct = r.total ? (r.resolved / r.total * 100) : 0;
+    out.push('<div class="v ' + (r.unresolved === 0 ? 'ok' : 'warn') + '">' +
+      '<div class="t">' + fmtNum(r.resolved) + ' מתוך ' + fmtNum(r.total) +
+      ' קריאות נפתרו מול תוכניות בתוך אותה תיקייה (' + pct.toFixed(1) + '%)</div>' +
+      '<div class="d">"לא נמצא" אומר שהתוכנית הנקראת לא נטענה בתיקייה הזו — ' +
+      'יכול להיות שהיא בתיקייה אחרת, או שזו רק חלק מהתיקייה המלאה. ' +
+      "EXEC CICS START (יעד = TRANSID, לא PROGRAM-ID) לא נבדק כאן — ראה טבלה נפרדת למטה.</div></div>");
+
+    out.push('<h3>כל הקריאות, עם סטטוס אימות</h3>');
+    out.push(scroll(table(['קובץ', 'מתוך תוכנית', 'סוג', 'קוראת ל-', 'נמצאה בתיקייה'],
+      r.rows.map(x => [x.file, x.from || '—', x.kind, x.target, x.foundInFolder ? '✓' : '—']))));
+
+    if (cobol.cicsStarts.length) {
+      out.push('<h3>EXEC CICS START (מפעיל טרנזקציה אחרת — לא תוכנית)</h3>');
+      out.push(scroll(table(['קובץ', 'מתוך תוכנית', 'TRANSID'],
+        cobol.cicsStarts.map(x => [x.file, x.from || '—', x.target]))));
+    }
+
+    out.push('<h3>היעדים הנקראים ביותר</h3>');
+    out.push(scroll(pairs(cobol.topTargets, 'target', 'קריאות')));
+
+    out.push('<h3>לפי קובץ</h3>');
+    out.push(scroll(table(['קובץ', 'PROGRAM-ID', 'CICS?', 'קריאות'],
+      cobol.programs.map(p => [p.file, p.programId || '—', p.usesCics ? 'כן' : 'לא', p.calls]))));
+
+    return out.join('');
+  }
+
   function renderJcl(jcl) {
     const out = [];
     out.push(stats([
@@ -1895,6 +2050,11 @@ if (typeof document !== 'undefined') (function () {
     $('tab-jcl').classList.toggle('hidden', !jclResult);
     $('dl-jcl-csv').classList.toggle('hidden', !jclResult);
     if (jclResult) $('t-jcl').innerHTML = renderJcl(jclResult);
+
+    /* ---------- COBOL/CICS ---------- */
+    $('tab-cobol').classList.toggle('hidden', !cobolResult);
+    $('dl-cobol-csv').classList.toggle('hidden', !cobolResult);
+    if (cobolResult) $('t-cobol').innerHTML = renderCobol(cobolResult);
 
     /* ---------- overview ---------- */
     const o = [];
@@ -2086,13 +2246,14 @@ if (typeof document !== 'undefined') (function () {
     const json = JSON.stringify(exportPayload(), null, 1);
     const csvRowCount = analyzer.reportOn ? analyzer.rep.rows.length : analyzer.p.objects.length;
     $('expinfo').textContent = 'JSON ≈ ' + fmtBytes(json.length) + '  ·  CSV ' + fmtNum(csvRowCount) + ' שורות' +
-      (crossCheck ? '  ·  כולל הצלבה' : '') + (jclResult ? '  ·  כולל JCL' : '');
+      (crossCheck ? '  ·  כולל הצלבה' : '') + (jclResult ? '  ·  כולל JCL' : '') + (cobolResult ? '  ·  כולל COBOL' : '');
   }
 
   function exportPayload() {
-    if (!crossCheck && !jclResult) return report;
+    if (!crossCheck && !jclResult && !cobolResult) return report;
     const p = crossCheck ? { fileA: report, fileB: report2, crossCheck } : { file: report };
     if (jclResult) p.jcl = jclResult;
+    if (cobolResult) p.cobol = cobolResult;
     return p;
   }
 
@@ -2126,6 +2287,9 @@ if (typeof document !== 'undefined') (function () {
   });
   $('dl-jcl-csv').addEventListener('click', () => {
     if (jclResult) download(base() + '-jcl-refs.csv', '﻿' + buildJclCsv(jclResult), 'text/csv');
+  });
+  $('dl-cobol-csv').addEventListener('click', () => {
+    if (cobolResult) download(base() + '-cobol-refs.csv', '﻿' + buildCobolCsv(cobolResult), 'text/csv');
   });
   $('copy-json').addEventListener('click', async () => {
     if (!report) return;
