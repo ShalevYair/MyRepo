@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NATPROG Discovery — סורק קבצי Natural/SYSOBJH</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <h1>NATPROG&nbsp;Discovery</h1>
+    <span class="ver">v1.0 · סריקה מקומית בדפדפן · הקובץ לא עוזב את המחשב</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ 1. INPUT ============ -->
+<section class="card" id="sec-input">
+  <h2>1 · בחירת קובץ</h2>
+
+  <div class="row">
+    <label class="filebtn">
+      <input type="file" id="file" hidden>
+      <span>בחר קובץ ראשי…</span>
+    </label>
+    <div id="fileinfo" class="muted">לא נבחר קובץ</div>
+  </div>
+
+  <div class="row">
+    <label class="filebtn secondary">
+      <input type="file" id="file2" hidden>
+      <span>+ קובץ להצלבה (אופציונלי)</span>
+    </label>
+    <button id="clear-file2" class="ghost hidden" style="padding:5px 12px;font-size:12px">בטל</button>
+    <div id="fileinfo2" class="muted"></div>
+  </div>
+  <p class="muted" style="font-size:12px;margin:-4px 0 12px">
+    אם אחד הקבצים הוא unload גולמי (*H**/*C**/*S**) והשני הוא דוח SYSOBJH (טבלת UNLOADED/LIBRARY/...) —
+    הכלי יבדוק שכל אובייקט שהדוח מסמן כ-UNLOADED אכן קיים ב-unload הגולמי, ויסמן פערים.
+  </p>
+
+  <div class="row">
+    <label class="filebtn secondary">
+      <input type="file" id="filesJcl" webkitdirectory hidden>
+      <span>📁 בחר תיקיית JCL</span>
+    </label>
+    <label class="filebtn secondary" style="opacity:.7">
+      <input type="file" id="filesJclManual" multiple hidden>
+      <span>או קבצים בודדים</span>
+    </label>
+    <button id="clear-jcl" class="ghost hidden" style="padding:5px 12px;font-size:12px">בטל</button>
+    <div id="jclinfo" class="muted"></div>
+  </div>
+  <p class="muted" style="font-size:12px;margin:-4px 0 12px">
+    לכל קובץ JCL הכלי מחלץ אילו תוכניות Natural הוא מריץ (מזהה LOGON &lt;ספרייה&gt; + שם תוכנית ב-CMSYNIN),
+    ואם קובץ unload גולמי גם נטען — בודק שהתוכניות האלה אכן קיימות בו.
+  </p>
+
+  <div class="row">
+    <label class="filebtn secondary">
+      <input type="file" id="filesCobol" webkitdirectory hidden>
+      <span>📁 בחר תיקיית COBOL/CICS</span>
+    </label>
+    <label class="filebtn secondary" style="opacity:.7">
+      <input type="file" id="filesCobolManual" multiple hidden>
+      <span>או קבצים בודדים</span>
+    </label>
+    <button id="clear-cobol" class="ghost hidden" style="padding:5px 12px;font-size:12px">בטל</button>
+    <div id="cobolinfo" class="muted"></div>
+  </div>
+  <p class="muted" style="font-size:12px;margin:-4px 0 12px">
+    לכל קובץ COBOL הכלי מחלץ PROGRAM-ID, האם הוא רץ תחת CICS, וכל קריאה לתוכנית אחרת
+    (<code>CALL '...'</code>, <code>EXEC CICS LINK/XCTL PROGRAM(...)</code>, <code>EXEC CICS START TRANSID(...)</code>) —
+    ובודק שכל תוכנית שנקראת אכן קיימת בתוך אותה תיקייה שנטענה.
+  </p>
+
+  <div class="grid-opts">
+    <label>קידוד
+      <select id="encoding">
+        <option value="auto" selected>אוטומטי (מומלץ)</option>
+        <option value="utf-8">UTF-8</option>
+        <option value="windows-1255">Windows-1255 (עברית)</option>
+        <option value="iso-8859-8">ISO-8859-8</option>
+        <option value="latin1">Latin-1 / בינארי גולמי</option>
+        <option value="cp862">CP862 (DOS עברית)</option>
+        <option value="cp424">CP424 (EBCDIC עברית)</option>
+        <option value="cp037">CP037 (EBCDIC US)</option>
+      </select>
+    </label>
+
+    <label>חלוקה לרשומות
+      <select id="linemode">
+        <option value="auto" selected>אוטומטי</option>
+        <option value="lf">לפי שורות (LF/CRLF)</option>
+        <option value="fixed">אורך קבוע…</option>
+      </select>
+    </label>
+
+    <label id="reclen-wrap" class="hidden">אורך רשומה (תווים)
+      <input type="number" id="reclen" value="80" min="1" max="32760">
+    </label>
+
+    <label>היקף סריקה
+      <select id="limit">
+        <option value="0" selected>כל הקובץ</option>
+        <option value="10">10 MB ראשונים (בדיקה מהירה)</option>
+        <option value="100">100 MB ראשונים</option>
+        <option value="500">500 MB ראשונים</option>
+      </select>
+    </label>
+
+    <label>פרופיל מבנה
+      <select id="profile">
+        <option value="auto" selected>אוטומטי — זיהוי בין שני הפורמטים</option>
+        <option value="natural-sysobjh">Natural SYSOBJH — unload גולמי (*H**/*C**/*D0x/*S**)</option>
+        <option value="natural-sysobjh-report">Natural SYSOBJH — דוח ריצה (job log)</option>
+        <option value="none">ללא — סריקה גנרית בלבד</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="row">
+    <button id="run" class="primary" disabled>הרץ סריקה</button>
+    <button id="cancel" class="ghost hidden">עצור</button>
+  </div>
+
+  <div id="progwrap" class="hidden">
+    <div class="bar"><div id="bar" class="bar-fill"></div></div>
+    <div id="progtext" class="muted mono"></div>
+  </div>
+</section>
+
+<!-- ============ 2. VERDICT ============ -->
+<section class="card hidden" id="sec-verdict">
+  <h2>2 · שורה תחתונה</h2>
+  <div id="verdict"></div>
+</section>
+
+<!-- ============ 3. RESULTS ============ -->
+<section class="card hidden" id="sec-results">
+  <h2>3 · ממצאים</h2>
+  <nav class="tabs" id="tabs">
+    <button data-tab="t-dash" id="tab-dash" class="hidden">תמונת מצב כוללת</button>
+    <button data-tab="t-overview" class="active" id="tab-overview-btn">סקירה</button>
+    <button data-tab="t-cross" id="tab-cross" class="hidden">הצלבה</button>
+    <button data-tab="t-jcl" id="tab-jcl" class="hidden">JCL</button>
+    <button data-tab="t-cobol" id="tab-cobol" class="hidden">COBOL/CICS</button>
+    <button data-tab="t-structure">מבנה גולמי</button>
+    <button data-tab="t-objects">אובייקטים</button>
+    <button data-tab="t-deps">תלויות</button>
+    <button data-tab="t-samples">דגימות קוד</button>
+    <button data-tab="t-anom">חריגות</button>
+  </nav>
+  <div id="t-dash"      class="tab"></div>
+  <div id="t-overview"  class="tab active"></div>
+  <div id="t-cross"     class="tab"></div>
+  <div id="t-jcl"       class="tab"></div>
+  <div id="t-cobol"     class="tab"></div>
+  <div id="t-structure" class="tab"></div>
+  <div id="t-objects"   class="tab"></div>
+  <div id="t-deps"      class="tab"></div>
+  <div id="t-samples"   class="tab"></div>
+  <div id="t-anom"      class="tab"></div>
+</section>
+
+<!-- ============ 4. EXPORT ============ -->
+<section class="card hidden" id="sec-export">
+  <h2>4 · ייצוא לוג לניתוח</h2>
+  <p class="muted">
+    ה־JSON הזה נועד להישלח בחזרה לניתוח. הוא מכיל אגרגציות, דגימות וכל החריגות —
+    בלי להעתיק את כל תוכן הקובץ.
+  </p>
+  <div class="row">
+    <button id="dl-json" class="primary">הורד discovery-log.json</button>
+    <button id="copy-json" class="ghost">העתק ללוח</button>
+    <button id="dl-csv" class="ghost">הורד מלאי מלא (CSV)</button>
+    <button id="dl-jcl-csv" class="ghost hidden">הורד קישורי JCL (CSV)</button>
+    <button id="dl-cobol-csv" class="ghost hidden">הורד קישורי COBOL (CSV)</button>
+    <span id="expinfo" class="muted mono"></span>
+  </div>
+</section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
