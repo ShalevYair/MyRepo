@@ -1,0 +1,2181 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מפת תוכניות Natural — פעילות + ניתוח</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2b303b;
+    --txt:#e6e9ef; --dim:#98a2b3; --acc:#4da3ff; --ok:#3ecf8e; --warn:#f5b544; --bad:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font-family:"Segoe UI",Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5}
+  header{padding:14px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+  h1{margin:0 0 10px;font-size:18px;font-weight:600}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .fileBox{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+  .fileBox label{display:block;font-size:12px;color:var(--dim);margin-bottom:4px}
+  input[type=file]{color:var(--txt);font-size:12px;max-width:260px}
+  input[type=text],input[type=date],select{background:var(--panel2);color:var(--txt);
+       border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit}
+  input[type=text]{min-width:240px}
+  button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);
+       border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;font-family:inherit}
+  button:hover{border-color:var(--acc)}
+  button.on{background:var(--acc);border-color:var(--acc);color:#06121f;font-weight:600}
+  #status{padding:8px 18px;font-size:12px;color:var(--dim);border-bottom:1px solid var(--line);
+       background:var(--panel);min-height:18px}
+  #status .bad{color:var(--bad)} #status .warn{color:var(--warn)} #status .ok{color:var(--ok)}
+  #controls{padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+  main{padding:0 18px 40px}
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  th{position:sticky;top:0;background:var(--panel2);text-align:right;padding:8px;
+     border-bottom:1px solid var(--line);font-size:12px;color:var(--dim);
+     cursor:pointer;white-space:nowrap;z-index:2}
+  th:hover{color:var(--acc)}
+  td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr.main{cursor:pointer}
+  tr.main:hover td{background:#1b1f28}
+  tr.open td{background:#1b1f28}
+  .ltr{direction:ltr;unicode-bidi:isolate;text-align:right;font-family:Consolas,monospace}
+  .num{direction:ltr;unicode-bidi:isolate;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  th.num{text-align:right}
+  #tip{position:fixed;display:none;z-index:999;max-width:380px;background:#0b0d12;
+       border:1px solid var(--acc);border-radius:8px;padding:9px 11px;font-size:13px;
+       line-height:1.5;color:var(--txt);box-shadow:0 6px 24px rgba(0,0,0,.6);
+       direction:rtl;text-align:right;pointer-events:none;white-space:pre-wrap}
+  #tip b{color:var(--acc);display:block;margin-bottom:4px;direction:ltr;
+         unicode-bidi:isolate;text-align:right;font-family:Consolas,monospace}
+  .id{font-weight:600;color:var(--acc)}
+  .tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;
+       border:1px solid var(--line);background:var(--panel2);white-space:nowrap}
+  .c-high{color:var(--ok);border-color:#2a5f47}
+  .c-medium{color:var(--warn);border-color:#5f4d20}
+  .c-low{color:var(--bad);border-color:#5f2a2a}
+  .detail{background:#12151c}
+  .detail td{padding:14px 18px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  .sec h4{margin:0 0 6px;font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+  .sec ul{margin:0;padding-inline-start:18px}
+  .sec li{margin-bottom:3px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
+        padding:2px 7px;font-size:12px;direction:ltr;unicode-bidi:isolate;font-family:Consolas,monospace}
+  .chip.link{cursor:pointer;color:var(--acc);border-color:#2a4a6b}
+  .chip.link:hover{background:#1e3550}
+  .chip.dead{color:var(--dim);cursor:default;border-style:dashed}
+  .meta{font-size:12px;color:var(--dim);direction:ltr;unicode-bidi:isolate;text-align:right;
+        font-family:Consolas,monospace;white-space:pre-wrap;word-break:break-all}
+  .quote{background:#20161a;border:1px solid #4a2a30;border-radius:5px;padding:5px 7px;
+         font-family:Consolas,monospace;font-size:11px;direction:ltr;unicode-bidi:isolate;
+         margin-bottom:4px;word-break:break-all}
+  .empty{color:var(--dim);font-style:italic}
+  .banner{margin:12px 0;padding:10px 12px;border-radius:8px;border:1px solid var(--warn);
+          background:#221c0e;color:var(--warn);font-size:13px}
+  #more{display:block;margin:16px auto;padding:8px 24px}
+  .counts{font-size:12px;color:var(--dim);margin-top:8px}
+  .counts b{color:var(--txt)}
+  .codewrap{direction:ltr;text-align:left;background:#0b0d12;border:1px solid var(--line);
+            border-radius:8px;max-height:520px;overflow:auto;padding:8px 0;margin-top:4px}
+  .cl{display:flex;font-family:Consolas,"Courier New",monospace;font-size:12.5px;line-height:1.55;
+      white-space:pre;padding:0 10px}
+  .cl:hover{background:#141821}
+  .ln{flex:0 0 52px;text-align:right;padding-inline-end:12px;color:#4a5262;user-select:none}
+  .ct{flex:1;white-space:pre-wrap;word-break:break-word}
+  .heb{unicode-bidi:isolate;color:#ffd479;background:#2a2312;border-radius:3px;padding:0 2px}
+  .heb.rev{background:#122a24;color:#7fe3c0}
+  .callref{color:var(--acc);background:#12233a;border-radius:3px;padding:0 2px;
+           cursor:pointer;text-decoration:underline dotted}
+  .callref:hover{background:#1e3b5e}
+  .blank{color:#333a47}
+  .codehead{display:flex;align-items:center;gap:10px;margin-bottom:6px;
+            font-size:12px;color:var(--dim);flex-wrap:wrap}
+  .legend{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px}
+  td.desc{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  td.topic{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}
+  table.chg{width:100%;border-collapse:collapse;margin-top:4px}
+  table.chg td{padding:3px 8px;border-bottom:1px solid #232833;font-size:12.5px;vertical-align:top}
+  table.chg td:first-child{white-space:nowrap;color:var(--dim)}
+  .ovgrid{display:grid;gap:14px}
+  .ovsec{background:#11141b;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .ovhead{padding:8px 4px 2px;color:var(--dim);font-size:13px}
+  .ovnote{color:var(--dim);font-size:12.5px;margin:2px 0 10px;line-height:1.6}
+  .ovtbl{width:100%;border-collapse:collapse;font-size:13px}
+  .ovtbl th{text-align:right;color:var(--dim);font-weight:600;padding:5px 8px;
+            border-bottom:1px solid var(--line);white-space:nowrap}
+  .ovtbl td{padding:5px 8px;border-bottom:1px solid #1b1f28;vertical-align:top}
+  .ovtbl tr.clk{cursor:pointer}
+  .ovtbl tr.clk:hover{background:#171b24}
+  .tag.t-rules_core{background:#3a2a12;color:#f0b45e}
+  .tag.t-dead_likely{background:#3a1616;color:#f08a8a}
+  .tag.t-external_entry_suspect{background:#122c3a;color:#6fc3e8}
+  .tag.t-platform_replaces{background:#132e1c;color:#78d69a}
+  .tag.t-support{background:#23262e;color:#9aa3b2}
+  .hdrblock{background:#0b0d12;border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+            max-height:320px;overflow:auto;white-space:pre-wrap;font-size:12.5px;line-height:1.6}
+
+  /* collapsed-by-default sections inside a row's detail */
+  details.sec>summary{list-style:none;cursor:pointer;margin:0 0 6px;font-size:12px;color:var(--dim);
+       text-transform:uppercase;letter-spacing:.5px;user-select:none;
+       border:1px solid var(--line);border-radius:6px;padding:5px 9px;background:#141821}
+  details.sec>summary::-webkit-details-marker{display:none}
+  details.sec>summary:before{content:"\25C0";font-size:9px;margin-inline-end:6px;color:var(--acc)}
+  details.sec[open]>summary:before{content:"\25BC"}
+  details.sec>summary:hover{border-color:var(--acc)}
+
+  /* local-restore bar */
+  #restore{display:none;padding:8px 18px;font-size:12.5px;background:#101820;
+       border-bottom:1px solid var(--line);color:var(--dim)}
+  #restore b{color:var(--txt)}
+  #restore button{padding:3px 10px;font-size:12px;margin-inline-start:8px}
+
+  /* ---- chat ---- */
+  #chatFab{position:fixed;left:20px;bottom:20px;z-index:1000;width:54px;height:54px;
+       border-radius:50%;background:var(--acc);color:#06121f;border:none;font-size:24px;
+       cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.55);display:flex;
+       align-items:center;justify-content:center;padding:0}
+  #chatFab:hover{filter:brightness(1.1)}
+  #chatWrap{position:fixed;inset:0;z-index:1001;background:var(--bg);display:none;
+       flex-direction:column}
+  #chatWrap.on{display:flex}
+  #chatTop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;
+       border-bottom:1px solid var(--line);background:var(--panel)}
+  #chatTop .sp{flex:1}
+  #chatBody{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+  #chatBody .msg{max-width:900px;width:100%;margin:0 auto;border-radius:10px;padding:11px 14px;
+       border:1px solid var(--line);white-space:normal;line-height:1.65}
+  #chatBody .msg.u{background:#152233;border-color:#274865}
+  #chatBody .msg.a{background:var(--panel)}
+  #chatBody .msg.e{background:#2a1518;border-color:#5f2a2a;color:#ffbdbd}
+  #chatBody .who{font-size:11px;color:var(--dim);margin-bottom:5px}
+  #chatBody pre{background:#0b0d12;border:1px solid var(--line);border-radius:7px;
+       padding:9px 11px;overflow:auto;direction:ltr;text-align:left;
+       font-family:Consolas,monospace;font-size:12.5px;margin:8px 0}
+  #chatBody code{background:#0b0d12;border-radius:4px;padding:1px 5px;
+       font-family:Consolas,monospace;font-size:12.5px;direction:ltr;unicode-bidi:isolate}
+  #chatBody .ctx{font-size:11.5px;color:var(--dim);margin-top:8px;border-top:1px dashed var(--line);
+       padding-top:6px}
+  #chatBody .ctx pre{max-height:340px}
+  #chatFoot{border-top:1px solid var(--line);background:var(--panel);padding:10px 16px}
+  #chatIn{width:100%;min-height:64px;max-height:220px;resize:vertical;background:var(--panel2);
+       color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px 11px;
+       font-family:inherit;font-size:14px;line-height:1.6}
+  #chatHint{font-size:11.5px;color:var(--dim);margin-top:6px;display:flex;gap:12px;flex-wrap:wrap;
+       align-items:center}
+  .dots:after{content:"";animation:dt 1.2s steps(4,end) infinite}
+  @keyframes dt{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>מפת תוכניות Natural — הצלבת פעילות מול ניתוח</h1>
+  <div class="row">
+    <div class="fileBox">
+      <label>1. קובץ פעילות (LIBRARY / MEMBER / ... / LAST USED)</label>
+      <input type="file" id="fActivity" accept=".txt,.tsv,.csv">
+    </div>
+    <div class="fileBox">
+      <label>2. קובץ ניתוח (JSONL — שורה לאובייקט)</label>
+      <input type="file" id="fAnalysis" accept=".txt,.json,.jsonl">
+    </div>
+    <div class="fileBox">
+      <label>3. קובץ כותרות (headers.jsonl מ-natscan_headers.py)</label>
+      <input type="file" id="fHeaders" accept=".txt,.json,.jsonl">
+    </div>
+    <div class="fileBox">
+      <label>4. natmap.json (סריקה סטטית — אופציונלי)</label>
+      <input type="file" id="fNatmap" accept=".json">
+    </div>
+    <div class="fileBox">
+      <label>5. קטגוריזציה (CSV: שם תוכנית, תיאור, מה זה עושה, main_topic, sub_topic)</label>
+      <input type="file" id="fCat" accept=".csv,.txt">
+    </div>
+    <div class="fileBox">
+      <label>6. תיקיית קוד המקור (אופציונלי — להצגת הקובץ)</label>
+      <input type="file" id="fFolder" webkitdirectory directory multiple>
+      <button id="btnDir" style="display:none;margin-top:4px">בחר תיקייה (נשמרת לפעם הבאה)</button>
+      <div id="dirInfo" style="font-size:11.5px;color:var(--dim);margin-top:4px"></div>
+    </div>
+  </div>
+</header>
+
+<div id="status">טען את שני הקבצים כדי להתחיל. הכל רץ בדפדפן — שום דבר לא נשלח לשום מקום (למעט הצ'אט, אם תפעיל אותו).</div>
+<div id="restore"></div>
+
+<div id="controls" style="display:none">
+  <div class="row">
+    <button id="tab-overview" data-tab="overview" style="display:none">תמונת מצב</button>
+    <button id="tab-matched" class="on" data-tab="matched"></button>
+    <button id="tab-noanalysis" data-tab="noanalysis"></button>
+    <button id="tab-inactive" data-tab="inactive"></button>
+    <span style="flex:1"></span>
+    <button id="btnCsv">ייצוא CSV</button>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <input type="text" id="q" placeholder="חיפוש חופשי: שם, תיאור, חוק עסקי, ישות, קריאה...">
+    <select id="fSf"><option value="">כל יעדי ה-SF</option></select>
+    <select id="fConf"><option value="">כל רמות הביטחון</option></select>
+    <select id="fLib"><option value="">כל הספריות</option></select>
+    <select id="fMain" style="display:none"><option value="">כל הנושאים הראשיים</option></select>
+    <select id="fSub" style="display:none"><option value="">כל תתי־הנושאים</option></select>
+    <select id="fTriage" style="display:none"><option value="">כל קטגוריות הטריאז'</option></select>
+    <select id="fDomain" style="display:none"><option value="">כל התחומים</option></select>
+    <select id="fUi" style="display:none"><option value="">online / batch</option></select>
+    <label style="color:var(--dim);font-size:12px">בשימוש מאז:
+      <input type="date" id="fSince"></label>
+    <button id="btnReset">איפוס</button>
+    <span style="flex:1"></span>
+    <select id="codeMode" title="פענוח עברית SI-960">
+      <option value="auto">קוד: מפוענח (אוטומטי)</option>
+      <option value="logical">קוד: כפה סדר לוגי</option>
+      <option value="reverse">קוד: כפה היפוך</option>
+      <option value="raw">קוד: גולמי</option>
+    </select>
+    <label style="color:var(--dim);font-size:12px">
+      <input type="checkbox" id="hideBlank"> הסתר שורות ריקות</label>
+    <button id="btnScan" disabled>סרוק שורות נטו</button>
+  </div>
+  <div class="counts" id="counts"></div>
+</div>
+
+<button id="chatFab" title="שאל שאלות על החומרים">💬</button>
+
+<div id="chatWrap">
+  <div id="chatTop">
+    <b>צ'אט על החומרים</b>
+    <span class="tag" id="chatModel">gemini-3.7-flash</span>
+    <select id="chatThink" title="רמת חשיבה">
+      <option value="high">חשיבה: high</option>
+      <option value="medium">חשיבה: medium</option>
+      <option value="low">חשיבה: low</option>
+    </select>
+    <label style="color:var(--dim);font-size:12px">
+      <input type="checkbox" id="chatCode"> כלול קוד מקור</label>
+    <label style="color:var(--dim);font-size:12px">
+      <input type="checkbox" id="chatFiltered"> רק לפי הסינון הנוכחי</label>
+    <span class="sp"></span>
+    <span id="chatCtxInfo" style="color:var(--dim);font-size:12px"></span>
+    <button id="chatKey">מפתח API</button>
+    <button id="chatClear">נקה שיחה</button>
+    <button id="chatClose">סגור ✕</button>
+  </div>
+  <div id="chatBody"></div>
+  <div id="chatFoot">
+    <textarea id="chatIn" placeholder="למשל: אילו תוכניות מטפלות בהעברות בעלות ומה הליבה שלהן?"></textarea>
+    <div id="chatHint">
+      <span>Ctrl+Enter לשליחה</span>
+      <span id="chatStat"></span>
+      <span style="flex:1"></span>
+      <button id="chatSend">שלח</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div id="banners"></div>
+  <div id="overview" style="display:none"></div>
+  <table id="tbl" style="display:none">
+    <thead><tr id="thead"></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <button id="more" style="display:none">טען עוד</button>
+</main>
+
+<script>
+// ===== PURE LOGIC START =====
+const CHUNK = 200;
+
+function stripBom(s){ return s.charCodeAt(0) === 0xFEFF ? s.slice(1) : s; }
+
+function detectDelimiter(line){
+  if (line.indexOf('\t') !== -1) return '\t';
+  if (line.indexOf(',') !== -1) return ',';
+  return /\s{2,}/;
+}
+
+function splitLine(line, delim){
+  const parts = (delim instanceof RegExp) ? line.split(delim) : line.split(delim);
+  return parts.map(p => p.trim());
+}
+
+// Normalises a date cell to ISO yyyy-mm-dd so plain string compare is safe.
+// Returns '' when it cannot be parsed — never throws, never guesses a year.
+function normalizeDate(v){
+  if (v === undefined || v === null) return '';
+  const s = String(v).trim();
+  if (!s) return '';
+  let m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/);
+  if (m) return m[1] + '-' + m[2].padStart(2,'0') + '-' + m[3].padStart(2,'0');
+  m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);   // dd/mm/yyyy
+  if (m) return m[3] + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+  return '';
+}
+
+function keyOf(s){ return String(s == null ? '' : s).trim().toUpperCase(); }
+
+// --- Activity file (tab/comma/space separated, header optional) ---
+function parseActivity(text){
+  const out = { rows: [], bad: 0, libs: new Set() };
+  const lines = stripBom(text).split(/\r?\n/).filter(l => l.trim() !== '');
+  if (!lines.length) return out;
+
+  const delim = detectDelimiter(lines[0]);
+  const first = splitLine(lines[0], delim).map(h => h.toUpperCase());
+  const hasHeader = first.includes('MEMBER') || first.includes('LIBRARY');
+
+  let idx = { library:0, member:1, dbid:2, fuser:3, loaded:4, lastUsed:5 };
+  if (hasHeader){
+    const find = names => { for (const n of names){ const i = first.indexOf(n); if (i !== -1) return i; } return -1; };
+    idx = {
+      library:  find(['LIBRARY','LIB']),
+      member:   find(['MEMBER','NAME','OBJECT']),
+      dbid:     find(['DBID']),
+      fuser:    find(['FUSER','FNAT']),
+      loaded:   find(['LOADED IN BP','LOADED','LOADED_IN_BP']),
+      lastUsed: find(['LAST USED','LASTUSED','LAST_USED'])
+    };
+    if (idx.member === -1) idx.member = 1;
+  }
+
+  for (let i = hasHeader ? 1 : 0; i < lines.length; i++){
+    const p = splitLine(lines[i], delim);
+    const member = idx.member >= 0 ? p[idx.member] : undefined;
+    if (!member){ out.bad++; continue; }
+    const lib = idx.library >= 0 ? (p[idx.library] || '') : '';
+    if (lib) out.libs.add(lib);
+    out.rows.push({
+      library: lib,
+      member: member,
+      dbid: idx.dbid >= 0 ? (p[idx.dbid] || '') : '',
+      fuser: idx.fuser >= 0 ? (p[idx.fuser] || '') : '',
+      loaded: idx.loaded >= 0 ? normalizeDate(p[idx.loaded]) : '',
+      lastUsed: idx.lastUsed >= 0 ? normalizeDate(p[idx.lastUsed]) : ''
+    });
+  }
+  return out;
+}
+
+// --- Analysis file (JSONL) ---
+function parseAnalysis(text){
+  const out = { recs: [], bad: 0, badLines: [] };
+  const lines = stripBom(text).split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++){
+    const l = lines[i].trim();
+    if (!l) continue;
+    let d;
+    try { d = JSON.parse(l); }
+    catch(e){ out.bad++; if (out.badLines.length < 5) out.badLines.push(i+1); continue; }
+    if (!d || typeof d !== 'object' || !d.object_id){ out.bad++; continue; }
+    if (!d.analysis || typeof d.analysis !== 'object') d.analysis = {};
+    out.recs.push(d);
+  }
+  return out;
+}
+
+// Reverse call index: who calls whom. Built from every analysed record.
+function buildCallers(recs){
+  const m = new Map();
+  for (const r of recs){
+    const outs = Array.isArray(r.analysis.calls_out) ? r.analysis.calls_out : [];
+    for (const t of outs){
+      const k = keyOf(t);
+      if (!k) continue;
+      if (!m.has(k)) m.set(k, new Set());
+      m.get(k).add(r.object_id);
+    }
+  }
+  return m;
+}
+
+// Joins activity rows to analysis records on MEMBER == object_id (case-insensitive).
+// Produces three buckets, because the mismatches are the interesting part.
+function joinData(activityRows, analysisRecs, callers){
+  const actByKey = new Map();
+  for (const a of activityRows){
+    const k = keyOf(a.member);
+    if (!actByKey.has(k)) actByKey.set(k, []);
+    actByKey.get(k).push(a);
+  }
+  const anaByKey = new Map();
+  let dupAnalysis = 0;
+  for (const r of analysisRecs){
+    const k = keyOf(r.object_id);
+    if (anaByKey.has(k)) dupAnalysis++;
+    else anaByKey.set(k, r);
+  }
+
+  const mk = (key, acts, rec) => {
+    const a = acts && acts.length
+      ? acts.slice().sort((x,y) => (y.lastUsed||'').localeCompare(x.lastUsed||''))[0]
+      : null;
+    const an = rec ? rec.analysis : {};
+    return {
+      key: key,
+      id: rec ? rec.object_id : (a ? a.member : key),
+      library: a ? a.library : '',
+      allLibs: acts ? Array.from(new Set(acts.map(x => x.library).filter(Boolean))) : [],
+      lastUsed: a ? a.lastUsed : '',
+      loaded: a ? a.loaded : '',
+      dbid: a ? a.dbid : '',
+      fuser: a ? a.fuser : '',
+      lines: rec && typeof rec.lines === 'number' ? rec.lines : 0,
+      chars: rec && typeof rec.chars === 'number' ? rec.chars : 0,
+      tokensIn: rec && typeof rec.tokens_in === 'number' ? rec.tokens_in : 0,
+      sourcePath: rec ? (rec.source_path || '') : '',
+      recStatus: rec ? (rec.status || '') : '',
+      sf: an.sf_target || '',
+      conf: an.confidence || '',
+      purpose: an.business_purpose || '',
+      area: an.process_area || '',
+      trigger: an.trigger || '',
+      inputs: Array.isArray(an.inputs) ? an.inputs : [],
+      outputs: Array.isArray(an.outputs) ? an.outputs : [],
+      entities: Array.isArray(an.data_entities) ? an.data_entities : [],
+      rules: Array.isArray(an.key_rules) ? an.key_rules : [],
+      quotes: Array.isArray(an.obsolescence_quotes) ? an.obsolescence_quotes : [],
+      callsOut: Array.isArray(an.calls_out) ? an.calls_out : [],
+      callers: Array.from(callers.get(key) || []),
+      description:'', systemName:'', routineName:'', author:'', objType:'',
+      headerText:'', changes:[], nChanges:0, lastChange:'', firstChange:'',
+      hdrAuthors:[], tickets:[], callsStatic:[], netLines:null,
+      hasNatmap:false, triage:'', domain:'', primaryDdm:'', uiClass:'',
+      natObjType:'', maxDepth:0, ifCount:0, decideCount:0, computeCount:0,
+      codeLines:0, fanIn:0, fanOut:0, writes:0, nObsolete:0, unbalanced:0,
+      selfRedund:0, family:'', ddmList:[], dupSiblings:[],
+      hasCat:false, catDesc:'', catWhat:'', mainTopic:'', subTopic:'',
+      hasAnalysis: !!rec,
+      isActive: !!(acts && acts.length)
+    };
+  };
+
+  const matched = [], noAnalysis = [], inactive = [];
+  for (const [k, acts] of actByKey){
+    const rec = anaByKey.get(k);
+    (rec ? matched : noAnalysis).push(mk(k, acts, rec));
+  }
+  for (const [k, rec] of anaByKey){
+    if (!actByKey.has(k)) inactive.push(mk(k, null, rec));
+  }
+  return { matched, noAnalysis, inactive, dupAnalysis };
+}
+
+function sortRows(rows, field, dir){
+  const sign = dir === 'asc' ? 1 : -1;
+  return rows.slice().sort((a,b) => {
+    const x = a[field], y = b[field];
+    let c;
+    if (typeof x === 'number' && typeof y === 'number') c = x - y;
+    else c = String(x == null ? '' : x).localeCompare(String(y == null ? '' : y), 'he');
+    if (c === 0) c = String(a.id).localeCompare(String(b.id));
+    return c * sign;
+  });
+}
+
+function matchesSearch(r, q){
+  if (!q) return true;
+  const hay = [
+    r.id, r.library, r.purpose, r.area, r.trigger, r.sf,
+    r.description, r.systemName, r.routineName, r.objType, r.headerText,
+    (r.hdrAuthors || []).join(' '), (r.tickets || []).join(' '),
+    r.inputs.join(' '), r.outputs.join(' '), r.entities.join(' '),
+    r.rules.join(' '), r.callsOut.join(' '), r.callers.join(' '),
+    r.triage, r.domain, r.primaryDdm,
+    r.mainTopic, r.subTopic, r.catDesc, r.catWhat,
+    (r.ddmList || []).map(d => d.ddm).join(' ')
+  ].join(' ').toLowerCase();
+  return hay.indexOf(q.toLowerCase()) !== -1;
+}
+
+function applyFilters(rows, f){
+  return rows.filter(r =>
+    matchesSearch(r, f.q) &&
+    (!f.sf   || r.sf === f.sf) &&
+    (!f.conf || r.conf === f.conf) &&
+    (!f.lib  || r.library === f.lib || r.allLibs.indexOf(f.lib) !== -1) &&
+    (!f.since  || (r.lastUsed && r.lastUsed >= f.since)) &&
+    (!f.triage || r.triage === f.triage) &&
+    (!f.domain || r.domain === f.domain) &&
+    (!f.ui     || r.uiClass === f.ui) &&
+    (!f.main   || r.mainTopic === f.main) &&
+    (!f.sub    || r.subTopic === f.sub)
+  );
+}
+
+// Orders a list of program names by their line count, largest first.
+// Names with no loaded record sink to the bottom, then alphabetical.
+function sortNamesByLines(names, byKey){
+  return (names || []).slice().sort((a,b) => {
+    const ra = byKey.get(keyOf(a)), rb = byKey.get(keyOf(b));
+    const la = ra ? (ra.lines || 0) : -1, lb = rb ? (rb.lines || 0) : -1;
+    if (lb !== la) return lb - la;
+    return String(a).localeCompare(String(b));
+  });
+}
+
+/* ---- Hebrew recovery -------------------------------------------------------
+   These sources are pure ASCII. Hebrew was stored in the old Israeli 7-bit
+   standard, where the 27 Hebrew letters occupy 0x60..0x7A. Read as Latin they
+   look like lowercase gibberish. Uppercase text is real Latin and is untouched.
+   Quoted screen literals are stored in logical order; comment text is stored
+   in visual (reversed) order and has to be flipped back.                    */
+const HEB_TABLE = "אבגדהוזחטיךכלםמןנסעףפץצקרשת";   // 0x60 -> 0x7A, 27 chars
+
+// ALEF is the exception: it lands on '&', not on 0x60.
+function hebChar(c){
+  if (c === '&') return 'א';
+  const k = c.charCodeAt(0);
+  return (k >= 0x60 && k <= 0x7A) ? HEB_TABLE[k - 0x60] : null;
+}
+function decodeChars(s){
+  let o = '';
+  for (let i = 0; i < s.length; i++){
+    const h = hebChar(s[i]);
+    o += (h === null) ? s[i] : h;
+  }
+  return o;
+}
+// Needs two Hebrew characters, at least one of them from the 0x60 block, so a
+// bare "&&" in code is never mistaken for Hebrew.
+function hasHebrew(line){
+  let block = 0, total = 0;
+  for (let i = 0; i < line.length; i++){
+    const k = line.charCodeAt(i);
+    if (k >= 0x60 && k <= 0x7A){ block++; total++; }
+    else if (line[i] === '&') total++;
+  }
+  return block >= 1 && total >= 2;
+}
+
+// Latin words, numbers and dates kept their own left-to-right order inside a
+// visually stored line, so they get flipped back after the line is reversed.
+const LTR_RUN = /[A-Za-z0-9]+(?:[/.:_-][A-Za-z0-9]+)*/g;
+const revStr  = s => s.split('').reverse().join('');
+
+function decodeComment(line){
+  if (!line || !hasHebrew(line)) return line;
+  return revStr(decodeChars(line)).replace(LTR_RUN, revStr);
+}
+
+function isCommentLine(line){
+  return /^\s*\*/.test(line) || line.indexOf('/*') !== -1;
+}
+
+// Screen literals were stored in logical order: decode the Hebrew runs in place
+// and leave the surrounding code untouched.
+function splitHebSegments(line){
+  const segs = [];
+  let i = 0;
+  const isCh  = c => hebChar(c) !== null;
+  const isSep = c => c === ' ' || c === '.' || c === ',' || c === '-' || c === '"';
+  while (i < line.length){
+    if (isCh(line[i])){
+      let j = i + 1;
+      while (j < line.length){
+        if (isCh(line[j])){ j++; continue; }
+        if (isSep(line[j])){
+          let k = j;
+          while (k < line.length && isSep(line[k])) k++;
+          if (k < line.length && isCh(line[k])){ j = k; continue; }
+        }
+        break;
+      }
+      segs.push({ t:'heb', s:line.slice(i, j) });
+      i = j;
+    } else {
+      let j = i + 1;
+      while (j < line.length && !isCh(line[j])) j++;
+      segs.push({ t:'plain', s:line.slice(i, j) });
+      i = j;
+    }
+  }
+  return segs;
+}
+
+// mode: 'auto' | 'logical' | 'reverse' | 'raw'
+function decodeLine(line, mode){
+  if (mode === 'raw' || !hasHebrew(line)) return [{ t:'plain', s:line }];
+  const rev = mode === 'reverse' ? true
+            : mode === 'logical' ? false
+            : isCommentLine(line);
+  if (rev) return [{ t:'heb', s:decodeComment(line), raw:line, reversed:true }];
+  return splitHebSegments(line).map(sg =>
+    sg.t === 'heb' ? { t:'heb', s:decodeChars(sg.s), raw:sg.s, reversed:false } : sg);
+}
+
+// Parses the headers.jsonl produced by natscan_headers.py
+function parseHeaders(text){
+  const out = { recs: [], bad: 0 };
+  const lines = stripBom(text).split(/\r?\n/);
+  for (const l of lines){
+    const t = l.trim();
+    if (!t) continue;
+    let d;
+    try { d = JSON.parse(t); } catch(e){ out.bad++; continue; }
+    if (!d || !d.object_id){ out.bad++; continue; }
+    out.recs.push(d);
+  }
+  return out;
+}
+
+function applyHeaders(byKey, headerRecs){
+  let hit = 0, miss = 0;
+  for (const hd of headerRecs){
+    const r = byKey.get(keyOf(hd.object_id));
+    if (!r){ miss++; continue; }
+    hit++;
+    r.description  = hd.description || '';
+    r.systemName   = hd.system_name || '';
+    r.routineName  = hd.routine_name || '';
+    r.author       = hd.author || '';
+    r.objType      = hd.object_type || '';
+    r.headerText   = hd.header_text || '';
+    r.changes      = Array.isArray(hd.changes) ? hd.changes : [];
+    r.nChanges     = typeof hd.change_count === 'number' ? hd.change_count : r.changes.length;
+    r.lastChange   = hd.last_change || '';
+    r.firstChange  = hd.first_change || '';
+    r.hdrAuthors   = Array.isArray(hd.authors) ? hd.authors : [];
+    r.tickets      = Array.isArray(hd.tickets) ? hd.tickets : [];
+    r.callsStatic  = Array.isArray(hd.calls_out_static) ? hd.calls_out_static : [];
+    if (typeof hd.net_lines === 'number') r.netLines = hd.net_lines;
+    if (typeof hd.total_lines === 'number' && !r.lines) r.lines = hd.total_lines;
+  }
+  return { hit: hit, miss: miss };
+}
+
+/* ---- natmap.json (static scan) ---------------------------------------------
+   Produced by `natmap2.py --export-json`. SQLite cannot be read from a
+   file:// page, so the DB is bridged through plain JSON. Enrichment only:
+   every field it adds is optional and the viewer works without it.        */
+function parseNatmap(text){
+  const d = JSON.parse(stripBom(text));
+  if (!d || !Array.isArray(d.objects)) throw new Error('אין מערך objects בקובץ');
+  return {
+    meta:       d.meta || {},
+    objects:    d.objects,
+    ddmAccess:  Array.isArray(d.ddm_access) ? d.ddm_access : [],
+    calls:      Array.isArray(d.calls)      ? d.calls      : [],
+    dupPairs:   Array.isArray(d.dup_pairs)  ? d.dup_pairs  : [],
+    obsolete:   Array.isArray(d.obsolete)   ? d.obsolete   : []
+  };
+}
+
+const WRITE_OPS = { STORE:1, UPDATE:1, DELETE:1 };
+
+function applyNatmap(byKey, nm){
+  // Index the side tables once; 3.7k objects x tens of thousands of edges
+  // makes a linear scan per row far too slow.
+  const ddmBy = new Map();
+  for (const a of nm.ddmAccess){
+    const k = keyOf(a.object_id);
+    let m = ddmBy.get(k);
+    if (!m){ m = new Map(); ddmBy.set(k, m); }
+    const cur = m.get(a.ddm) || { ddm:a.ddm, read:false, write:false };
+    if (WRITE_OPS[a.op]) cur.write = true; else cur.read = true;
+    m.set(a.ddm, cur);
+  }
+  const sib = new Map();
+  for (const d of nm.dupPairs){
+    const ka = keyOf(d.a), kb = keyOf(d.b);
+    if (!sib.has(ka)) sib.set(ka, new Set());
+    if (!sib.has(kb)) sib.set(kb, new Set());
+    sib.get(ka).add(d.b); sib.get(kb).add(d.a);
+  }
+
+  let hit = 0, miss = 0;
+  for (const o of nm.objects){
+    const r = byKey.get(keyOf(o.object_id));
+    if (!r){ miss++; continue; }
+    hit++;
+    r.hasNatmap   = true;
+    r.triage      = o.triage      || '';
+    r.domain      = o.domain      || '';
+    r.primaryDdm  = o.primary_ddm || '';
+    r.uiClass     = o.ui_class    || '';
+    r.natObjType  = o.object_type || '';
+    r.maxDepth    = o.max_depth   || 0;
+    r.ifCount     = o.if_count    || 0;
+    r.decideCount = o.decide_count|| 0;
+    r.computeCount= o.compute_count || 0;
+    r.codeLines   = o.code_lines  || 0;
+    r.fanIn       = o.fan_in      || 0;
+    r.fanOut      = o.fan_out     || 0;
+    r.writes      = o.writes ? 1 : 0;
+    r.nObsolete   = o.n_obsolete  || 0;
+    r.unbalanced  = o.unbalanced  || 0;
+    r.selfRedund  = typeof o.self_redundancy === 'number' ? o.self_redundancy : 0;
+    r.family      = o.family      || '';
+    r.ddmList     = Array.from((ddmBy.get(r.key) || new Map()).values());
+    r.dupSiblings = Array.from(sib.get(r.key) || []);
+    if (!r.objType && r.natObjType) r.objType = r.natObjType;
+  }
+  return { hit: hit, miss: miss };
+}
+
+// CALL to a module that has no Natural source file - i.e. COBOL / assembler.
+function external3gl(nm){
+  const c = new Map();
+  for (const e of nm.calls)
+    if (e.kind === 'CALL3GL' && e.scope === 'unresolved')
+      c.set(e.target, (c.get(e.target) || 0) + 1);
+  return Array.from(c.entries()).sort((a,b) => b[1] - a[1]);
+}
+
+/* ---- categorized CSV -------------------------------------------------------
+   Header (Hebrew): שם תוכנית, תיאור, מה זה עושה, main_topic, sub_topic
+   A real CSV parser is required here — the "מה זה עושה" column is quoted free
+   text that contains commas, and may contain newlines.                      */
+function parseCsvRows(text){
+  const s = stripBom(String(text == null ? '' : text)).replace(/\r\n?/g, '\n');
+  const rows = [];
+  let row = [], cell = '', inQ = false;
+  for (let i = 0; i < s.length; i++){
+    const c = s[i];
+    if (inQ){
+      if (c !== '"'){ cell += c; continue; }
+      if (s[i+1] === '"'){ cell += '"'; i++; continue; }   // "" -> literal quote
+      inQ = false; continue;
+    }
+    if (c === '"'){ inQ = true; continue; }
+    if (c === ','){ row.push(cell); cell = ''; continue; }
+    if (c === '\n'){ row.push(cell); cell = ''; rows.push(row); row = []; continue; }
+    cell += c;
+  }
+  if (cell !== '' || row.length){ row.push(cell); rows.push(row); }
+  // drop fully empty lines
+  return rows.filter(r => r.some(v => String(v).trim() !== ''));
+}
+
+function parseCategories(text){
+  const out = { recs: [], bad: 0, headers: [] };
+  const rows = parseCsvRows(text);
+  if (!rows.length) return out;
+  const head = rows[0].map(h => String(h == null ? '' : h).trim());
+  out.headers = head;
+  const norm = head.map(h => h.toLowerCase());
+  const find = (names, dflt) => {
+    for (const n of names){ const i = norm.indexOf(n); if (i !== -1) return i; }
+    return dflt;
+  };
+  const idx = {
+    name: find(['שם תוכנית','שם התוכנית','object_id','program','member','name'], 0),
+    desc: find(['תיאור','description'], 1),
+    what: find(['מה זה עושה','what','business_purpose','purpose'], 2),
+    main: find(['main_topic','main topic','נושא ראשי'], 3),
+    sub:  find(['sub_topic','sub topic','תת נושא','תת־נושא'], 4)
+  };
+  // Treat row 0 as a header only when it actually looks like one.
+  const hasHeader = /שם|name|program|object|member/i.test(head[0] || '');
+  const cell = (r, i) => (i >= 0 && r[i] != null) ? String(r[i]).trim() : '';
+  for (let i = hasHeader ? 1 : 0; i < rows.length; i++){
+    const r = rows[i];
+    const id = cell(r, idx.name);
+    if (!id){ out.bad++; continue; }
+    out.recs.push({
+      id:   id,
+      desc: cell(r, idx.desc),
+      what: cell(r, idx.what),
+      main: cell(r, idx.main),
+      sub:  cell(r, idx.sub)
+    });
+  }
+  return out;
+}
+
+function applyCategories(byKey, recs){
+  let hit = 0, miss = 0, dup = 0;
+  const seen = new Set();
+  for (const c of recs){
+    const k = keyOf(c.id);
+    if (seen.has(k)) dup++; else seen.add(k);
+    const r = byKey.get(k);
+    if (!r){ miss++; continue; }
+    hit++;
+    r.hasCat    = true;
+    r.catDesc   = c.desc || '';
+    r.catWhat   = c.what || '';
+    r.mainTopic = c.main || '';
+    r.subTopic  = c.sub  || '';
+  }
+  return { hit: hit, miss: miss, dup: dup };
+}
+
+function countNetLines(text){
+  const ls = String(text == null ? '' : text).split(/\r?\n/);
+  let net = 0;
+  for (const l of ls) if (l.trim() !== '') net++;
+  return { total: ls.length, net: net };
+}
+
+// Strips directory and extension: "Vehicle/sub/A123.TXT" -> "A123"
+function fileKey(path){
+  const base = String(path == null ? '' : path).split(/[\\/]/).pop();
+  const dot = base.lastIndexOf('.');
+  return keyOf(dot > 0 ? base.slice(0, dot) : base);
+}
+
+function toCsv(rows){
+  const head = ['object_id','description','main_topic','sub_topic',
+                'object_type','library','last_used','lines','net_lines',
+                'last_change','change_count','authors','sf_target','confidence','process_area',
+                'business_purpose','callers_count','calls_out_count','has_analysis','is_active',
+                'triage','domain','primary_ddm','ui_class','fan_in','fan_out',
+                'max_depth','if_count','compute_count','self_redundancy','family'];
+  const esc = v => {
+    const s = v == null ? '' : String(v);
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  };
+  const body = rows.map(r => [
+    r.id, r.description || r.catDesc || '', r.mainTopic || '', r.subTopic || '',
+    r.objType || '', r.library, r.lastUsed, r.lines,
+    r.netLines == null ? '' : r.netLines, r.lastChange || '', r.nChanges || 0,
+    (r.hdrAuthors || []).join(' '), r.sf, r.conf, r.area, r.purpose,
+    r.callers.length, r.callsOut.length, r.hasAnalysis ? 1 : 0, r.isActive ? 1 : 0,
+    r.triage || '', r.domain || '', r.primaryDdm || '', r.uiClass || '',
+    r.hasNatmap ? r.fanIn : '', r.hasNatmap ? r.fanOut : '',
+    r.hasNatmap ? r.maxDepth : '', r.hasNatmap ? r.ifCount : '',
+    r.hasNatmap ? r.computeCount : '', r.hasNatmap ? r.selfRedund : '', r.family || ''
+  ].map(esc).join(','));
+  return head.join(',') + '\n' + body.join('\n');
+}
+// ===== PURE LOGIC END =====
+
+/* ---------- UI state ---------- */
+const S = {
+  activity:null, analysis:null, callers:new Map(), joined:null, byKey:new Map(),
+  headers:null, hdrStats:null, natmap:null, natStats:null,
+  cats:null, catStats:null, dirHandle:null,
+  files:new Map(), fileDups:[], codeCache:new Map(), scanning:false,
+  tab:'matched', tabTouched:false, sortField:'lines', sortDir:'desc', shown:CHUNK, view:[]
+};
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+const COLS = [
+  {f:'id',         t:'אובייקט'},
+  {f:'description',t:'תיאור', wide:true},
+  {f:'mainTopic',  t:'נושא ראשי'},
+  {f:'subTopic',   t:'תת נושא'},
+  {f:'objType',    t:'סוג'},
+  {f:'netLines',   t:'שורות נטו', num:true},
+  {f:'lastChange', t:'שינוי אחרון', num:true},
+  {f:'nChanges',   t:'שינויים',   num:true},
+  {f:'nCallers',   t:'קוראים לו', num:true},
+  {f:'nCalls',     t:'קורא ל־',   num:true},
+  {f:'triage',     t:'טריאז\''},
+  {f:'maxDepth',   t:'עומק', num:true}
+];
+const TRIAGE_HE = {
+  dead_likely:'מועמד למחיקה',
+  external_entry_suspect:'לבירור — כניסה חיצונית?',
+  rules_core:'חילוץ חוקים',
+  platform_replaces:'הפלטפורמה מחליפה',
+  support:'תשתית / עזר'
+};
+const NET_COL = COLS.findIndex(c => c.f === 'netLines');
+
+function readFile(file, cb){
+  const fr = new FileReader();
+  fr.onerror = () => cb(new Error('קריאת הקובץ נכשלה'), null);
+  fr.onload  = () => cb(null, String(fr.result));
+  fr.readAsText(file, 'utf-8');
+}
+
+/* ---------- local persistence -------------------------------------------------
+   Everything the user picked is cached in IndexedDB so the next open of this
+   HTML file comes back with the same data. The source folder cannot be cached
+   (11k files), so its FileSystemDirectoryHandle is stored instead and the
+   browser re-asks for read permission once per session.                      */
+const DB_NAME = 'naturalViewer', DB_STORE = 'kv';
+let dbPromise = null;
+
+function idb(){
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise(res => {
+    let req;
+    try { req = indexedDB.open(DB_NAME, 1); }
+    catch(e){ res(null); return; }                       // opaque origin / storage blocked
+    req.onupgradeneeded = () => {
+      try { req.result.createObjectStore(DB_STORE); } catch(e){ /* already there */ }
+    };
+    req.onsuccess = () => res(req.result);
+    req.onerror   = () => res(null);
+    req.onblocked = () => res(null);
+    setTimeout(() => res(null), 4000);                   // never hang the page on this
+  });
+  return dbPromise;
+}
+async function idbGet(k){
+  const db = await idb(); if (!db) return undefined;
+  return new Promise(res => {
+    try {
+      const rq = db.transaction(DB_STORE,'readonly').objectStore(DB_STORE).get(k);
+      rq.onsuccess = () => res(rq.result);
+      rq.onerror   = () => res(undefined);
+    } catch(e){ res(undefined); }
+  });
+}
+async function idbSet(k, v){
+  const db = await idb(); if (!db) return false;
+  return new Promise(res => {
+    try {
+      const tx = db.transaction(DB_STORE,'readwrite');
+      tx.objectStore(DB_STORE).put(v, k);
+      tx.oncomplete = () => res(true);
+      tx.onerror    = () => res(false);
+      tx.onabort    = () => res(false);
+    } catch(e){ res(false); }
+  });
+}
+async function idbDel(k){
+  const db = await idb(); if (!db) return false;
+  return new Promise(res => {
+    try {
+      const tx = db.transaction(DB_STORE,'readwrite');
+      tx.objectStore(DB_STORE).delete(k);
+      tx.oncomplete = () => res(true);
+      tx.onerror    = () => res(false);
+    } catch(e){ res(false); }
+  });
+}
+function lsGet(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } }
+function lsSet(k, v){ try { localStorage.setItem(k, v); } catch(e){ /* private mode */ } }
+function lsDel(k){ try { localStorage.removeItem(k); } catch(e){} }
+
+const SLOTS = {
+  activity:{ el:'fActivity', label:'פעילות',      parse:t => parseActivity(t),   set:v => S.activity = v },
+  analysis:{ el:'fAnalysis', label:'ניתוח',       parse:t => parseAnalysis(t),   set:v => S.analysis = v },
+  headers: { el:'fHeaders',  label:'כותרות',      parse:t => parseHeaders(t),    set:v => S.headers  = v },
+  natmap:  { el:'fNatmap',   label:'natmap.json', parse:t => parseNatmap(t),     set:v => S.natmap   = v },
+  cat:     { el:'fCat',      label:'קטגוריזציה',  parse:t => parseCategories(t), set:v => S.cats     = v }
+};
+
+Object.keys(SLOTS).forEach(slot => {
+  const s = SLOTS[slot];
+  $(s.el).addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    readFile(f, (err, txt) => {
+      if (err){ setStatus('<span class="bad">' + esc(err.message) + '</span>'); return; }
+      let v;
+      try { v = s.parse(txt); }
+      catch(ex){
+        s.set(null);
+        setStatus('<span class="bad">שגיאה בפענוח קובץ ' + esc(s.label) + ': ' +
+          esc(ex && ex.message ? ex.message : String(ex)) + '</span>');
+        return;
+      }
+      s.set(v);
+      idbSet('file:' + slot, { name:f.name, text:txt, ts:Date.now() }).then(ok => {
+        if (!ok) setStatus($('status').innerHTML +
+          ' &nbsp;|&nbsp; <span class="warn">הקובץ נטען אך לא נשמר מקומית</span>');
+      });
+      tryJoin();
+    });
+  });
+});
+
+async function restoreSlots(){
+  const found = [];
+  for (const slot of Object.keys(SLOTS)){
+    const rec = await idbGet('file:' + slot);
+    if (!rec || typeof rec.text !== 'string') continue;
+    try {
+      SLOTS[slot].set(SLOTS[slot].parse(rec.text));
+      found.push({ slot:slot, label:SLOTS[slot].label, name:rec.name || '', ts:rec.ts || 0 });
+    } catch(e){ await idbDel('file:' + slot); }   // cached copy is corrupt: forget it
+  }
+  return found;
+}
+
+let RESTORED = [];
+function renderRestoreBar(){
+  const el = $('restore');
+  if (!RESTORED.length){ el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = 'נטען מהאחסון המקומי: ' +
+    RESTORED.map(f => '<b>' + esc(f.label) + '</b> (' + esc(f.name) + ')').join(' · ') +
+    '<button id="btnForget">נקה אחסון מקומי</button>';
+  $('btnForget').onclick = async () => {
+    for (const slot of Object.keys(SLOTS)) await idbDel('file:' + slot);
+    await idbDel('dir');
+    RESTORED = [];
+    el.style.display = 'none';
+    setStatus('האחסון המקומי נוקה. רענן את הדף.');
+  };
+}
+
+function setDirInfo(html, append){
+  const el = $('dirInfo');
+  el.innerHTML = append ? (el.innerHTML + ' ' + html) : html;
+}
+
+/* ---------- source folder as a persistent handle ---------- */
+async function indexDir(dh){
+  setDirInfo('סורק תיקייה…');
+  const files = new Map(), dups = [];
+  try {
+    const walk = async (d, depth) => {
+      if (depth > 10) return;
+      for await (const entry of d.values()){
+        if (entry.kind === 'file'){
+          const k = fileKey(entry.name);
+          if (!k) continue;
+          if (files.has(k)) dups.push(k); else files.set(k, entry);
+        } else if (entry.kind === 'directory'){
+          await walk(entry, depth + 1);
+        }
+      }
+    };
+    await walk(dh, 0);
+  } catch(err){
+    setDirInfo('<span style="color:var(--bad)">שגיאה בקריאת התיקייה: ' +
+      esc(err && err.message ? err.message : String(err)) + '</span>');
+    return;
+  }
+  S.files = files; S.fileDups = dups; S.codeCache = new Map();
+  $('btnScan').disabled = files.size === 0;
+  if (S.joined) buildBanners();
+  setDirInfo('תיקייה: <b>' + esc(dh.name) + '</b> · <b>' + files.size + '</b> קבצים' +
+    (dups.length ? ' <span style="color:var(--warn)">(' + dups.length + ' שמות כפולים)</span>' : ''));
+}
+
+async function restoreDir(){
+  const supported = typeof window.showDirectoryPicker === 'function';
+  $('btnDir').style.display = supported ? '' : 'none';
+  if (supported) $('fFolder').style.display = 'none';
+  if (!supported){ setDirInfo('הדפדפן לא תומך בשמירת תיקייה — בחר אותה מחדש בכל פתיחה.'); return; }
+  const dh = await idbGet('dir');
+  if (!dh) return;
+  S.dirHandle = dh;
+  let perm = 'prompt';
+  try { perm = await dh.queryPermission({ mode:'read' }); } catch(e){ perm = 'prompt'; }
+  if (perm === 'granted'){ await indexDir(dh); return; }
+  setDirInfo('תיקייה שמורה: <b>' + esc(dh.name) +
+    '</b> <button id="btnDirGrant">אשר גישה</button>');
+  const b = document.getElementById('btnDirGrant');
+  if (b) b.onclick = async () => {
+    try {
+      const p = await dh.requestPermission({ mode:'read' });
+      if (p !== 'granted'){ setDirInfo('הגישה נדחתה.'); return; }
+      await indexDir(dh);
+    } catch(err){
+      setDirInfo('<span style="color:var(--bad)">' + esc(err.message || String(err)) + '</span>');
+    }
+  };
+}
+
+$('btnDir').addEventListener('click', async () => {
+  try {
+    const dh = await window.showDirectoryPicker({ id:'natsrc', mode:'read' });
+    S.dirHandle = dh;
+    const ok = await idbSet('dir', dh);
+    await indexDir(dh);
+    if (!ok) setDirInfo('<span style="color:var(--warn)">(לא ניתן היה לשמור את התיקייה לפעם הבאה)</span>', true);
+  } catch(err){
+    if (err && err.name === 'AbortError') return;
+    setDirInfo('<span style="color:var(--bad)">' + esc(err.message || String(err)) + '</span>');
+  }
+});
+
+/* ---------- boot ---------- */
+(async function boot(){
+  $('codeMode').value = lsGet('nv.codeMode', 'auto');
+  $('hideBlank').checked = lsGet('nv.hideBlank', '0') === '1';
+  $('codeMode').addEventListener('change', () => lsSet('nv.codeMode', $('codeMode').value));
+  $('hideBlank').addEventListener('change', () => lsSet('nv.hideBlank', $('hideBlank').checked ? '1' : '0'));
+
+  const db = await idb();
+  if (!db){
+    $('restore').style.display = 'block';
+    $('restore').innerHTML = '<span style="color:var(--warn)">אחסון מקומי חסום בדפדפן הזה ' +
+      '(קורה כשפותחים את הקובץ ישירות מ-file:// עם חסימת עוגיות צד שלישי). ' +
+      'הקבצים לא יישמרו לפעם הבאה. פתרון: להריץ מתיקייה עם ' +
+      '<code>python -m http.server</code> ולגשת דרך localhost.</span>';
+    return;
+  }
+  RESTORED = await restoreSlots();
+  if (RESTORED.length) tryJoin();
+  renderRestoreBar();
+  await restoreDir();
+})();
+
+function setStatus(html){ $('status').innerHTML = html; }
+
+function tryJoin(){
+  const a = S.activity, b = S.analysis;
+  const parts = [];
+  if (a) parts.push('פעילות: <b>' + a.rows.length + '</b> שורות' + (a.bad ? ' <span class="warn">(' + a.bad + ' נדחו)</span>' : ''));
+  if (b) parts.push('ניתוח: <b>' + b.recs.length + '</b> רשומות' +
+        (b.bad ? ' <span class="bad">(' + b.bad + ' שורות לא תקינות' +
+        (b.badLines.length ? ', למשל שורה ' + b.badLines.join(', ') : '') + ')</span>' : ''));
+  if (S.natmap) parts.push('סריקה סטטית: <b>' + S.natmap.objects.length + '</b> אובייקטים');
+  // natmap.json can stand in for the LLM analysis - it carries the whole
+  // static picture on its own. Activity is still required for the join key.
+  if (!a || (!b && !S.natmap)){
+    setStatus(parts.join(' &nbsp;|&nbsp; ') + (parts.length ? ' &nbsp;|&nbsp; ' : '') + 'ממתין לקובץ הנוסף…');
+    return;
+  }
+
+  const anaRecs = b ? b.recs : [];
+  S.callers = buildCallers(anaRecs);
+  S.joined  = joinData(a.rows, anaRecs, S.callers);
+  S.byKey   = new Map();
+  for (const bucket of ['matched','noAnalysis','inactive'])
+    for (const r of S.joined[bucket]){
+      r.nCallers = r.callers.length; r.nCalls = r.callsOut.length;
+      S.byKey.set(r.key, r);
+    }
+
+  S.hdrStats = null;
+  if (S.headers){
+    S.hdrStats = applyHeaders(S.byKey, S.headers.recs);
+    parts.push('כותרות: <b>' + S.headers.recs.length + '</b>' +
+      (S.headers.bad ? ' <span class="bad">(' + S.headers.bad + ' פגומות)</span>' : '') +
+      ' → שויכו <b>' + S.hdrStats.hit + '</b>');
+  }
+  S.natStats = null;
+  if (S.natmap){
+    S.natStats = applyNatmap(S.byKey, S.natmap);
+    parts.push('סריקה → שויכו <b>' + S.natStats.hit + '</b>' +
+      (S.natStats.miss ? ' <span class="warn">(' + S.natStats.miss + ' ללא התאמה)</span>' : ''));
+  }
+  S.catStats = null;
+  if (S.cats){
+    S.catStats = applyCategories(S.byKey, S.cats.recs);
+    parts.push('קטגוריזציה: <b>' + S.cats.recs.length + '</b> שורות → שויכו <b>' +
+      S.catStats.hit + '</b>' +
+      (S.catStats.miss ? ' <span class="warn">(' + S.catStats.miss + ' ללא התאמה)</span>' : '') +
+      (S.catStats.dup  ? ' <span class="warn">(' + S.catStats.dup + ' כפולות)</span>' : ''));
+  }
+  parts.push('<span class="ok">הותאמו: <b>' + S.joined.matched.length + '</b></span>');
+  if (S.joined.dupAnalysis) parts.push('<span class="warn">' + S.joined.dupAnalysis + ' object_id כפולים בניתוח (נלקח הראשון)</span>');
+  setStatus(parts.join(' &nbsp;|&nbsp; '));
+
+  buildBanners();
+  buildFilterOptions();
+  $('controls').style.display = 'block';
+  $('tbl').style.display = 'table';
+  if (S.natmap && !S.tabTouched) setTab('overview');
+  render();
+}
+
+function buildBanners(){
+  const j = S.joined, out = [];
+  if (j.matched.length === 0)
+    out.push('אין אף התאמה בין הקבצים. המפתח הוא MEMBER מול object_id — בדוק שהם מאותה ספרייה ושהשמות זהים.');
+  const multi = j.matched.filter(r => r.allLibs.length > 1);
+  if (multi.length)
+    out.push(multi.length + ' שמות מופיעים ביותר מספרייה אחת (למשל ' +
+      multi.slice(0,3).map(r => r.id).join(', ') + '). ההתאמה היא לפי שם בלבד — ייתכן שיוך שגוי.');
+  const gib = j.matched.concat(j.inactive).filter(r =>
+    r.quotes.some(q => /[a-z]{4,}/.test(q) && !/[\u0590-\u05FF]/.test(q))).length;
+  if (gib)
+    out.push('ב־' + gib + ' אובייקטים ציטוטי ההתיישנות נראים כג\'יבריש — עברית שנקראה בקידוד שגוי. אל תסמוך על השדה הזה.');
+  if (S.files.size){
+    let miss = 0;
+    for (const r of S.byKey.values()) if (!S.files.has(r.key)) miss++;
+    if (miss) out.push(miss + ' אובייקטים מהקבצים שנטענו אינם קיימים כקובץ בתיקייה שנבחרה.');
+    let extra = 0;
+    for (const k of S.files.keys()) if (!S.byKey.has(k)) extra++;
+    if (extra) out.push(extra + ' קבצים בתיקייה אינם מופיעים באף אחד מהקבצים שנטענו.');
+  }
+  $('banners').innerHTML = out.map(t => '<div class="banner">⚠ ' + esc(t) + '</div>').join('');
+}
+
+function buildFilterOptions(){
+  const all = S.joined.matched.concat(S.joined.noAnalysis, S.joined.inactive);
+  const fill = (el, vals, label) => {
+    el.innerHTML = '<option value="">' + label + '</option>' +
+      Array.from(new Set(vals.filter(Boolean))).sort()
+        .map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('');
+  };
+  fill($('fSf'),   all.map(r => r.sf),      'כל יעדי ה-SF');
+  fill($('fConf'), all.map(r => r.conf),    'כל רמות הביטחון');
+  fill($('fLib'),  all.map(r => r.library), 'כל הספריות');
+
+  const hasCat = !!(S.cats && S.catStats && S.catStats.hit);
+  ['fMain','fSub'].forEach(id => $(id).style.display = hasCat ? '' : 'none');
+  if (hasCat){
+    fill($('fMain'), all.map(r => r.mainTopic), 'כל הנושאים הראשיים');
+    rebuildSubOptions();
+  }
+
+  const on = !!S.natmap;
+  ['fTriage','fDomain','fUi'].forEach(id => $(id).style.display = on ? '' : 'none');
+  $('tab-overview').style.display = on ? '' : 'none';
+  if (on){
+    $('fTriage').innerHTML = '<option value="">כל קטגוריות הטריאז\'</option>' +
+      Array.from(new Set(all.map(r => r.triage).filter(Boolean))).sort()
+        .map(v => '<option value="' + esc(v) + '">' + esc(TRIAGE_HE[v] || v) + '</option>').join('');
+    fill($('fDomain'), all.map(r => r.domain),  'כל התחומים');
+    fill($('fUi'),     all.map(r => r.uiClass), 'online / batch');
+  }
+
+  $('tab-matched').textContent    = 'פעיל + נותח (' + S.joined.matched.length + ')';
+  $('tab-noanalysis').textContent = 'פעיל, לא נותח (' + S.joined.noAnalysis.length + ')';
+  $('tab-inactive').textContent   = 'נותח, לא פעיל (' + S.joined.inactive.length + ')';
+}
+
+function clearFilters(){
+  $('fSf').value = ''; $('fConf').value = ''; $('fLib').value = ''; $('fSince').value = '';
+  $('fTriage').value = ''; $('fDomain').value = ''; $('fUi').value = '';
+  $('fMain').value = ''; $('fSub').value = ''; rebuildSubOptions();
+}
+
+// Sub-topic options follow the selected main topic, so the second list stays short.
+function rebuildSubOptions(){
+  if (!S.joined) return;
+  const all = S.joined.matched.concat(S.joined.noAnalysis, S.joined.inactive);
+  const main = $('fMain').value;
+  const prev = $('fSub').value;
+  const vals = Array.from(new Set(
+    all.filter(r => !main || r.mainTopic === main).map(r => r.subTopic).filter(Boolean)
+  )).sort((a,b) => a.localeCompare(b,'he'));
+  $('fSub').innerHTML = '<option value="">כל תתי־הנושאים</option>' +
+    vals.map(v => '<option value="' + esc(v) + '">' + esc(v) + '</option>').join('');
+  $('fSub').value = vals.indexOf(prev) !== -1 ? prev : '';
+}
+
+// The bucket that actually holds the scanned objects: with no LLM analysis
+// file everything lands in noAnalysis instead of matched.
+function bestBucket(){
+  return S.joined.matched.length >= S.joined.noAnalysis.length ? 'matched' : 'noanalysis';
+}
+
+function currentBucket(){
+  return S.tab === 'matched' ? S.joined.matched
+       : S.tab === 'noanalysis' ? S.joined.noAnalysis
+       : S.joined.inactive;
+}
+
+function render(){
+  if (S.tab === 'overview'){
+    $('overview').style.display = 'block';
+    $('tbl').style.display = 'none';
+    $('more').style.display = 'none';
+    $('counts').innerHTML = '';
+    renderOverview();
+    return;
+  }
+  $('overview').style.display = 'none';
+  $('tbl').style.display = 'table';
+  const f = { q:$('q').value.trim(), sf:$('fSf').value, conf:$('fConf').value,
+              lib:$('fLib').value, since:$('fSince').value,
+              triage:$('fTriage').value, domain:$('fDomain').value, ui:$('fUi').value,
+              main:$('fMain').value, sub:$('fSub').value };
+  const filtered = applyFilters(currentBucket(), f);
+  S.view = sortRows(filtered, S.sortField, S.sortDir);
+  S.shown = Math.min(CHUNK, S.view.length);
+
+  $('counts').innerHTML = 'מוצגות <b>' + S.view.length + '</b> מתוך <b>' +
+    currentBucket().length + '</b> בקבוצה זו.';
+
+  $('thead').innerHTML = COLS.map(c => {
+    const arrow = S.sortField === c.f ? (S.sortDir === 'desc' ? ' ▼' : ' ▲') : '';
+    return '<th data-f="' + c.f + '"' + (c.num ? ' class="num"' : '') + '>' + esc(c.t) + arrow + '</th>';
+  }).join('');
+  Array.from($('thead').children).forEach(th => th.onclick = () => {
+    const f2 = th.getAttribute('data-f');
+    if (S.sortField === f2) S.sortDir = S.sortDir === 'desc' ? 'asc' : 'desc';
+    else { S.sortField = f2; S.sortDir = (f2 === 'id' || f2 === 'area' || f2 === 'library') ? 'asc' : 'desc'; }
+    render();
+  });
+
+  $('tbody').innerHTML = '';
+  paint();
+}
+
+function paint(){
+  const tb = $('tbody');
+  const frag = document.createDocumentFragment();
+  const start = tb.querySelectorAll('tr.main').length;
+  for (let i = start; i < S.shown; i++){
+    const r = S.view[i];
+    const tr = document.createElement('tr');
+    tr.className = 'main';
+    tr.innerHTML =
+      '<td class="ltr id">' + esc(r.id) + '</td>' +
+      '<td class="desc" title="' + esc(r.description || r.catDesc || r.purpose || '') + '">' +
+        esc(r.description || r.catDesc || '') + '</td>' +
+      '<td class="topic" title="' + esc(r.mainTopic || '') + '">' + esc(r.mainTopic || '') + '</td>' +
+      '<td class="topic" title="' + esc(r.subTopic || '') + '">' + esc(r.subTopic || '') + '</td>' +
+      '<td>' + (r.objType ? '<span class="tag">' + esc(r.objType) + '</span>' : '') + '</td>' +
+      '<td class="num">' + (r.netLines == null ? (r.lines || '') : r.netLines) + '</td>' +
+      '<td class="num">' + esc(r.lastChange || '') + '</td>' +
+      '<td class="num">' + (r.nChanges || '') + '</td>' +
+      '<td class="num">' + (r.nCallers || '') + '</td>' +
+      '<td class="num">' + (r.nCalls || '') + '</td>' +
+      '<td>' + (r.triage ? '<span class="tag t-' + esc(r.triage) + '">' +
+        esc(TRIAGE_HE[r.triage] || r.triage) + '</span>' : '') + '</td>' +
+      '<td class="num">' + (r.hasNatmap ? r.maxDepth : '') +
+        (r.unbalanced ? ' <span class="warn" title="הפרסר לא הצליח לאזן את הבלוקים בקובץ הזה — אל תסמוך על העומק">&#9888;</span>' : '') + '</td>';
+    tr.onclick = () => toggleDetail(tr, r);
+    frag.appendChild(tr);
+  }
+  tb.appendChild(frag);
+  $('more').style.display = S.shown < S.view.length ? 'block' : 'none';
+  $('more').textContent = 'טען עוד (' + (S.view.length - S.shown) + ' נותרו)';
+}
+
+function ovTable(title, note, headers, rows){
+  return '<div class="sec ovsec"><h4>' + esc(title) + '</h4>' +
+    (note ? '<div class="ovnote">' + note + '</div>' : '') +
+    '<table class="ovtbl"><thead><tr>' +
+      headers.map(h => '<th>' + esc(h) + '</th>').join('') +
+    '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';
+}
+
+function renderOverview(){
+  const all = S.joined.matched.concat(S.joined.noAnalysis, S.joined.inactive)
+                .filter(r => r.hasNatmap);
+  const out = [];
+  const n = all.length;
+  const sum = (arr, f) => arr.reduce((a, r) => a + (r[f] || 0), 0);
+
+  out.push('<div class="ovhead">סריקה סטטית: <b>' + n + '</b> אובייקטים · ' +
+    '<b>' + sum(all, 'codeLines').toLocaleString() + '</b> שורות קוד · ' +
+    'גרסה ' + esc(S.natmap.meta.schema_version || '?') + '</div>');
+
+  /* 1. triage */
+  const tg = new Map();
+  for (const r of all){
+    const c = tg.get(r.triage) || { n:0, lines:0 };
+    c.n++; c.lines += r.codeLines; tg.set(r.triage, c);
+  }
+  const ORDER = ['rules_core','external_entry_suspect','platform_replaces','support','dead_likely'];
+  const tgRows = ORDER.filter(k => tg.has(k)).map(k => {
+    const c = tg.get(k);
+    return '<tr class="clk" data-drill="fTriage" data-val="' + esc(k) + '">' +
+      '<td>' + esc(TRIAGE_HE[k] || k) + '</td>' +
+      '<td class="num">' + c.n + '</td>' +
+      '<td class="num">' + c.lines.toLocaleString() + '</td>' +
+      '<td class="num">' + Math.round(100 * c.n / (n || 1)) + '%</td></tr>';
+  });
+  out.push(ovTable('טריאז\'', 'לחיצה על שורה מסננת את הטבלה הראשית. ' +
+    '<b>"לבירור"</b> אינו מסקנה — אלה אובייקטים שאיש לא קורא להם בנטורל אך שונו לאחרונה, ' +
+    'וסביר שחלקם נקראים משכבת ה-Java שהסורק לא רואה.',
+    ['קטגוריה','אובייקטים','שורות קוד','%'], tgRows));
+
+  /* 2. domains */
+  const dm = new Map();
+  for (const r of all){
+    if (!r.domain) continue;
+    const c = dm.get(r.domain) || { n:0, lines:0, core:0 };
+    c.n++; c.lines += r.codeLines;
+    if (r.triage === 'rules_core') c.core++;
+    dm.set(r.domain, c);
+  }
+  const dmRows = Array.from(dm.entries()).sort((a,b) => b[1].n - a[1].n).slice(0,40)
+    .map(([k,c]) => '<tr class="clk" data-drill="fDomain" data-val="' + esc(k) + '">' +
+      '<td class="ltr">' + esc(k) + '</td><td class="num">' + c.n + '</td>' +
+      '<td class="num">' + c.lines.toLocaleString() + '</td>' +
+      '<td class="num">' + c.core + '</td></tr>');
+  const noDom = all.filter(r => !r.domain).length;
+  out.push(ovTable('תחומים — חבילות עבודה אפשריות',
+    'שיוך: כל אובייקט לתחום אחד בלבד. <b>' + noDom + '</b> ללא תחום (בעיקר מסכים ותשתית).',
+    ['תחום','אובייקטים','שורות קוד','מהם לחילוץ חוקים'], dmRows));
+
+  /* 3. core */
+  const core = all.slice().sort((a,b) => b.fanIn - a.fanIn).slice(0,15)
+    .map(r => '<tr class="clk" data-goto="' + esc(r.id) + '">' +
+      '<td class="ltr">' + esc(r.id) + '</td><td class="num">' + r.fanIn + '</td>' +
+      '<td class="num">' + r.fanOut + '</td><td class="num">' + r.codeLines + '</td>' +
+      '<td class="ltr">' + esc(r.domain || '') + '</td></tr>');
+  out.push(ovTable('ליבת המערכת — הכי נקראים',
+    'כל שינוי כאן נוגע בעשרות עד מאות אובייקטים. זה סיכון, לא רק מאמץ.',
+    ['אובייקט','קוראים','יעדים','שורות','תחום'], core));
+
+  /* 4. duplicate families */
+  const fam = new Map();
+  for (const r of all){
+    if (!r.family) continue;
+    if (!fam.has(r.family)) fam.set(r.family, []);
+    fam.get(r.family).push(r);
+  }
+  const famRows = Array.from(fam.values())
+    .sort((a,b) => b.length - a.length || sum(b,'codeLines') - sum(a,'codeLines'))
+    .slice(0,25)
+    .map(g => '<tr><td class="ltr">' + g.map(r =>
+        '<span class="chip link" data-goto="' + esc(r.id) + '">' + esc(r.id) + '</span>').join(' ') +
+      '</td><td class="num">' + g.length + '</td>' +
+      '<td class="num">' + sum(g,'codeLines').toLocaleString() + '</td></tr>');
+  const inFam = all.filter(r => r.family).length;
+  out.push(ovTable('משפחות שכפול',
+    '<b>' + inFam + '</b> אובייקטים ב-<b>' + fam.size + '</b> משפחות. ' +
+    'קוד כמעט זהה — כל משפחה אמורה להתכווץ ליחידה אחת במיגרציה.',
+    ['חברי המשפחה','גודל','שורות קוד'], famRows));
+
+  /* 5. external 3GL */
+  const ext = external3gl(S.natmap).slice(0,20)
+    .map(([t,c]) => '<tr><td class="ltr">' + esc(t) + '</td><td class="num">' + c + '</td></tr>');
+  out.push(ovTable('מודולי 3GL חיצוניים',
+    'פקודת CALL ליעד שאין לו קובץ נטורל — כלומר COBOL/אסמבלר מחוץ למערכת. ' +
+    'תלות שצריך למפות בנפרד.',
+    ['מודול','קוראים'], ext));
+
+  $('overview').innerHTML = '<div class="ovgrid">' + out.join('') + '</div>';
+  $('overview').querySelectorAll('tr.clk[data-drill]').forEach(tr =>
+    tr.onclick = () => drillTo(tr.getAttribute('data-drill'), tr.getAttribute('data-val')));
+  $('overview').querySelectorAll('[data-goto]').forEach(el =>
+    el.onclick = ev => { ev.stopPropagation(); gotoObject(el.getAttribute('data-goto')); });
+}
+
+function list(arr){
+  if (!arr || !arr.length) return '<div class="empty">—</div>';
+  return '<ul>' + arr.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+}
+function chips(arr, linkable){
+  if (!arr || !arr.length) return '<div class="empty">—</div>';
+  const items = linkable ? sortNamesByLines(arr, S.byKey) : arr;
+  return '<div class="chips">' + items.map(x => {
+    if (!linkable) return '<span class="chip">' + esc(x) + '</span>';
+    const r = S.byKey.get(keyOf(x));
+    let tip;
+    if (!r) tip = 'לא נמצא בקבצים שנטענו — ייתכן שהתוכנית בספרייה אחרת או שלא נותחה.';
+    else if (r.purpose) tip = r.purpose + '\n[' + r.lines + ' שורות' +
+      (r.sf ? ' · ' + r.sf : '') + (r.isActive ? '' : ' · לא פעילה') + ']';
+    else tip = 'קיימת ברשימת הפעילות אך ללא ניתוח.' +
+      (r.lastUsed ? '\n[שימוש אחרון: ' + r.lastUsed + ']' : '');
+    return '<span class="chip link' + (r ? '' : ' dead') + '"'
+      + ' data-goto="' + esc(x) + '"'
+      + ' data-tip="' + esc(tip) + '"'
+      + ' data-tipname="' + esc(x) + '">' + esc(x) + '</span>';
+  }).join('') + '</div>';
+}
+
+/* ---------- source folder ---------- */
+$('fFolder').addEventListener('change', e => {
+  const list = e.target.files;
+  S.files = new Map(); S.fileDups = []; S.codeCache = new Map();
+  for (let i = 0; i < list.length; i++){
+    const f = list[i];
+    const k = fileKey(f.webkitRelativePath || f.name);
+    if (!k) continue;
+    if (S.files.has(k)) S.fileDups.push(k);
+    else S.files.set(k, f);
+  }
+  $('btnScan').disabled = S.files.size === 0;
+  if (S.joined) buildBanners();
+  setDirInfo('תיקייה: <b>' + S.files.size + '</b> קבצים' +
+    (S.fileDups.length ? ' <span style="color:var(--warn)">(' + S.fileDups.length +
+      ' שמות כפולים, נלקח הראשון)</span>' : '') +
+    ' <span style="color:var(--warn)">— לא נשמר לפעם הבאה</span>');
+});
+
+// Reads as UTF-8; if that produced replacement characters the file is probably
+// a legacy Hebrew codepage, so fall back to windows-1255 rather than showing junk.
+// Accepts either a File (folder <input>) or a FileSystemFileHandle (saved directory).
+async function readFileText(entry){
+  const file = (entry && typeof entry.getFile === 'function') ? await entry.getFile() : entry;
+  if (!file) throw new Error('קובץ לא זמין');
+  const buf = await file.arrayBuffer();
+  let t = new TextDecoder('utf-8').decode(buf);
+  if (t.indexOf('\uFFFD') !== -1){
+    try { t = new TextDecoder('windows-1255').decode(buf); } catch(err){ /* keep utf-8 */ }
+  }
+  return t;
+}
+
+function reEscape(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function renderCode(text, callNames, mode, hideBlank){
+  const lines = String(text).split(/\r?\n/);
+  const names = (callNames || []).filter(Boolean).map(reEscape);
+  const re = names.length
+    ? new RegExp('(^|[^A-Za-z0-9$#@_-])(' + names.join('|') + ')(?![A-Za-z0-9$#@_-])', 'g')
+    : null;
+  const out = [];
+  for (let i = 0; i < lines.length; i++){
+    const raw = lines[i];
+    const blank = raw.trim() === '';
+    if (blank && hideBlank) continue;
+    let body;
+    if (blank){
+      body = '<span class="blank">·</span>';
+    } else {
+      body = decodeLine(raw, mode).map(sg => {
+        if (sg.t === 'heb')
+          return '<span class="heb' + (sg.reversed ? ' rev' : '') + '" title="' +
+                 esc(sg.raw || '') + '">' + esc(sg.s) + '</span>';
+        let hh = esc(sg.s);
+        if (re) hh = hh.replace(re, (m, p1, p2) =>
+          p1 + '<span class="callref" data-goto="' + esc(p2) + '">' + esc(p2) + '</span>');
+        return hh;
+      }).join('');
+    }
+    out.push('<div class="cl"><span class="ln">' + (i + 1) + '</span><span class="ct">' + body + '</span></div>');
+  }
+  return out.join('');
+}
+
+function paintCode(box, r, text){
+  box.innerHTML = renderCode(text, r.callsOut, $('codeMode').value, $('hideBlank').checked);
+  Array.from(box.querySelectorAll('.callref')).forEach(el => {
+    el.onclick = ev => { ev.stopPropagation(); gotoObject(el.getAttribute('data-goto')); };
+  });
+}
+
+async function loadCode(box, r){
+  const f = S.files.get(r.key);
+  if (!f){ box.innerHTML = '<div class="cl"><span class="ct">— לא נמצא קובץ בשם ' +
+      esc(r.id) + ' בתיקייה שנבחרה —</span></div>'; return; }
+  box.innerHTML = '<div class="cl"><span class="ct">טוען…</span></div>';
+  let text = S.codeCache.get(r.key);
+  if (text === undefined){
+    try { text = await readFileText(f); }
+    catch(err){
+      box.innerHTML = '<div class="cl"><span class="ct">שגיאה בקריאת הקובץ: ' +
+        esc(err && err.message ? err.message : String(err)) + '</span></div>';
+      return;
+    }
+    if (S.codeCache.size > 25) S.codeCache.clear();     // keep memory bounded
+    S.codeCache.set(r.key, text);
+  }
+  const c = countNetLines(text);
+  if (r.netLines !== c.net){
+    r.netLines = c.net;
+    const tr = box.closest('tr') ? box.closest('tr').previousElementSibling : null;
+    if (tr && tr.children[NET_COL]) tr.children[NET_COL].textContent = c.net;
+  }
+  const info = box.parentNode.querySelector('.codeinfo');
+  if (info) info.textContent = c.total + ' שורות · ' + c.net + ' נטו · ' +
+    (c.total - c.net) + ' ריקות';
+  paintCode(box, r, text);
+}
+
+function repaintOpenCode(){
+  Array.from(document.querySelectorAll('.codewrap[data-key]')).forEach(box => {
+    const r = S.byKey.get(box.getAttribute('data-key'));
+    const text = r && S.codeCache.get(r.key);
+    if (r && text !== undefined) paintCode(box, r, text);
+  });
+}
+$('codeMode').addEventListener('change', repaintOpenCode);
+$('hideBlank').addEventListener('change', repaintOpenCode);
+
+// Reads every matched file once to fill the "net lines" column. Deliberately
+// does not cache the text — 11k files would blow up memory.
+$('btnScan').addEventListener('click', async () => {
+  if (S.scanning || !S.joined || !S.files.size) return;
+  S.scanning = true; $('btnScan').disabled = true;
+  const rows = [];
+  for (const r of S.byKey.values()) if (S.files.has(r.key)) rows.push(r);
+  const BATCH = 40;
+  let done = 0, failed = 0;
+  for (let i = 0; i < rows.length; i += BATCH){
+    const batch = rows.slice(i, i + BATCH);
+    await Promise.all(batch.map(async r => {
+      try {
+        const c = countNetLines(await readFileText(S.files.get(r.key)));
+        r.netLines = c.net;
+        if (!r.lines) r.lines = c.total;
+      } catch(err){ failed++; }
+    }));
+    done += batch.length;
+    setStatus('סורק קבצים… ' + done + ' / ' + rows.length +
+      (failed ? ' <span class="bad">(' + failed + ' נכשלו)</span>' : ''));
+  }
+  setStatus('סריקה הושלמה: <b>' + (done - failed) + '</b> קבצים נספרו' +
+    (failed ? ' <span class="bad">, ' + failed + ' נכשלו</span>' : '') +
+    '. ' + (rows.length < S.byKey.size ? '<span class="warn">' +
+    (S.byKey.size - rows.length) + ' אובייקטים ללא קובץ תואם.</span>' : ''));
+  S.scanning = false; $('btnScan').disabled = false;
+  render();
+});
+
+/* ---------- tooltip ---------- */
+const tipEl = document.createElement('div');
+tipEl.id = 'tip';
+document.body.appendChild(tipEl);
+
+function showTip(el){
+  const txt = el.getAttribute('data-tip');
+  if (!txt) return;
+  tipEl.innerHTML = '<b>' + esc(el.getAttribute('data-tipname') || '') + '</b>' + esc(txt);
+  tipEl.style.display = 'block';
+  tipEl.style.left = '0px'; tipEl.style.top = '0px';   // measure without clamping artefacts
+  const r = el.getBoundingClientRect();
+  const w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+  let left = r.right - w;                              // RTL: align to the chip's right edge
+  if (left + w > window.innerWidth - 8) left = window.innerWidth - 8 - w;
+  if (left < 8) left = 8;
+  let top = r.bottom + 6;
+  if (top + h > window.innerHeight - 8) top = r.top - h - 6;
+  if (top < 8) top = 8;
+  tipEl.style.left = left + 'px';
+  tipEl.style.top  = top + 'px';
+}
+function hideTip(){ tipEl.style.display = 'none'; }
+
+document.addEventListener('mouseover', e => {
+  const c = e.target.closest ? e.target.closest('.chip[data-tip]') : null;
+  if (c) showTip(c);
+});
+document.addEventListener('mouseout', e => {
+  const c = e.target.closest ? e.target.closest('.chip[data-tip]') : null;
+  if (c) hideTip();
+});
+window.addEventListener('scroll', hideTip, true);
+
+function toggleDetail(tr, r){
+  const nxt = tr.nextElementSibling;
+  if (nxt && nxt.classList.contains('detail')){ nxt.remove(); tr.classList.remove('open'); return; }
+  tr.classList.add('open');
+  const d = document.createElement('tr');
+  d.className = 'detail';
+  d.innerHTML = '<td colspan="' + COLS.length + '">' +
+    '<div class="grid">' +
+      '<div class="sec" style="grid-column:1/-1"><h4>מה זה עושה</h4><div>' +
+        (r.catWhat ? esc(r.catWhat)
+         : r.purpose ? esc(r.purpose)
+         : '<span class="empty">אין ניתוח לאובייקט זה</span>') +
+        (r.catWhat && r.purpose && r.purpose !== r.catWhat
+          ? '<div style="margin-top:8px;color:var(--dim);font-size:12.5px">ניתוח LLM: ' +
+            esc(r.purpose) + '</div>' : '') +
+        (r.catDesc && r.catDesc !== r.description
+          ? '<div style="margin-top:6px;color:var(--dim);font-size:12.5px">תיאור (קטגוריזציה): ' +
+            esc(r.catDesc) + '</div>' : '') +
+      '</div></div>' +
+      '<div class="sec" style="grid-column:1/-1"><h4>מאפיינים</h4><div class="chips">' +
+        (r.mainTopic ? '<span class="tag">נושא ראשי: ' + esc(r.mainTopic) + '</span>' : '') +
+        (r.subTopic  ? '<span class="tag">תת נושא: '  + esc(r.subTopic)  + '</span>' : '') +
+        '<span class="tag">יעד SF: ' + esc(r.sf || '—') + '</span>' +
+        '<span class="tag' + (r.conf ? ' c-' + esc(r.conf) : '') + '">ביטחון: ' + esc(r.conf || '—') + '</span>' +
+        '<span class="tag">ספרייה: ' + esc(r.library || (r.isActive ? '—' : 'לא ברשימת הפעילות')) +
+          (r.allLibs.length > 1 ? ' (+' + (r.allLibs.length - 1) + ')' : '') + '</span>' +
+        '<span class="tag">שימוש אחרון: ' + esc(r.lastUsed || '—') + '</span>' +
+        '<span class="tag">נטען ל-BP: ' + esc(r.loaded || '—') + '</span>' +
+        '<span class="tag">טוקנים: ' + (r.tokensIn || '—') + '</span>' +
+        '<span class="tag">תחום: ' + esc(r.area || '—') + '</span>' +
+        '<span class="tag">טריגר: ' + esc(r.trigger || '—') + '</span>' +
+        (r.hasNatmap ?
+          '<span class="tag t-' + esc(r.triage) + '">' + esc(TRIAGE_HE[r.triage] || r.triage) + '</span>' +
+          '<span class="tag">תחום (DDM): ' + esc(r.domain || '—') + '</span>' +
+          '<span class="tag">' + esc(r.uiClass || '—') + '</span>' +
+          '<span class="tag">קוראים: ' + r.fanIn + ' · יעדים: ' + r.fanOut + '</span>' +
+          '<span class="tag">עומק: ' + r.maxDepth + ' · IF: ' + r.ifCount +
+            ' · COMPUTE: ' + r.computeCount + '</span>' +
+          (r.writes ? '<span class="tag">כותב ל-DB</span>' : '') +
+          (r.selfRedund > 0.25 ? '<span class="tag">שכפול פנימי: ' +
+            Math.round(r.selfRedund * 100) + '%</span>' : '') +
+          (r.unbalanced ? '<span class="tag warn">פרסינג לא מאוזן — העומק לא אמין</span>' : '')
+        : '') +
+      '</div></div>' +
+      (r.hasNatmap ?
+        '<div class="sec"><h4>טבלאות Adabas (' + r.ddmList.length + ')</h4>' +
+          (r.ddmList.length ? '<div class="chips">' + r.ddmList.map(d =>
+            '<span class="chip">' + esc(d.ddm) + (d.write ? ' ✎' : '') + '</span>').join('') + '</div>'
+           : '<div class="empty">—</div>') + '</div>' +
+        '<div class="sec"><h4>קוד כמעט זהה (' + r.dupSiblings.length + ')</h4>' +
+          chips(r.dupSiblings, true) + '</div>'
+      : '') +
+      '<div class="sec"><h4>חוקים עסקיים (' + r.rules.length + ')</h4>' + list(r.rules) + '</div>' +
+      '<div class="sec"><h4>ישויות נתונים (' + r.entities.length + ')</h4>' + chips(r.entities, false) + '</div>' +
+      '<div class="sec"><h4>קורא ל־ (' + r.callsOut.length + ')</h4>' + chips(r.callsOut, true) + '</div>' +
+      '<div class="sec"><h4>קוראים לו (' + r.callers.length + ')</h4>' + chips(r.callers, true) + '</div>' +
+      '<div class="sec"><h4>קלטים</h4>' + list(r.inputs) + '</div>' +
+      '<div class="sec"><h4>פלטים</h4>' + list(r.outputs) + '</div>' +
+      (r.quotes.length ? '<details class="sec" style="grid-column:1/-1">' +
+        '<summary>ציטוטי התיישנות (' + r.quotes.length + ')</summary>' +
+        r.quotes.map(q => '<div class="quote">' + esc(q) + '</div>').join('') + '</details>' : '') +
+      '<div class="sec" style="grid-column:1/-1"><h4>מטא</h4><div class="meta">' +
+        'lines=' + r.lines + '  chars=' + r.chars + '  tokens_in=' + r.tokensIn +
+        '  status=' + esc(r.recStatus || '—') + '  confidence=' + esc(r.conf || '—') + '\n' +
+        'library=' + esc(r.library || '—') +
+        (r.allLibs.length > 1 ? '  (גם: ' + esc(r.allLibs.join(', ')) + ')' : '') +
+        '  dbid=' + esc(r.dbid || '—') + '  fuser=' + esc(r.fuser || '—') + '\n' +
+        'last_used=' + esc(r.lastUsed || '—') + '  loaded_in_bp=' + esc(r.loaded || '—') + '\n' +
+        'source_path=' + esc(r.sourcePath || '—') +
+      '</div></div>' +
+      (r.description || r.systemName || r.routineName || r.author ?
+      '<div class="sec" style="grid-column:1/-1"><h4>מכותרת הקוד</h4><div class="chips">' +
+        (r.systemName  ? '<span class="tag">מערכת: ' + esc(r.systemName) + '</span>' : '') +
+        (r.routineName ? '<span class="tag">רוטינה: ' + esc(r.routineName) + '</span>' : '') +
+        (r.objType     ? '<span class="tag">סוג: ' + esc(r.objType) + '</span>' : '') +
+        (r.author      ? '<span class="tag">נכתב ע"י: ' + esc(r.author) + '</span>' : '') +
+        (r.firstChange ? '<span class="tag">שינוי ראשון: ' + esc(r.firstChange) + '</span>' : '') +
+        (r.lastChange  ? '<span class="tag">שינוי אחרון: ' + esc(r.lastChange) + '</span>' : '') +
+      '</div>' + (r.description ? '<div style="margin-top:8px">' + esc(r.description) + '</div>' : '') +
+      '</div>' : '') +
+      (r.hdrAuthors.length ? '<div class="sec"><h4>מי נגע בקוד (' + r.hdrAuthors.length + ')</h4>' +
+        chips(r.hdrAuthors, false) + '</div>' : '') +
+      (r.callsStatic.length ? '<details class="sec">' +
+        '<summary>קריאות מהקוד עצמו (' + r.callsStatic.length + ')</summary>' +
+        chips(r.callsStatic, true) + '</details>' : '') +
+      (r.changes.length ? '<details class="sec" style="grid-column:1/-1">' +
+        '<summary>יומן שינויים (' +
+        r.changes.length + ')</summary><table class="chg"><tbody>' +
+        r.changes.slice().sort((a,b) => String(b.date).localeCompare(String(a.date))).map(c =>
+          '<tr><td class="num">' + esc(c.date || '') + '</td>' +
+          '<td class="ltr">' + esc(c.ticket || '') + '</td>' +
+          '<td class="ltr">' + esc(c.who || '') + '</td>' +
+          '<td>' + esc(c.text || '') + '</td></tr>').join('') +
+        '</tbody></table></details>' : '') +
+      (r.headerText ? '<div class="sec" style="grid-column:1/-1"><h4>בלוק הכותרת המלא</h4>' +
+        '<div class="hdrblock">' + esc(r.headerText) + '</div></div>' : '') +
+      '<div class="sec" style="grid-column:1/-1"><h4>קוד מקור</h4>' +
+        '<div class="codehead">' +
+          '<span class="codeinfo"></span>' +
+          '<span><span class="legend" style="background:#2a2312"></span> עברית (סדר לוגי)</span>' +
+          '<span><span class="legend" style="background:#122a24"></span> עברית (הופכה)</span>' +
+          '<span><span class="legend" style="background:#12233a"></span> קריאה לתוכנית</span>' +
+          '<span style="color:#4a5262">ריחוף על טקסט עברי מציג את הגולמי</span>' +
+        '</div>' +
+        '<div class="codewrap" data-key="' + esc(r.key) + '"></div>' +
+      '</div>' +
+    '</div></td>';
+  tr.parentNode.insertBefore(d, tr.nextSibling);
+  Array.from(d.querySelectorAll('.chip.link:not(.dead)')).forEach(c => {
+    c.onclick = ev => { ev.stopPropagation(); gotoObject(c.getAttribute('data-goto')); };
+  });
+  const box = d.querySelector('.codewrap');
+  if (box){
+    if (S.files.size) loadCode(box, r);
+    else box.innerHTML = '<div class="cl"><span class="ct">— בחר תיקיית קוד מקור בראש הדף כדי לראות את הקובץ —</span></div>';
+  }
+}
+
+// Jump to another object: clears filters, searches all buckets, opens its detail.
+function gotoObject(name){
+  const k = keyOf(name);
+  let tab = null;
+  if (S.joined.matched.some(r => r.key === k)) tab = 'matched';
+  else if (S.joined.noAnalysis.some(r => r.key === k)) tab = 'noanalysis';
+  else if (S.joined.inactive.some(r => r.key === k)) tab = 'inactive';
+  if (!tab) return;
+  setTab(tab);
+  clearFilters();
+  $('q').value = name;
+  render();
+  const idx = S.view.findIndex(r => r.key === k);
+  if (idx === -1) return;
+  while (S.shown <= idx && S.shown < S.view.length){ S.shown = Math.min(S.shown + CHUNK, S.view.length); paint(); }
+  const rows = $('tbody').querySelectorAll('tr.main');
+  if (rows[idx]){
+    rows[idx].scrollIntoView({block:'center'});
+    if (!rows[idx].classList.contains('open')) toggleDetail(rows[idx], S.view[idx]);
+  }
+}
+
+function setTab(t){
+  S.tab = t;
+  ['overview','matched','noanalysis','inactive'].forEach(x =>
+    $('tab-' + x).classList.toggle('on', x === t));
+}
+
+// Jump from an overview row into the filtered table.
+function drillTo(field, value){
+  $('q').value = '';
+  clearFilters();
+  if (field){
+    $(field).value = value;
+    if (field === 'fMain') rebuildSubOptions();
+  }
+  setTab(bestBucket());
+  render();
+}
+
+['tab-overview','tab-matched','tab-noanalysis','tab-inactive'].forEach(id =>
+  $(id).addEventListener('click', () => {
+    S.tabTouched = true; setTab($(id).getAttribute('data-tab')); render(); }));
+
+let tmr = null;
+$('q').addEventListener('input', () => { clearTimeout(tmr); tmr = setTimeout(render, 180); });
+['fSf','fConf','fLib','fSince','fTriage','fDomain','fUi','fSub']
+  .forEach(id => $(id).addEventListener('change', render));
+$('fMain').addEventListener('change', () => { rebuildSubOptions(); render(); });
+$('btnReset').addEventListener('click', () => {
+  $('q').value=''; clearFilters();
+  S.sortField='lines'; S.sortDir='desc'; render();
+});
+$('more').addEventListener('click', () => { S.shown = Math.min(S.shown + CHUNK, S.view.length); paint(); });
+/* ============================ chat over the corpus ==========================
+   Retrieval happens locally: the question picks the most relevant records out
+   of what is loaded, and only those are sent to Gemini. Sending 3.7k objects
+   on every turn would be slow and expensive for no gain.                    */
+const GEM_MODEL = 'gemini-3.7-flash';
+const GEM_BASE  = 'https://generativelanguage.googleapis.com/v1beta/models/' + GEM_MODEL;
+const KEY_LS    = 'nv.geminiKey';
+const MAX_RECS  = 30;
+const MAX_CTX   = 250000;          // characters, ~70k tokens
+const CHAT = { hist: [], busy: false };
+
+function getKey(){ return lsGet(KEY_LS, ''); }
+
+function md(t){
+  const blocks = [];
+  let s = String(t == null ? '' : t).replace(/```[a-zA-Z]*\n?([\s\S]*?)```/g, (m, c) => {
+    blocks.push(c); return '\u0000B' + (blocks.length - 1) + '\u0000';
+  });
+  s = esc(s)
+    .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>')
+    .replace(/^\s*[-*]\s+/gm, '• ')
+    .replace(/\n/g, '<br>');
+  return s.replace(/\u0000B(\d+)\u0000/g, (m, i) => '<pre>' + esc(blocks[Number(i)]) + '</pre>');
+}
+
+function chatPool(){
+  if (!S.joined) return [];
+  if ($('chatFiltered').checked && S.view && S.view.length) return S.view;
+  return S.joined.matched.concat(S.joined.noAnalysis, S.joined.inactive);
+}
+
+function hayOf(r){
+  if (r._hay) return r._hay;
+  r._hay = [r.id, r.description, r.catDesc, r.catWhat, r.purpose, r.mainTopic, r.subTopic,
+    r.area, r.trigger, r.domain, r.triage, r.objType, r.library, r.systemName, r.routineName,
+    (r.rules || []).join(' '), (r.entities || []).join(' '),
+    (r.inputs || []).join(' '), (r.outputs || []).join(' '),
+    (r.callsOut || []).join(' '), (r.callers || []).join(' '),
+    (r.ddmList || []).map(d => d.ddm).join(' ')
+  ].join(' ').toLowerCase();
+  return r._hay;
+}
+
+function qTokens(q){
+  return String(q).toLowerCase()
+    .split(/[^0-9a-z\u0590-\u05FF_$#@-]+/)
+    .filter(t => t.length >= 2);
+}
+
+function pickRecords(question, limit){
+  const pool = chatPool();
+  if (!pool.length) return [];
+  const ts = qTokens(question);
+  const byK = new Map();
+  for (const r of pool) byK.set(r.key, r);
+
+  const out = [], seen = new Set();
+  for (const t of ts){                       // an explicit object name always wins
+    const r = byK.get(t.toUpperCase());
+    if (r && !seen.has(r.key)){ seen.add(r.key); out.push(r); }
+  }
+  const scored = [];
+  for (const r of pool){
+    if (seen.has(r.key)) continue;
+    const h = hayOf(r);
+    let sc = 0;
+    for (const t of ts) if (h.indexOf(t) !== -1) sc += (t.length >= 4 ? 2 : 1);
+    if (sc > 0) scored.push([sc + Math.min(r.fanIn || 0, 20) / 40 + (r.hasAnalysis ? 0.3 : 0), r]);
+  }
+  scored.sort((a, b) => b[0] - a[0]);
+  for (const pair of scored){
+    if (out.length >= limit) break;
+    seen.add(pair[1].key); out.push(pair[1]);
+  }
+  return out;
+}
+
+function topCounts(all, field, n){
+  const m = new Map();
+  for (const r of all){ const v = r[field]; if (!v) continue; m.set(v, (m.get(v) || 0) + 1); }
+  return Array.from(m.entries()).sort((a, b) => b[1] - a[1]).slice(0, n)
+    .map(e => e[0] + ' (' + e[1] + ')').join(' · ');
+}
+
+function corpusSummary(){
+  if (!S.joined) return 'לא נטענו נתונים לצופה.';
+  const all = S.joined.matched.concat(S.joined.noAnalysis, S.joined.inactive);
+  const L = [];
+  L.push('סה"כ אובייקטים: ' + all.length +
+    ' | פעיל+נותח: ' + S.joined.matched.length +
+    ' | פעיל ללא ניתוח: ' + S.joined.noAnalysis.length +
+    ' | נותח ולא פעיל: ' + S.joined.inactive.length);
+  if (S.cats)   L.push('נושאים ראשיים: ' + topCounts(all, 'mainTopic', 15));
+  if (S.natmap){
+    L.push('טריאז\': ' + topCounts(all, 'triage', 6));
+    L.push('תחומים (DDM): ' + topCounts(all, 'domain', 15));
+    const core = all.filter(r => r.hasNatmap).sort((a, b) => b.fanIn - a.fanIn).slice(0, 10)
+      .map(r => r.id + ' (' + r.fanIn + ' קוראים)').join(' · ');
+    L.push('הכי נקראים: ' + core);
+  }
+  if (S.files.size) L.push('קבצי מקור זמינים מקומית: ' + S.files.size);
+  return L.join('\n');
+}
+
+function cut(arr, n){
+  const a = (arr || []).slice(0, n);
+  return a.join(', ') + ((arr || []).length > n ? ' …(+' + ((arr || []).length - n) + ')' : '');
+}
+
+function recBlock(r){
+  const L = ['### ' + r.id];
+  if (r.mainTopic || r.subTopic) L.push('נושא: ' + r.mainTopic + (r.subTopic ? ' / ' + r.subTopic : ''));
+  if (r.objType)     L.push('סוג: ' + r.objType);
+  if (r.description) L.push('תיאור: ' + r.description);
+  if (r.catDesc && r.catDesc !== r.description) L.push('תיאור (קטגוריזציה): ' + r.catDesc);
+  if (r.catWhat)     L.push('מה זה עושה: ' + r.catWhat);
+  if (r.purpose && r.purpose !== r.catWhat) L.push('ניתוח LLM: ' + r.purpose);
+  if (r.trigger)     L.push('טריגר: ' + r.trigger);
+  if (r.sf)          L.push('יעד SF: ' + r.sf + (r.conf ? ' (ביטחון ' + r.conf + ')' : ''));
+  if (r.triage)      L.push('טריאז\': ' + (TRIAGE_HE[r.triage] || r.triage));
+  if (r.domain)      L.push('תחום DDM: ' + r.domain + (r.uiClass ? ' · ' + r.uiClass : ''));
+  if (r.hasNatmap)   L.push('סטטי: קוראים=' + r.fanIn + ' יעדים=' + r.fanOut +
+                       ' עומק=' + r.maxDepth + ' IF=' + r.ifCount + ' שורות=' + r.codeLines +
+                       (r.writes ? ' כותב-ל-DB' : '') + (r.family ? ' משפחת-שכפול=' + r.family : ''));
+  L.push('פעילות: ' + (r.isActive ? ('שימוש אחרון ' + (r.lastUsed || '—') + ', ספרייה ' + (r.library || '—'))
+                                  : 'לא מופיע ברשימת הפעילות'));
+  if (r.lastChange)  L.push('שינוי אחרון: ' + r.lastChange + ' (' + (r.nChanges || 0) + ' שינויים)');
+  if (r.rules && r.rules.length)     L.push('חוקים עסקיים: ' + cut(r.rules, 8));
+  if (r.entities && r.entities.length) L.push('ישויות: ' + cut(r.entities, 15));
+  if (r.ddmList && r.ddmList.length) L.push('טבלאות: ' + cut(r.ddmList.map(d => d.ddm + (d.write ? '(W)' : '')), 15));
+  if (r.callsOut && r.callsOut.length) L.push('קורא ל: ' + cut(r.callsOut, 25));
+  if (r.callers && r.callers.length)   L.push('נקרא מ: ' + cut(r.callers, 25));
+  if (r.dupSiblings && r.dupSiblings.length) L.push('קוד כמעט זהה ל: ' + cut(r.dupSiblings, 10));
+  return L.join('\n');
+}
+
+// Turns the SI-960 source into readable text before it goes to the model.
+function decodedText(text){
+  return String(text).split(/\r?\n/)
+    .map(l => decodeLine(l, 'auto').map(sg => sg.s).join(''))
+    .join('\n');
+}
+
+async function buildContext(question){
+  const recs = pickRecords(question, MAX_RECS);
+  let text = '## סיכום הקורפוס\n' + corpusSummary() + '\n\n';
+  text += '## רשומות רלוונטיות לשאלה (' + recs.length + ')\n' +
+          (recs.length ? recs.map(recBlock).join('\n\n') : 'לא נמצאו רשומות תואמות.');
+  let withCode = 0;
+  if ($('chatCode').checked && S.files.size){
+    for (const r of recs){
+      if (withCode >= 3) break;
+      if (!S.files.has(r.key)) continue;
+      try {
+        const raw = await readFileText(S.files.get(r.key));
+        const dec = decodedText(raw).split('\n').slice(0, 500).join('\n');
+        text += '\n\n## קוד מקור: ' + r.id + ' (עד 500 שורות, עברית מפוענחת)\n```\n' + dec + '\n```';
+        withCode++;
+      } catch(e){ /* unreadable file: skip it */ }
+    }
+  }
+  if (text.length > MAX_CTX) text = text.slice(0, MAX_CTX) + '\n…(ההקשר נחתך)';
+  return { text: text, recs: recs, withCode: withCode };
+}
+
+const SYS_PROMPT =
+  'אתה עוזר ניתוח למיגרציה של מערכת Natural/Adabas ותיקה (משרד התחבורה, עולם הרכב) לפלטפורמה מודרנית.\n' +
+  'המשתמש מריץ כלי דפדפן שמצליב: רשימת פעילות מהמיינפריים, ניתוח LLM, כותרות קוד, ' +
+  'סריקה סטטית (natmap) וקובץ קטגוריזציה עם נושא ראשי/תת נושא.\n' +
+  'בכל פנייה מצורף הקשר: סיכום כללי של הקורפוס + הרשומות שנמצאו רלוונטיות לשאלה, ולעיתים קוד מקור.\n' +
+  'כללים:\n' +
+  '1. ענה בעברית, קצר ולעניין, בלי מבוא ובלי סיכום מיותר.\n' +
+  '2. הסתמך רק על ההקשר שצורף. אם משהו לא מופיע בו — אמור זאת מפורשות ואל תמציא.\n' +
+  '3. ציין שמות אובייקטים מדויקים כשאתה מתייחס אליהם.\n' +
+  '4. ההקשר הוא תת-קבוצה שנבחרה אוטומטית — אם נראה שחסר מידע, אמור איזה סינון או שאלה ' +
+  'ממוקדת יותר יביאו אותו.\n' +
+  '5. שים לב: עברית בקוד המקור מקודדת בתקן ישן (SI-960) ולעיתים מפוענחת חלקית.';
+
+function textOf(j){
+  const c = j && j.candidates && j.candidates[0];
+  if (!c || !c.content || !Array.isArray(c.content.parts)) return '';
+  return c.content.parts
+    .filter(p => p && typeof p.text === 'string' && !p.thought)
+    .map(p => p.text).join('');
+}
+
+async function callPlain(key, body, onText){
+  const res = await fetch(GEM_BASE + ':generateContent', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-goog-api-key': key },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + (await res.text().catch(() => '')).slice(0, 500));
+  const j = await res.json();
+  const t = textOf(j);
+  onText(t);
+  return { text:t, usage:j.usageMetadata || null,
+           finish:(j.candidates && j.candidates[0] && j.candidates[0].finishReason) || '' };
+}
+
+async function callGemini(key, contents, level, onText){
+  const body = {
+    systemInstruction:{ parts:[{ text: SYS_PROMPT }] },
+    contents: contents,
+    generationConfig:{ thinkingConfig:{ thinkingLevel: level }, maxOutputTokens: 8192 }
+  };
+  let res;
+  try {
+    res = await fetch(GEM_BASE + ':streamGenerateContent?alt=sse', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify(body)
+    });
+  } catch(err){
+    throw new Error('הבקשה נכשלה ברמת הרשת: ' + (err && err.message ? err.message : String(err)) +
+      '. אם הדף נפתח ישירות מ-file://, נסה להריץ אותו דרך שרת מקומי.');
+  }
+  if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + (await res.text().catch(() => '')).slice(0, 500));
+  if (!res.body) return await callPlain(key, body, onText);
+
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let buf = '', full = '', usage = null, finish = '';
+  for (;;){
+    const chunk = await reader.read();
+    if (chunk.done) break;
+    buf += dec.decode(chunk.value, { stream:true });
+    let nl;
+    while ((nl = buf.indexOf('\n')) !== -1){
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (line.indexOf('data:') !== 0) continue;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === '[DONE]') continue;
+      let j;
+      try { j = JSON.parse(payload); } catch(e){ continue; }
+      if (j.promptFeedback && j.promptFeedback.blockReason)
+        throw new Error('הבקשה נחסמה על ידי המסננים: ' + j.promptFeedback.blockReason);
+      const t = textOf(j);
+      if (t){ full += t; onText(full); }
+      if (j.usageMetadata) usage = j.usageMetadata;
+      const c = j.candidates && j.candidates[0];
+      if (c && c.finishReason) finish = c.finishReason;
+    }
+  }
+  return { text: full, usage: usage, finish: finish };
+}
+
+/* ---------- chat UI ---------- */
+function chatScroll(){ const b = $('chatBody'); b.scrollTop = b.scrollHeight; }
+
+function addMsg(cls, who, html){
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.innerHTML = '<div class="who">' + esc(who) + '</div><div class="bd">' + html + '</div>';
+  $('chatBody').appendChild(d);
+  chatScroll();
+  return d;
+}
+
+function renderKeyPrompt(){
+  const d = addMsg('a', 'הגדרת מפתח',
+    'כדי להשתמש בצ\'אט צריך מפתח Gemini API. הוא נשמר רק בדפדפן הזה (localStorage) ' +
+    'ונשלח ישירות ל-Google.<br><br>' +
+    '<input type="password" id="keyIn" placeholder="AIza..." ' +
+    'style="min-width:320px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);' +
+    'border-radius:6px;padding:7px 9px;font-family:Consolas,monospace;direction:ltr"> ' +
+    '<button id="keySave">שמור</button> ' +
+    '<button id="keyDel">מחק מפתח שמור</button>' +
+    '<div style="margin-top:8px;color:var(--dim);font-size:12px">' +
+    'מפתח מ-aistudio.google.com/apikey. שים לב: תוכן ההקשר נשלח לשרתי Google.</div>');
+  const inp = d.querySelector('#keyIn');
+  inp.value = getKey();
+  inp.focus();
+  d.querySelector('#keySave').onclick = () => {
+    const v = inp.value.trim();
+    if (!v) return;
+    lsSet(KEY_LS, v);
+    d.querySelector('.bd').innerHTML = 'המפתח נשמר מקומית. אפשר לשאול.';
+  };
+  d.querySelector('#keyDel').onclick = () => {
+    lsDel(KEY_LS);
+    inp.value = '';
+    d.querySelector('.bd').innerHTML = 'המפתח נמחק מהדפדפן.';
+  };
+}
+
+function openChat(){
+  $('chatWrap').classList.add('on');
+  if (!$('chatBody').children.length){
+    if (!getKey()) renderKeyPrompt();
+    else addMsg('a', 'מוכן',
+      S.joined ? 'שאל כל דבר על הנתונים שנטענו. ההקשר נבנה אוטומטית מהרשומות הרלוונטיות לשאלה.'
+               : 'עדיין לא נטענו קבצים לצופה — אפשר לשאול, אבל אין הקשר לשלוח.');
+  }
+  $('chatIn').focus();
+}
+function closeChat(){ $('chatWrap').classList.remove('on'); }
+
+async function chatSend(){
+  if (CHAT.busy) return;
+  const q = $('chatIn').value.trim();
+  if (!q) return;
+  const key = getKey();
+  if (!key){ renderKeyPrompt(); return; }
+
+  CHAT.busy = true;
+  $('chatSend').disabled = true;
+  $('chatIn').value = '';
+  addMsg('u', 'אתה', md(q));
+
+  const holder = addMsg('a', GEM_MODEL, '<span class="dots">חושב</span>');
+  const bd = holder.querySelector('.bd');
+  const t0 = Date.now();
+  try {
+    const ctx = await buildContext(q);
+    $('chatCtxInfo').textContent = 'הקשר: ' + ctx.recs.length + ' רשומות · ' +
+      Math.round(ctx.text.length / 1000) + 'K תווים' + (ctx.withCode ? ' · ' + ctx.withCode + ' קבצי קוד' : '');
+    const contents = CHAT.hist.map(m => ({ role:m.role, parts:[{ text:m.text }] }));
+    contents.push({ role:'user', parts:[{ text: ctx.text + '\n\n## שאלה\n' + q }] });
+
+    const out = await callGemini(key, contents, $('chatThink').value, t => { bd.innerHTML = md(t); chatScroll(); });
+    const secs = ((Date.now() - t0) / 1000).toFixed(1);
+    if (!out.text){
+      bd.innerHTML = '<span style="color:var(--warn)">התקבלה תשובה ריקה' +
+        (out.finish ? ' (finishReason: ' + esc(out.finish) + ')' : '') + '.</span>';
+    } else {
+      bd.innerHTML = md(out.text);
+      CHAT.hist.push({ role:'user', text:q });
+      CHAT.hist.push({ role:'model', text:out.text });
+      if (CHAT.hist.length > 20) CHAT.hist = CHAT.hist.slice(-20);
+    }
+    const u = out.usage || {};
+    $('chatStat').textContent = secs + ' שנ\'' +
+      (u.promptTokenCount ? ' · קלט ' + u.promptTokenCount + ' טוקנים' : '') +
+      (u.candidatesTokenCount ? ' · פלט ' + u.candidatesTokenCount : '') +
+      (u.thoughtsTokenCount ? ' · חשיבה ' + u.thoughtsTokenCount : '');
+    const det = document.createElement('details');
+    det.className = 'ctx';
+    det.innerHTML = '<summary style="cursor:pointer">ההקשר שנשלח (' + ctx.recs.length + ' רשומות)</summary>' +
+      '<pre>' + esc(ctx.text.slice(0, 20000)) + (ctx.text.length > 20000 ? '\n…' : '') + '</pre>';
+    holder.appendChild(det);
+  } catch(err){
+    bd.innerHTML = '<span style="color:var(--bad)">' + esc(err && err.message ? err.message : String(err)) + '</span>';
+    holder.className = 'msg e';
+  } finally {
+    CHAT.busy = false;
+    $('chatSend').disabled = false;
+    chatScroll();
+  }
+}
+
+$('chatFab').addEventListener('click', openChat);
+$('chatClose').addEventListener('click', closeChat);
+$('chatKey').addEventListener('click', renderKeyPrompt);
+$('chatSend').addEventListener('click', chatSend);
+$('chatClear').addEventListener('click', () => {
+  CHAT.hist = []; $('chatBody').innerHTML = ''; $('chatStat').textContent = '';
+  $('chatCtxInfo').textContent = '';
+  openChat();
+});
+$('chatIn').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); chatSend(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('chatWrap').classList.contains('on')) closeChat();
+});
+$('chatThink').value = lsGet('nv.think', 'high');
+$('chatCode').checked = lsGet('nv.chatCode', '0') === '1';
+$('chatFiltered').checked = lsGet('nv.chatFiltered', '0') === '1';
+$('chatThink').addEventListener('change', () => lsSet('nv.think', $('chatThink').value));
+$('chatCode').addEventListener('change', () => lsSet('nv.chatCode', $('chatCode').checked ? '1' : '0'));
+$('chatFiltered').addEventListener('change', () => lsSet('nv.chatFiltered', $('chatFiltered').checked ? '1' : '0'));
+
+$('btnCsv').addEventListener('click', () => {
+  if (!S.view.length) return;
+  const blob = new Blob(['\uFEFF' + toCsv(S.view)], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'natural-' + S.tab + '.csv';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+</script>
+</body>
+</html>
