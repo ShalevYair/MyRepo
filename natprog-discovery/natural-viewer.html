@@ -246,7 +246,7 @@
 <div id="chatWrap">
   <div id="chatTop">
     <b>צ'אט על החומרים</b>
-    <span class="tag" id="chatModel">gemini-3.7-flash</span>
+    <span class="tag" id="chatModel">gemini-3.8-flash</span>
     <select id="chatThink" title="רמת חשיבה">
       <option value="high">חשיבה: high</option>
       <option value="medium">חשיבה: medium</option>
@@ -1797,7 +1797,7 @@ $('more').addEventListener('click', () => { S.shown = Math.min(S.shown + CHUNK, 
    Retrieval happens locally: the question picks the most relevant records out
    of what is loaded, and only those are sent to Gemini. Sending 3.7k objects
    on every turn would be slow and expensive for no gain.                    */
-const GEM_MODEL = 'gemini-3.7-flash';
+const GEM_MODEL = 'gemini-3.8-flash';
 const GEM_BASE  = 'https://generativelanguage.googleapis.com/v1beta/models/' + GEM_MODEL;
 const KEY_LS    = 'nv.geminiKey';
 const MAX_RECS  = 30;
