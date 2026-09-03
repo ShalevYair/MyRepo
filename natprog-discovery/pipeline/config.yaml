@@ -1,0 +1,106 @@
+# NATPROG pipeline configuration.
+#
+# Every threshold and pattern the pipeline uses lives here, not hardcoded in
+# a .py file (WORKPLAN.md 0.2). Numbers under `propagation` are the ones
+# decided in MERGE-PLAN.md section 5 — this file is their single source of
+# truth; a program that needs one of them loads it from here, it does not
+# redeclare it.
+#
+# Paths are relative to this file's directory unless absolute.
+
+paths:
+  # Stage-1 input. Point this at the real 800 MB unload before running
+  # natunload_split.py; the small sample files in this repo are for tests.
+  unload_file: null
+  unload_encoding: auto          # one of natlib.encoding.ENCODINGS, or "auto"
+
+  jcl_dir: null                  # stage 4.1 input
+  cobol_dir: null                # stage 4.2 input
+  activity_file: null            # stage 4.3 input (LIBRARY/MEMBER/.../LAST USED)
+  sysobjh_report_file: null      # stage 4.3 input (job-log report, optional)
+
+  out_dir: out
+  source_dir: out/source         # sharded: out/source/<LIBRARY>/<NAME>.nat
+
+encoding:
+  # Order matters only for decode_preview-style side-by-side display;
+  # sniff_encoding() picks independently of this order.
+  candidates: [utf-8, windows-1255, iso-8859-8, latin1, cp862, cp424, cp037]
+
+scan:
+  chunk_bytes: 8388608           # 8 MiB — matches app.js CHUNK
+  sniff_bytes: 4194304           # 4 MiB — matches app.js SNIFF
+  record_pad: 12                 # every raw-unload record length is a multiple of this
+
+# Stage 2 — duplication / graveyard-library detection. Patterns are matched
+# case-insensitively against the LIBRARY name (regex, must match the whole
+# name). Confirm or extend these against the real 448-library list before
+# trusting the stage-2 report (README.md documents RC/RC1..RC11/RCOLD/
+# RCSIGAL/ZM/ZGD/ASP as the only families seen so far — that list came from
+# a 770 MB sample, not the full 800 MB estate this pipeline targets).
+graveyard_library_patterns:
+  - '.*OLD$'
+  - '.*BAK$'
+  - '.*COPY$'
+  - '^RC\d+$'
+  - '.*SIGAL$'
+
+# Stage 3.3 — CALLNAT/FETCH target resolution order when a name matches
+# objects in more than one library. Filled in from jcl.json steplib_chains
+# if any JCL actually declares STEPLIB/NATLIB; empty by default (see
+# WORKPLAN.md working assumption: "no STEPLIB config available").
+steplib:
+  default_chain: []              # [LIBRARY, ...] tried after same-library, before SYSTEM
+  system_library: SYSTEM
+
+# Stage 5 — score propagation (MERGE-PLAN.md section 5).
+propagation:
+  seeds:
+    jcl_natural_batch: 1.0       # 5.1: LOGON <lib> + program in CMSYNIN
+    jcl_direct_pgm: 1.0          # 5.1: EXEC PGM= that isn't a known utility
+    cics_program: 1.0            # 5.1: declares CICS, or a START TRANSID target
+    activity_row: 1.0            # 5.1: appears in the activity file at all
+
+  forward_weights:                # 5.2: B.alive >= A.alive * w(kind)
+    CALLNAT: 0.97
+    FETCH: 0.97
+    USING_MAP: 0.97
+    INCLUDE: 1.00                 # copycode is stitched into the source at catalog time
+    USING_DATA_AREA: 1.00         # LOCAL/GLOBAL/PARAMETER USING — part of the compile
+    PERFORM_EXTERNAL: 0.90        # external DEFINE SUBROUTINE (type S) target
+    CALL3GL: 0.95
+    ambiguous_divisor_base: 0.97  # ambiguous edge: this / len(candidates), split across them
+
+  # 5.3: backward evidence. A.alive >= B.alive / fan_in(B). No separate
+  # weight here by design — the 1/fan_in split IS the evidence strength.
+
+  dead_weights:                   # 5.4
+    shadow_copy: 0.95             # sha256_norm match to a live object, different library
+    stale_library: 0.90           # whole library: nothing in it ever reached alive_live_threshold
+    graveyard_name: 0.85          # library name matches graveyard_library_patterns AND no entry point
+    zero_fan_in_old: 0.70         # fan_in==0 AND not a seed AND saved older than stale_years
+
+  stale_years: 10                 # used by dead_weights.zero_fan_in_old
+
+  thresholds:                     # 5.5 — decision cutoffs, tune after calibration (5.3)
+    alive_live: 0.30
+    dead_candidate: 0.85
+    alive_low: 0.05
+
+  solver:
+    max_iterations: 50
+    epsilon: 0.0001                # stop when no score moves by more than this
+
+# Stage 6 — LLM batch analysis.
+llm:
+  provider: gemini
+  model: gemini-3.8-flash
+  verify_model_before_run: true   # GET /v1beta/models — fail fast, not 86k 404s mid-batch
+  api_base: https://generativelanguage.googleapis.com/v1beta/models
+  checkpoint_every: 200           # records between resumable checkpoints
+  skip_kinds: [map, data, text]   # M/L/P/C/T are described structurally, not sent to the LLM
+  dedup_by: sha256_norm           # one call per content family, fanned out to siblings
+
+# Stage 1.3 — cross-check against the browser scanner's discovery-log.json.
+validate:
+  tolerance: 0                    # any mismatch in object/line/type counts stops the pipeline
