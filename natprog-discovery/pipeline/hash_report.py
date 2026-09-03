@@ -156,6 +156,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--objects", help="Path to objects.jsonl (default: <out_dir>/objects.jsonl from config)")
     parser.add_argument("--top", type=int, default=DEFAULT_TOP_N,
                          help=f"How many entries to list per section (default {DEFAULT_TOP_N})")
+    parser.add_argument("--out", help="Write the JSON report to this file (UTF-8) instead of printing "
+                                       "it to the console -- use this for large --top values, and to "
+                                       "avoid the Windows console mangling non-ASCII characters.")
     args = parser.parse_args(argv)
 
     config_path = pathlib.Path(args.config) if args.config else nat_config.DEFAULT_CONFIG_PATH
@@ -184,7 +187,15 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     report = build_report(objects, graveyard_patterns, top_n=args.top)
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    report_json = json.dumps(report, ensure_ascii=False, indent=2)
+
+    if args.out:
+        out_path = _resolve(base_dir, args.out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(report_json, encoding="utf-8")
+        print(f"Report written to {out_path}")
+    else:
+        print(report_json)
     return 0
 
 
