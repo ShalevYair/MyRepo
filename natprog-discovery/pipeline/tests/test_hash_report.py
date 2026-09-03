@@ -216,6 +216,30 @@ class TestMainCli(unittest.TestCase):
         rc = hash_report.main(["--objects", str(self.tmp_path / "nope.jsonl")])
         self.assertEqual(rc, 1)
 
+    def test_out_writes_report_to_file_as_utf8(self):
+        p = self.tmp_path / "objects.jsonl"
+        p.write_text(
+            "\n".join(json.dumps(o) for o in [
+                {"object_id": "RCOLD/A", "library": "RCOLD", "sha256_norm": "H1"},
+                {"object_id": "RC/A", "library": "RC", "sha256_norm": "H1"},
+            ]) + "\n",
+            encoding="utf-8",
+        )
+        out_path = self.tmp_path / "report.json"
+        rc = hash_report.main(["--objects", str(p), "--out", str(out_path)])
+        self.assertEqual(rc, 0)
+        self.assertTrue(out_path.is_file())
+        report = json.loads(out_path.read_text(encoding="utf-8"))
+        self.assertEqual(report["total_objects"], 2)
+
+    def test_out_creates_missing_parent_directories(self):
+        p = self.tmp_path / "objects.jsonl"
+        p.write_text(json.dumps({"object_id": "RC/A", "library": "RC", "sha256_norm": "H1"}) + "\n", encoding="utf-8")
+        out_path = self.tmp_path / "nested" / "dir" / "report.json"
+        rc = hash_report.main(["--objects", str(p), "--out", str(out_path)])
+        self.assertEqual(rc, 0)
+        self.assertTrue(out_path.is_file())
+
 
 if __name__ == "__main__":
     unittest.main()
