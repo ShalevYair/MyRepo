@@ -10,17 +10,19 @@ natprog-discovery/
 ├── index.html
 ├── style.css
 ├── app.js
-└── natural-viewer.html   ← a separate, more advanced tool (see below), not part of this one
+├── natural-viewer.html   ← a separate, more advanced tool (see below), not part of this one
+└── pipeline/             ← an in-progress Python pipeline merging this tool with natural-viewer.html
+                             (see "Merging with a Python pipeline" below) — not needed to run either
+                             of the two tools above.
 ```
 
-`natural-viewer.html` is a **different, richer tool** that sits on top of an existing external pipeline
-this repo doesn't contain: `natmap2.py` (static call-graph/complexity/DDM-access analysis),
-`natscan_headers.py` (header extraction), an LLM-generated business analysis (`sf_target`,
-`business_purpose`, `key_rules`, one JSON record per program), and a usage/activity log. It also has a
-Gemini-API chat feature — meaning, unlike everything below, **it does send data externally** when that
-feature is used. This tool (the three files above) doesn't try to reproduce or consume any of that; if
-those artifacts exist and get shared, that's a natural next integration, but it needs a real sample
-first — see the discovery-log philosophy below.
+`natural-viewer.html` is a **different, richer tool** that sits on top of an external pipeline of the
+same shape this repo is now building for itself (see below): a static call-graph/complexity/DDM-access
+analysis, header extraction, an LLM-generated business analysis (`sf_target`, `business_purpose`,
+`key_rules`, one JSON record per program), and a usage/activity log. It also has a Gemini-API chat
+feature — meaning, unlike everything below, **it does send data externally** when that feature is used.
+This tool (the three files above) doesn't try to reproduce or consume any of that on its own; the merge
+effort below is what connects the two.
 
 ## Running it
 
@@ -269,3 +271,38 @@ finding from the 770 MB scan: the two largest objects by source-line count (`WOR
 `WORKPLAN/4CEWYH-6`, ~63,650 lines each) are captured job-log reports like this one, saved as Text —
 so the declared-size field apparently doesn't mean "source byte count" for Text-type objects the way
 it does for the rest (worth confirming directly rather than assuming).
+
+## Merging with a Python pipeline (in progress)
+
+A separate effort is underway to merge this scanner with `natural-viewer.html` into one tool, driven
+by an offline Python pipeline that does what a browser tab can't: hold the full source of 86K+ objects,
+build a real call graph, and compute a dead-code likelihood score. The rationale, architecture, and
+full task breakdown live in three documents, read in this order:
+
+1. **`MERGE-PLAN.md`** — why this is needed, the gaps between the two existing tools, and the
+   dead-code scoring design (propagated `alive`/`dead` likelihood, not binary reachability).
+2. **`WORKPLAN.md`** — the 9-stage execution plan, with a **status table at the top** tracking exactly
+   what's done and what's next. Check this first before assuming anything below is current.
+3. **`SCHEMAS.md`** — the field-by-field contract between every file the pipeline produces and what
+   `natural-viewer.html` already reads.
+
+### What exists so far (`pipeline/`)
+
+CLI tools, stdlib `unittest` tests only (`python3 -m unittest discover -s pipeline/tests`), thresholds
+and paths read from `pipeline/config.yaml` rather than hardcoded. Each one below has been run against
+the real ~800 MB estate this project targets, not just samples — `WORKPLAN.md`'s status table has the
+exact validation (usually: an independent cross-check against this same browser tool's own
+`discovery-log.json`, on the same real file).
+
+| Tool | Reads | Writes | What it does |
+|---|---|---|---|
+| `natunload_split.py` | the raw SYSOBJH unload | `out/source/<LIBRARY>/<NAME>.nat` + `objects.jsonl` | Splits the unload into one source file per object plus a metadata row each (type, timestamps, size, content hashes for dedup) |
+| `hash_report.py` | `objects.jsonl` | a JSON report (stdout, or `--out <file>`) | Groups objects by normalized content hash: overall duplication ratio, cross-library "shadow copy" families, whole libraries fully duplicated elsewhere |
+| `jclmap.py` | a JCL folder | `jcl.json` | Extracts which Natural program (and library) each JCL job actually runs, plus any `STEPLIB`/`NATLIB` DD chain found |
+
+Run any of them with `--help` for its exact options; each defaults its input/output paths from
+`pipeline/config.yaml` when `--*-dir`/`--*-file` isn't passed explicitly.
+
+**Not built yet:** the call graph (`natmap3.py`), the COBOL/CICS bridge (`cobolmap.py`), activity/report
+ingestion, the dead-code scoring engine, and the merged HTML tool itself. `WORKPLAN.md`'s status table
+is the source of truth for what's next — this list is not.
