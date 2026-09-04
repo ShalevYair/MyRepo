@@ -300,6 +300,7 @@ exact validation (usually: an independent cross-check against this same browser 
 | `hash_report.py` | `objects.jsonl` | a JSON report (stdout, or `--out <file>`) | Groups objects by normalized content hash: overall duplication ratio, cross-library "shadow copy" families, whole libraries fully duplicated elsewhere |
 | `jclmap.py` | a JCL folder | `jcl.json` | Extracts which Natural program (and library) each JCL job actually runs, plus any `STEPLIB`/`NATLIB` DD chain found |
 | `cobolmap.py` | a COBOL/CICS folder + (optionally) `objects.jsonl`/`out/source/` | `cobol.json` | Extracts each COBOL program's `PROGRAM-ID`, CICS flag, and `CALL`/`LINK`/`XCTL`/`START` targets; if Natural source is available, also bridges any Natural `CALL '<x>'` whose target matches a COBOL `PROGRAM-ID` |
+| `natmap3.py` †| `objects.jsonl` + `out/source/` + (optionally) `cobol.json` | `natmap.json` | Builds the real per-object Natural call graph (not app.js's global histogram): CALLNAT/FETCH/INCLUDE/USING/PERFORM/CALL3GL edges, library-aware resolution, DDM read/write access, and per-object static metrics |
 
 Run any of them with `--help` for its exact options; each defaults its input/output paths from
 `pipeline/config.yaml` when `--*-dir`/`--*-file` isn't passed explicitly.
@@ -309,6 +310,13 @@ part of `SCHEMAS.md` (which doesn't say how that field is derived) — see `WORK
 (stage 4.2) for the reasoning. Everything else in `cobol.json` matched a real discovery-log.json
 cross-check exactly.
 
-**Not built yet:** the call graph (`natmap3.py`), activity/report ingestion, the dead-code scoring
-engine, and the merged HTML tool itself. `WORKPLAN.md`'s status table is the source of truth for
+† `natmap3.py` is the largest and least-validated tool here so far — unit-tested (68 tests) and
+manually run against a small hand-built synthetic estate covering every resolution path, but not yet
+run against the real ~80K-object estate. Three of the object fields `natural-viewer.html` reads
+(`domain`, `self_redundancy`, `n_obsolete`) have no documented formula anywhere in this repo; rather
+than invent one for a foundational component, `natmap3.py` emits neutral placeholders for them and
+says so loudly in its own docstring. `WORKPLAN.md`'s status table (stage 3) has the full detail.
+
+**Not built yet:** activity/report ingestion, the dead-code scoring engine, and the merged HTML tool
+itself. `WORKPLAN.md`'s status table is the source of truth for
 what's next — this list is not.
