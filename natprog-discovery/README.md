@@ -299,15 +299,15 @@ exact validation (usually: an independent cross-check against this same browser 
 | `natunload_split.py` | the raw SYSOBJH unload | `out/source/<LIBRARY>/<NAME>.nat` + `objects.jsonl` | Splits the unload into one source file per object plus a metadata row each (type, timestamps, size, content hashes for dedup) |
 | `hash_report.py` | `objects.jsonl` | a JSON report (stdout, or `--out <file>`) | Groups objects by normalized content hash: overall duplication ratio, cross-library "shadow copy" families, whole libraries fully duplicated elsewhere |
 | `jclmap.py` | a JCL folder | `jcl.json` | Extracts which Natural program (and library) each JCL job actually runs, plus any `STEPLIB`/`NATLIB` DD chain found |
-| `cobolmap.py` †| a COBOL/CICS folder + (optionally) `objects.jsonl`/`out/source/` | `cobol.json` | Extracts each COBOL program's `PROGRAM-ID`, CICS flag, and `CALL`/`LINK`/`XCTL`/`START` targets; if Natural source is available, also bridges any Natural `CALL '<x>'` whose target matches a COBOL `PROGRAM-ID` |
+| `cobolmap.py` | a COBOL/CICS folder + (optionally) `objects.jsonl`/`out/source/` | `cobol.json` | Extracts each COBOL program's `PROGRAM-ID`, CICS flag, and `CALL`/`LINK`/`XCTL`/`START` targets; if Natural source is available, also bridges any Natural `CALL '<x>'` whose target matches a COBOL `PROGRAM-ID` |
 
 Run any of them with `--help` for its exact options; each defaults its input/output paths from
 `pipeline/config.yaml` when `--*-dir`/`--*-file` isn't passed explicitly.
 
-† Not yet run against the real estate — only unit-tested and manually run against a small synthetic
-folder so far. `WORKPLAN.md`'s status table (stage 4.2) has the exact state, including why
-`cobol.json`'s `natural_bridge[]` field is this program's own interpretation of an underspecified
-part of `SCHEMAS.md`, not a settled contract yet.
+`cobol.json`'s `natural_bridge[]` field is `cobolmap.py`'s own interpretation of an underspecified
+part of `SCHEMAS.md` (which doesn't say how that field is derived) — see `WORKPLAN.md`'s status table
+(stage 4.2) for the reasoning. Everything else in `cobol.json` matched a real discovery-log.json
+cross-check exactly.
 
 **Not built yet:** the call graph (`natmap3.py`), activity/report ingestion, the dead-code scoring
 engine, and the merged HTML tool itself. `WORKPLAN.md`'s status table is the source of truth for

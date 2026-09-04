@@ -181,16 +181,27 @@ def build_summary(parsed: list[dict], analysis: dict) -> dict:
     discovery-log.json's `cobol` section (written by app.js buildReport()
     whenever a COBOL folder was loaded alongside -- app.js ~2330) -- the
     same cross-check pattern WORKPLAN.md 1.3 established for
-    natunload_split.py and 4.1 used for jclmap.py, applied here."""
+    natunload_split.py and 4.1 used for jclmap.py, applied here.
+
+    programs_with_id vs distinct_program_ids -- found the hard way cross-
+    checking against a real 323-file folder (WORKPLAN.md 4.2): app.js's
+    `programsWithId` is `programIndex.size`, a Set of PROGRAM-ID *values* --
+    i.e. how many distinct program names exist, not how many files declare
+    one. When several files declare the same PROGRAM-ID (a real, common
+    case: copy-before-you-change duplicates, same pattern README.md already
+    documents for the Natural side), that Set undercounts files. Both
+    numbers are real and useful; only distinct_program_ids is the one
+    comparable to app.js's field of the (misleading) same-ish name."""
     all_calls = analysis["all_calls"]
     by_kind: Counter = Counter(c["kind"] for c in all_calls)
     by_target: Counter = Counter(c["target"] for c in all_calls)
     cics_programs = sum(1 for p in parsed if p["uses_cics"])
-    programs_with_id = sum(1 for p in parsed if p["program_id"])
+    program_ids = [p["program_id"] for p in parsed if p["program_id"]]
 
     return {
         "files_parsed": len(parsed),
-        "programs_with_id": programs_with_id,
+        "programs_with_id": len(program_ids),
+        "distinct_program_ids": len(set(program_ids)),
         "cics_programs": cics_programs,
         "total_calls": len(all_calls),
         "by_kind": _top_n(by_kind, 10),

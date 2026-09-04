@@ -137,6 +137,21 @@ class TestAnalyzeCobolAndBuildJson(unittest.TestCase):
 
 
 class TestBuildSummary(unittest.TestCase):
+    def test_programs_with_id_vs_distinct_program_ids(self):
+        # Found cross-checking a real 323-file folder (WORKPLAN.md 4.2):
+        # app.js's programsWithId is a Set of PROGRAM-ID *values*
+        # (programIndex.size), so copy-before-you-change duplicates (three
+        # files all declaring PROGRAM-ID. SAME.) collapse to one -- 3 files
+        # with an id, but only 1 distinct id among them.
+        a = cobolmap.parse_cobol("       PROGRAM-ID. SAME.\n", "A.cbl")
+        b = cobolmap.parse_cobol("       PROGRAM-ID. SAME.\n", "B.cbl")
+        c = cobolmap.parse_cobol("       PROGRAM-ID. SAME.\n", "C.cbl")
+        parsed = [a, b, c]
+        analysis = cobolmap.analyze_cobol(parsed)
+        s = cobolmap.build_summary(parsed, analysis)
+        self.assertEqual(s["programs_with_id"], 3)
+        self.assertEqual(s["distinct_program_ids"], 1)
+
     def test_counts_match_app_js_analyzecobol_shape(self):
         caller = cobolmap.parse_cobol("       PROGRAM-ID. CALLER1.\n           CALL 'CALLEE1'.\n", "CALLER1.cbl")
         cics = cobolmap.parse_cobol(CICS_TRANSACTION, "CICSTX1.cbl")
