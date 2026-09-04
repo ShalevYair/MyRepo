@@ -201,13 +201,28 @@ def build_summary(parsed: list[dict], analysis: dict) -> dict:
     }
 
 
-def extract_natural_bridge(objects_path: pathlib.Path, out_dir: pathlib.Path, program_index: set) -> dict:
+def extract_natural_bridge(
+    objects_path: pathlib.Path,
+    out_dir: pathlib.Path,
+    program_index: set,
+    progress_every: int = 2000,
+    progress_stream=None,
+) -> dict:
     """The bridge itself -- see module docstring. Scans every Natural source
     file listed in objects.jsonl for literal `CALL '<x>'` sites and keeps
     the ones where <x> resolves (case-insensitively) to a COBOL program
     found in this run's --cobol-dir. Never raises: a missing objects.jsonl,
     or a missing/unreadable individual source file, is reported in the
-    result rather than failing the whole run -- this pass is additive."""
+    result rather than failing the whole run -- this pass is additive.
+
+    This is one open()+read() per object -- for a real ~80K-object estate
+    that's tens of thousands of individual file operations, which on
+    Windows (small-file open/close overhead, often worse under real-time
+    antivirus scanning) can genuinely take several minutes even though
+    nothing is wrong. progress_stream exists specifically so that time is
+    never silent: pass sys.stderr (main() does) to get a line up front and
+    one every `progress_every` objects -- a real, if slow, run must never
+    look indistinguishable from a hang."""
     result = {
         "enabled": False,
         "skipped_reason": None,
@@ -223,6 +238,17 @@ def extract_natural_bridge(objects_path: pathlib.Path, out_dir: pathlib.Path, pr
         return result
 
     result["enabled"] = True
+
+    def log(msg: str) -> None:
+        if progress_stream is not None:
+            print(msg, file=progress_stream, flush=True)
+
+    with objects_path.open(encoding="utf-8") as fh:
+        total = sum(1 for _ in fh)
+    log(f"[cobolmap] natural_bridge: scanning {total} objects from {objects_path} (this reads one Natural "
+        f"source file per object -- can take a while on Windows with many objects) ...")
+
+    t0 = time.time()
     with objects_path.open(encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
@@ -231,36 +257,41 @@ def extract_natural_bridge(objects_path: pathlib.Path, out_dir: pathlib.Path, pr
             row = json.loads(line)
             result["objects_scanned"] += 1
             src_rel = row.get("source_path")
-            if not src_rel:
-                continue
-            src_path = out_dir / src_rel
-            try:
-                text = src_path.read_text(encoding="utf-8")
-            except OSError as e:
-                result["read_errors"].append({"object_id": row.get("object_id"), "error": str(e)})
-                continue
+            if src_rel:
+                src_path = out_dir / src_rel
+                try:
+                    text = src_path.read_text(encoding="utf-8")
+                except OSError as e:
+                    result["read_errors"].append({"object_id": row.get("object_id"), "error": str(e)})
+                    text = None
+                if text is not None:
+                    for raw_line in text.split("\n"):
+                        if raw_line.startswith("*"):  # Natural comment: column-1 '*', app.js ~722
+                            continue
+                        code = raw_line
+                        ci = code.find("/*")
+                        if ci >= 0:
+                            code = code[:ci].rstrip()
+                        if not code:
+                            continue
+                        if "CALL '" not in code.upper():  # cheap gate before running the regex
+                            continue
+                        for m in _NATURAL_CALL3GL_RE.finditer(code):
+                            raw_target = m.group(1)
+                            canon = raw_target.upper()
+                            if canon in program_index:
+                                result["matches"].append({
+                                    "cobol_program": canon,
+                                    "natural_call_target": raw_target,
+                                    "natural_object_id": row.get("object_id"),
+                                    "natural_source_path": src_rel,
+                                })
+            if result["objects_scanned"] % progress_every == 0:
+                log(f"[cobolmap] natural_bridge: {result['objects_scanned']}/{total} objects "
+                    f"({time.time() - t0:.1f}s elapsed, {len(result['matches'])} matches so far)")
 
-            for raw_line in text.split("\n"):
-                if raw_line.startswith("*"):  # Natural comment: column-1 '*', app.js ~722
-                    continue
-                code = raw_line
-                ci = code.find("/*")
-                if ci >= 0:
-                    code = code[:ci].rstrip()
-                if not code:
-                    continue
-                if "CALL '" not in code.upper():  # cheap gate before running the regex
-                    continue
-                for m in _NATURAL_CALL3GL_RE.finditer(code):
-                    raw_target = m.group(1)
-                    canon = raw_target.upper()
-                    if canon in program_index:
-                        result["matches"].append({
-                            "cobol_program": canon,
-                            "natural_call_target": raw_target,
-                            "natural_object_id": row.get("object_id"),
-                            "natural_source_path": src_rel,
-                        })
+    log(f"[cobolmap] natural_bridge: done -- {result['objects_scanned']}/{total} objects in "
+        f"{time.time() - t0:.1f}s, {len(result['matches'])} matches, {len(result['read_errors'])} read errors")
     return result
 
 
@@ -320,21 +351,26 @@ def main(argv: list[str] | None = None) -> int:
 
     t0 = time.time()
     files = sorted(p for p in cobol_dir.rglob("*") if p.is_file())
+    print(f"[cobolmap] found {len(files)} files under {cobol_dir}, parsing...", file=sys.stderr, flush=True)
     parsed = []
     read_errors = []
-    for fp in files:
+    for i, fp in enumerate(files, 1):
         try:
             text = read_text_auto(fp, encoding_opt)
         except (ValueError, UnicodeDecodeError) as e:
             read_errors.append({"file": fp.name, "error": str(e)})
             continue
         parsed.append(parse_cobol(text, fp.name))
+        if i % 2000 == 0:
+            print(f"[cobolmap] parsed {i}/{len(files)} COBOL files...", file=sys.stderr, flush=True)
+    print(f"[cobolmap] COBOL folder done: {len(parsed)} files parsed, {len(read_errors)} read errors",
+          file=sys.stderr, flush=True)
 
     analysis = analyze_cobol(parsed)
 
     bridge = {"enabled": False, "skipped_reason": "--skip-bridge passed", "objects_scanned": 0, "read_errors": [], "matches": []}
     if not args.skip_bridge:
-        bridge = extract_natural_bridge(objects_path, out_dir, analysis["program_index"])
+        bridge = extract_natural_bridge(objects_path, out_dir, analysis["program_index"], progress_stream=sys.stderr)
 
     cobol_json = build_cobol_json(parsed, analysis, bridge["matches"])
     out_path = out_dir / "cobol.json"
