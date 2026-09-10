@@ -242,7 +242,7 @@
   /* ---------- kpi strip ---------- */
   .kpis {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-bottom: 34px;
   }
@@ -319,6 +319,70 @@
     border-radius: 6px;
     margin-top: 14px;
     max-width: 76ch;
+  }
+
+  /* ---------- task-block (מענה למשימות) ---------- */
+  .task-block {
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px dashed var(--hairline);
+  }
+  .task-block:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+  .task-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .task-tag .task-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    flex: none;
+  }
+  .task-block h3 { font-weight: 900; font-size: 16.5px; margin: 20px 0 8px; }
+  .task-block h3:first-child { margin-top: 0; }
+  .task-block p { color: var(--ink-soft); font-size: 14px; margin: 0 0 10px; max-width: 76ch; }
+  .split-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 10px 0;
+  }
+  .split-card {
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: var(--paper-raised);
+  }
+  .split-card .split-head { font-size: 12.5px; font-weight: 700; margin-bottom: 8px; }
+  .split-card.immediate .split-head { color: var(--status-done); }
+  .split-card.blocked .split-head { color: var(--status-block); }
+  .split-card ul { margin: 0; padding-inline-start: 18px; font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+  .pending-pill {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .pending-pill.urgent { background: var(--status-block-soft); color: var(--status-block); }
+  .pending-pill.unmatched { background: var(--status-open-soft); color: var(--ink-faint); }
+  .cell-sub { display: block; font-size: 11px; color: var(--ink-faint); margin-top: 4px; line-height: 1.4; }
+  @media (max-width: 760px) {
+    .split-cols { grid-template-columns: 1fr; }
   }
 
   /* ---------- table shell ---------- */
@@ -486,14 +550,15 @@
     <div class="meta-row">
       <span><b>הוכן עבור:</b> ארז</span>
       <span><b>תאריך:</b> 2 באוגוסט 2026</span>
-      <span><b>היקף:</b> 14 תחומי רגולציה · 4 אשכולות</span>
+      <span><b>עודכן:</b> 10 בספטמבר 2026</span>
+      <span><b>היקף:</b> 13 תחומי רגולציה · 4 אשכולות</span>
     </div>
   </header>
 
   <div class="kpis">
     <div class="kpi">
-      <div class="num">14</div>
-      <div class="label">תחומי רגולציה במיפוי</div>
+      <div class="num">13</div>
+      <div class="label">תחומי רגולציה במיפוי (רלוונטיים לאגם הרכב)</div>
     </div>
     <div class="kpi flag-high">
       <div class="num">5</div>
@@ -507,15 +572,12 @@
       <div class="num">2</div>
       <div class="label">הושלמו/מיושמים בפועל בשטח</div>
     </div>
-    <div class="kpi flag-high">
-      <div class="num">86<small> ימים</small></div>
-      <div class="label">עד לבחירות (27.10.2026) — סוגר חלון לחקיקה/תקנות הטעונות ועדת כנסת</div>
-    </div>
   </div>
 
   <div class="section-nav">
     <a href="#table-1">טבלה 1 — רגולציה מול מודולים ↓</a>
     <a href="#table-2">טבלה 2 — התנגדויות בעלי עניין ↓</a>
+    <a href="#noa-reply">מענה לנעה סייג ↓</a>
   </div>
 
   <div class="legend">
@@ -670,7 +732,7 @@
             <td class="action-cell">אפיון וכתיבת נוהל מול מנהלת תיאום ורישוי, בתיאום עם יבואנים ומכוני רישוי</td>
           </tr>
 
-          <tr class="cluster-row d"><td colspan="7">אשכול D — עתיד: רכב חשמלי, סביבה ופליטות</td></tr>
+          <tr class="cluster-row d"><td colspan="7">אשכול D — עתיד: רכב חשמלי וסביבה</td></tr>
           <tr>
             <td class="domain-cell"><span class="name">רגולציה לרכב חשמלי</span><span class="desc">טסט סוללה/סייבר, מחזור סוללות, מס נסועה</span></td>
             <td class="module-cell">טסט ומחזור-חיים סוללה</td>
@@ -679,15 +741,6 @@
             <td><span class="status-dot block">חסם</span></td>
             <td><span class="rag-pill high">גבוה</span></td>
             <td class="action-cell">לבדוק סטטוס מס נסועה מול האוצר לפני הסתמכות; בדיקת SOH עדיין שירות פרטי בלבד</td>
-          </tr>
-          <tr>
-            <td class="domain-cell"><span class="name">ערכי ייחוס לבדיקות פליטה</span><span class="desc">עדכון שכבת ברירת המחדל (CO) בתוספת הראשונה</span></td>
-            <td class="module-cell">נתוני מבחן רישוי/פליטה</td>
-            <td><span class="track-chip">תקנות + ועדת כנסת</span></td>
-            <td class="authority-cell">המשרד להגנת הסביבה<br><span class="ext-flag">חיצוני</span></td>
-            <td><span class="status-dot partial">חלקי</span></td>
-            <td><span class="rag-pill mid">בינוני</span></td>
-            <td class="action-cell">לנעול מנגנון עדכון תקופתי בתיקון אחד, כדי לא לחזור לוועדת הכנסת שוב</td>
           </tr>
 
         </tbody>
@@ -762,9 +815,127 @@
     <p class="note">לגבי ההתנגדויות: הטענות בטבלה זו מנוסחות על בסיס ההיגיון העסקי/רגולטורי העולה ממסמך המיפוי (עומס בירוקרטי, עלות היענות, חשיפת מידע עסקי, ניגוד עניינים) — הן אינן ציטוט של עמדה שהובעה בפועל על ידי גורם כלשהו, ומיועדות כבסיס לדיון ולאימות מול הגורמים בשטח.</p>
   </section>
 
+  <section class="block" id="noa-reply">
+    <div class="block-head">
+      <span class="tag">מענה — תיאום מול מערך הדיגיטל</span>
+      <h2>מענה למשימות שהועברו ע"י נעה סייג (9.9.2026)</h2>
+      <p>בהמשך להחלטות הוועדה ולבקשת ההשלמות עד 17.9.2026. ריכוז המענה לארבע המשימות, כולל שתי ההשלמות שהתבקשו במשימה 2.</p>
+    </div>
+
+    <div class="task-block">
+      <div class="task-tag"><span class="task-num">1</span> מסמך משולב: פרויקט המודרניזציה ופרויקט אגם הרכב — מענה לסיכון התלות</div>
+      <h3>אין תלות חוסמת בין הפרויקטים</h3>
+      <p>האחריות על פרויקט המודרניזציה של מערכת הרכב אוחדה תחת אותה הנהלה כמו אגם הרכב. עיקר הנתונים והתהליכים שאגם הרכב מכניס אינם קיימים היום במערכת הקיימת — ולכן אין תלות מהותית. במקומות בודדים שבהם יידרש שילוב תהליכי בין הפרויקטים, השילוב ייכלל בתכנון המודרניזציה עצמה, ולא צפוי לעכב את אגם הרכב.</p>
+    </div>
+
+    <div class="task-block">
+      <div class="task-tag"><span class="task-num">2</span> פירוט תלויות ואבני דרך — שתי ההשלמות שהתבקשו</div>
+
+      <h3>השלמה א׳ — מה ניתן לבצע מיידית מול מה תלוי בחקיקה/תקנות</h3>
+      <p>מבוסס על טבלה 1 לעיל, 13 תחומים (לאחר הסרת "ערכי ייחוס לבדיקות פליטה" — פרויקט נפרד, ר׳ הערת פוטר).</p>
+      <div class="split-cols">
+        <div class="split-card immediate">
+          <div class="split-head">בסמכות המשרד בלבד — ניתן להתקדם מיידית (6)</div>
+          <ul>
+            <li>מוסכים מורשים (§16)</li>
+            <li>יבואני רכב</li>
+            <li>ליסינג והשכרה</li>
+            <li>שינויי מבנה (תקנה 380)</li>
+            <li>מודל מסחרי ואגרות (API)</li>
+            <li>ביטול עסקת רכב חדש</li>
+          </ul>
+        </div>
+        <div class="split-card blocked">
+          <div class="split-head">תלוי בגורם חיצוני / חקיקה (5)</div>
+          <ul>
+            <li>מגרשי פירוק (+ רשויות מקומיות)</li>
+            <li>פרטיות ושקיפות מידע (רשות הגנת הפרטיות) — חסם</li>
+            <li>הסכמי שיתוף בין-ממשלתי</li>
+            <li>ביטול פרצת ביטוח חובה (רשות שוק ההון)</li>
+            <li>רגולציה לרכב חשמלי (הגנת הסביבה + אוצר) — חסם</li>
+          </ul>
+        </div>
+      </div>
+      <p>שני תחומים נוספים כבר הושלמו בשטח ואינם נכנסים לחלוקה: שמאי רכב (תקנה 309), רישיון רכב דיגיטלי.</p>
+
+      <h3>השלמה ב׳ — המועד האחרון להסרת כל חסם, כדי לא לעכב את הפרויקט</h3>
+      <p>עמודת "מועד אחרון" תלויה בלוח הזמנים של אגם הרכב עצמו (מתי כל מודול נדרש בפועל) — נתון שטרם התקבל אצלנו. הטבלה ממקדת 6 תחומים שעשויים לעכב את הפרויקט (איחוד: בסיכון גבוה, חסם בפועל, או תלויים בגורם חיצוני — שלוש הקטגוריות מה-KPIs לעיל); שאר 7 התחומים בסמכות המשרד בלבד ובסיכון נמוך-בינוני, ולכן פחות צפויים לגרום לעיכוב.</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>תחום</th>
+              <th>סטטוס</th>
+              <th>מה חוסם</th>
+              <th>שרשרת תלות (מה צריך לקרות קודם)</th>
+              <th>מועד אחרון</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="domain-cell"><span class="name">פרטיות ושקיפות מידע</span></td>
+              <td><span class="status-dot block">חסם</span></td>
+              <td class="action-cell">רשות הגנת הפרטיות — תיקון 13</td>
+              <td class="action-cell">התאמת עיצוב המאגר לתיקון 13 + הכרעה בדילמות זיהוי עקיף, לפני איסוף מידע מזהה בפועל</td>
+              <td><span class="pending-pill urgent">⚠ ככל הנראה כבר באיחור</span><span class="cell-sub">זהו רכיב ליבה (הרשאות/סיווג מידע) — אין לו שורה עצמאית באבני הדרך, אך שני המודולים המוקדמים ביותר בתוכנית ("רישוי יבואנים", "הוראות רישום") כבר באמצע פיתוח מ-1.7.2026. אם הליבה טרם נסגרה — נדרש בירור דחוף אם הפיתוח הפעיל תלוי בה.</span></td>
+            </tr>
+            <tr>
+              <td class="domain-cell"><span class="name">רגולציה לרכב חשמלי</span></td>
+              <td><span class="status-dot block">חסם</span></td>
+              <td class="action-cell">הגנת הסביבה + אוצר — מס נסועה, טסט סוללה</td>
+              <td class="action-cell">בירור סטטוס מס נסועה מול האוצר לפני הסתמכות על המודול</td>
+              <td><span class="pending-pill unmatched">לא מזוהה מודול תואם</span><span class="cell-sub">אין שום שורה הקשורה לרכב חשמלי/סוללות/מס נסועה באבני הדרך שהתקבלו — כנראה עדיין לא מתוכנן ברמת מודול.</span></td>
+            </tr>
+            <tr>
+              <td class="domain-cell"><span class="name">ליסינג והשכרה</span></td>
+              <td><span class="status-dot open">פער פתוח</span></td>
+              <td class="action-cell">התנגדות צפויה מהחברות הגדולות (סיכון גבוה)</td>
+              <td class="action-cell">פגישות עבודה עם החברות הגדולות + הישענות על דיווח המוסכים כרשת ביטחון</td>
+              <td><span class="pending-pill unmatched">לא מזוהה מודול תואם</span><span class="cell-sub">מודול "צי רכב מוסדי" אינו שורה עצמאית באבני הדרך. הקירוב הקרוב ביותר — "חיבור מוסכים לאגם" (דיווח נסועה, החל 1.4.2027) — אינו זהה.</span></td>
+            </tr>
+            <tr>
+              <td class="domain-cell"><span class="name">הסכמי שיתוף בין-ממשלתי</span></td>
+              <td><span class="status-dot open">פער פתוח</span></td>
+              <td class="action-cell">משטרה, משפטים, רשות המסים, הגנת הסביבה</td>
+              <td class="action-cell">בירור פנימי מול כל גורם; תיקון 13 מחמיר גם את דרישות ההעברה ביניהם</td>
+              <td><span class="pending-pill unmatched">לא מזוהה מודול תואם</span><span class="cell-sub">אין שורה באבני הדרך שמזוהה במפורש עם אינטגרציות בין-משרדיות (משטרה/משפטים/מסים/הגנת הסביבה).</span></td>
+            </tr>
+            <tr>
+              <td class="domain-cell"><span class="name">ביטול פרצת ביטוח חובה</span></td>
+              <td><span class="status-dot open">פער פתוח</span></td>
+              <td class="action-cell">רשות שוק ההון — מסלול "לא ודאי"</td>
+              <td class="action-cell">אימות פרצת "15 הדקות" מול אגף הפיקוח על הביטוח — לא בסמכות המשרד בלבד</td>
+              <td><b>1.1.2028</b><span class="cell-sub">מול מודול "רישיון דיגיטלי" (מסמך דרישות) — התחלת "הגדרת רגולציה" באותו מודול: 1.3.2028. הערכה על סמך מיפוי שלנו בין התחום למודול, לא צוין במפורש באבני הדרך.</span></td>
+            </tr>
+            <tr>
+              <td class="domain-cell"><span class="name">מגרשי פירוק</span></td>
+              <td><span class="status-dot partial">חלקי</span></td>
+              <td class="action-cell">רשויות מקומיות — רישיון עסק</td>
+              <td class="action-cell">הרחבת חובת הדיווח לכלל המגרשים + גישור על פער הרכב הנטוש מול הרשויות</td>
+              <td><b>1.9.2028</b><span class="cell-sub">מול מודול "מודול גריטה" (מסמך דרישות) — כ-2 שנים מהיום, שקט יחסי. הערכה על סמך מיפוי שלנו בין התחום למודול, לא צוין במפורש באבני הדרך.</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">מבוסס על "אגם הרכב 2030 - אבני דרך מפורטות - יולי 2026 - מודולים עיקריים.csv". רק 2 מתוך 6 התחומים משויכים למודול מפורש בקובץ (ביטול פרצת ביטוח, מגרשי פירוק) — המועדים עבורם הם הערכת שיוך שלנו בין תחום למודול, לא נתון שמופיע כך במפורש בקובץ, וכדאי לאמת. לשלושה תחומים (EV, ליסינג, הסכמי שיתוף בין-ממשלתי) לא נמצא מודול תואם כלל בקובץ. לפרטיות — רכיב הליבה שנדרש כמעט לכל מודול — אין שורה עצמאית, וזה החשוב מבין הממצאים: שני המודולים הפעילים כרגע (רישוי יבואנים, הוראות רישום) כבר בפיתוח מ-1.7.2026, כך שאם הליבה לא סגורה זה כנראה כבר איחור בפועל, לא "מועד עתידי" לתכנן אליו.</p>
+    </div>
+
+    <div class="task-block">
+      <div class="task-tag"><span class="task-num">3</span> תכנית עבודה משולבת — ציר עסקי וטכנולוגי</div>
+      <p>אבני הדרך הטכנולוגיות והעסקיות שכבר הועברו למערך הדיגיטל צפויות להספיק. אין תוספת בשלב זה; עדכון יועבר אם יתברר שנדרש משהו נוסף.</p>
+    </div>
+
+    <div class="task-block">
+      <div class="task-tag"><span class="task-num">4</span> הקמת צוות לפתרון סוגיות מולטידיסציפלינריות</div>
+      <p>הקמת הצוות ממתינה לאישור תקציבי — הן ממערך הדיגיטל והן ממשרד התחבורה. עד לאישור, הסוגיות הרוחביות (פרטיות, סייבר, רגולציה, שותפים חיצוניים) מטופלות ישירות מול [שם מלא — לוודא איות] בצוות הליבה.</p>
+      <p><b>ההרכב המתוכנן</b> עם אישור התקציב: נציג/ה מאגף אסטרטגיה או אגף הרכב, ייעוץ משפטי/פרטיות, סייבר, ונציג/ה קבוע/ה ממערך הדיגיטל.</p>
+    </div>
+  </section>
+
   <footer>
     <p>מקור: "אגם הרכב 2030 — מיפוי מלא של שינויי הרגולציה, החקיקה והנהלים הנדרשים", מסמך עבודה, יולי 2026.</p>
     <p>סטטוסים וסיכונים בטבלה 1 מבוססים על בדיקת מצב מול מקורות חיצוניים (חקיקה, תקנות, תזכירים) כפי שמופיעה במסמך המקורי; רמת הסיכון היא הערכה לצורך דיון פנימי ואינה ציון רשמי.</p>
+    <p>עדכון 10.9.2026: תחום "ערכי ייחוס לבדיקות פליטה" (המשרד להגנת הסביבה) הוסר ממיפוי זה — הובהר שמדובר בפרויקט נפרד (בדיקות זיהום אוויר במכוני הרישוי), שאינו תלות של אגם הרכב. בעקבות ההסרה, אין כיום בטבלה 1 אף תחום שתלוי בוועדת כנסת.</p>
   </footer>
 
 </div>
