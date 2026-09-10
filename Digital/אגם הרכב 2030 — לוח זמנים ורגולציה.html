@@ -231,9 +231,7 @@
   .g-yr { text-align: center; font-weight: 900; font-size: 12px; color: var(--ink); padding: 8px 1px 2px; border-bottom: 1px solid var(--hairline); overflow: hidden; }
   .g-q { text-align: center; font-weight: 700; font-size: 10px; color: var(--ink-faint); padding: 3px 1px 8px; border-bottom: 1px solid var(--hairline-strong); overflow: hidden; }
   .g-gridlines {
-    grid-column: 2 / -1;
-    position: relative;
-    min-width: 0;
+    grid-column: 2 / -1; position: relative; min-width: 0;
     background-image: repeating-linear-gradient(to left, var(--hairline) 0, var(--hairline) 1px, transparent 1px, transparent calc(100% / 14));
   }
   .g-today { grid-column: 2 / -1; position: relative; min-width: 0; pointer-events: none; }
@@ -241,17 +239,18 @@
   .g-label {
     grid-column: 1; background: var(--paper-raised); min-width: 0;
     display: flex; align-items: center; padding: 0 8px 0 2px; font-size: 11.5px; font-weight: 700; color: var(--ink);
-    border-top: 1px solid var(--hairline); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; gap: 4px;
+    border-top: 1px solid var(--hairline); overflow: hidden; gap: 5px;
   }
-  .g-label.org { color: var(--accent-ink); background: var(--accent-soft); flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; white-space: normal; line-height: 1.2; padding-block: 3px; }
-  .g-label .sub { font-weight: 400; font-size: 9.5px; color: var(--ink-faint); }
+  .g-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .reg-flag {
     display: inline-flex; align-items: center; justify-content: center; flex: none;
-    width: 14px; height: 14px; border-radius: 50%; background: var(--status-block);
-    color: #fff; font-weight: 900; font-size: 10px; cursor: help;
+    width: 15px; height: 15px; padding: 0; border: none; border-radius: 50%;
+    background: var(--status-block); color: #fff;
+    font-family: inherit; font-weight: 900; font-size: 10px; line-height: 1;
+    cursor: pointer; transition: transform .12s ease;
   }
+  .reg-flag:hover, .reg-flag:focus-visible { transform: scale(1.18); outline: none; }
   .g-track { grid-column: 2 / -1; position: relative; min-width: 0; overflow: hidden; border-top: 1px solid var(--hairline); }
-  .g-track.org { background: var(--accent-soft); }
   .bar {
     position: absolute; top: 5px; bottom: 5px; border-radius: 4px;
     box-shadow: inset 0 0 0 2px var(--paper-raised);
@@ -268,11 +267,46 @@
   .gantt-legend .lg-item { display: flex; align-items: center; gap: 7px; }
   .gantt-legend .lg-swatch { width: 13px; height: 13px; border-radius: 3px; flex: none; }
   .gantt-legend .lg-today { display:inline-block; width:14px; border-top: 2px dashed var(--accent); }
-  .gantt-legend .lg-flag { width: 14px; height: 14px; border-radius: 50%; background: var(--status-block); color: #fff; font-weight: 900; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; }
+  .gantt-legend .lg-flag { width: 15px; height: 15px; border-radius: 50%; background: var(--status-block); color: #fff; font-weight: 900; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+
+  /* ---------- modal ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(15, 20, 28, 0.55);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+    opacity: 0; pointer-events: none; transition: opacity .16s ease; z-index: 100;
+  }
+  .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--paper-raised); color: var(--ink);
+    border: 1px solid var(--hairline); border-radius: 14px;
+    max-width: 620px; width: 100%; max-height: 84vh; overflow-y: auto;
+    padding: 26px 28px 24px; box-shadow: 0 18px 50px -12px rgba(0,0,0,0.4);
+    transform: translateY(8px) scale(.99); transition: transform .16s ease;
+  }
+  .modal-backdrop.open .modal { transform: none; }
+  .modal-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+  .modal-mark {
+    flex: none; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--status-block); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px;
+  }
+  .modal h2 { margin: 0; font-size: 19px; font-weight: 900; line-height: 1.3; flex: 1; }
+  .modal-close {
+    flex: none; background: none; border: none; cursor: pointer; padding: 2px 6px;
+    font-size: 20px; line-height: 1; color: var(--ink-faint); font-family: inherit;
+  }
+  .modal-close:hover { color: var(--ink); }
+  .modal p { margin: 0 0 12px; font-size: 14.5px; line-height: 1.7; color: var(--ink-soft); }
+  .modal p:last-child { margin-bottom: 0; }
+  .modal .module-tag {
+    display: inline-block; margin-bottom: 14px; font-size: 11.5px; font-weight: 700;
+    color: var(--accent); background: var(--accent-soft); padding: 3px 10px; border-radius: 6px;
+  }
 
   @media (max-width: 900px) {
     #page { padding: 24px 16px 60px; }
     .gantt-grid { grid-template-columns: 130px repeat(14, minmax(0, 1fr)); font-size: 10px; }
+    .modal { padding: 20px 18px; }
   }
 </style>
 
@@ -291,8 +325,8 @@
           <div class="g-yr" style="grid-column:2/4">2026</div><div class="g-yr" style="grid-column:4/8">2027</div><div class="g-yr" style="grid-column:8/12">2028</div><div class="g-yr" style="grid-column:12/16">2029</div>
           <div class="g-q" style="grid-column:2">Q3</div><div class="g-q" style="grid-column:3">Q4</div><div class="g-q" style="grid-column:4">Q1</div><div class="g-q" style="grid-column:5">Q2</div><div class="g-q" style="grid-column:6">Q3</div><div class="g-q" style="grid-column:7">Q4</div><div class="g-q" style="grid-column:8">Q1</div><div class="g-q" style="grid-column:9">Q2</div><div class="g-q" style="grid-column:10">Q3</div><div class="g-q" style="grid-column:11">Q4</div><div class="g-q" style="grid-column:12">Q1</div><div class="g-q" style="grid-column:13">Q2</div><div class="g-q" style="grid-column:14">Q3</div><div class="g-q" style="grid-column:15">Q4</div>
           <div class="g-gridlines" style="grid-row:3/20"></div>
-          <div class="g-today" style="grid-row:3/20"><div class="g-today-line" style="right:5.551%" title="היום — 10.9.2026"></div></div>
-          <div class="g-label" style="grid-row:3">רישוי יבואנים<span class="reg-flag" title="יבואני רכב — נדרשות תקנות: מפרט טכני, COC, PDI וזיהום אוויר ישירות למאגר. סטטוס: פער פתוח.">!</span></div><div class="g-track" style="grid-row:3"><div class="bar cat-dev" style="right:0.000%;width:7.115%" title="פיתוח: 01.07.2026–30.09.2026"></div></div><div class="g-label" style="grid-row:4">הוראות רישום</div><div class="g-track" style="grid-row:4"><div class="bar cat-spec" style="right:0.000%;width:7.115%" title="אפיון: 01.07.2026–30.09.2026"></div><div class="bar cat-dev" style="right:7.193%;width:7.115%" title="פיתוח: 01.10.2026–31.12.2026"></div></div><div class="g-label org" style="grid-row:5">הקמת צוות מולטידיסציפלינרי<span class="sub">אבן דרך ארגונית — לא ממודל אבני הדרך</span></div><div class="g-track org" style="grid-row:5"><div class="bar cat-team" style="right:7.193%;width:7.115%" title="הקמת צוות מולטידיסציפלינרי: 01.10.2026–31.12.2026"></div></div><div class="g-label" style="grid-row:6">יבואנים - מודרניזציה</div><div class="g-track" style="grid-row:6"><div class="bar cat-spec" style="right:3.518%;width:3.597%" title="אפיון: 15.08.2026–30.09.2026"></div><div class="bar cat-dev" style="right:7.193%;width:7.115%" title="פיתוח: 01.10.2026–31.12.2026"></div></div><div class="g-label" style="grid-row:7">דגמים - מודרניזציה</div><div class="g-track" style="grid-row:7"><div class="bar cat-spec" style="right:10.711%;width:3.597%" title="אפיון: 15.11.2026–31.12.2026"></div><div class="bar cat-dev" style="right:14.386%;width:6.959%" title="פיתוח: 01.01.2027–31.03.2027"></div></div><div class="g-label" style="grid-row:8">מכוני רישוי 2030</div><div class="g-track" style="grid-row:8"><div class="bar cat-spec" style="right:16.810%;width:6.724%" title="מסמך דרישות: 01.02.2027–28.04.2027"></div><div class="bar cat-tender" style="right:23.769%;width:14.073%" title="כתיבת מכרז: 01.05.2027–28.10.2027"></div><div class="bar cat-tender" style="right:38.155%;width:13.995%" title="פרסום מכרז ובחירת זוכה: 01.11.2027–28.04.2028"></div><div class="bar cat-reg" style="right:52.385%;width:47.381%" title="הגדרת רגולציה ויישום תוכנה במכוני הרישוי כולל דיווח נסועה: 01.05.2028–28.12.2029"></div></div><div class="g-label" style="grid-row:9">מכוני רישוי — הסדרת בתי תוכנה</div><div class="g-track" style="grid-row:9"><div class="bar cat-spec" style="right:16.810%;width:4.300%" title="מסמך דרישות: 01.02.2027–28.03.2027"></div><div class="bar cat-tender" style="right:21.423%;width:11.650%" title="כתיבת מכרז: 01.04.2027–28.08.2027"></div><div class="bar cat-tender" style="right:33.385%;width:11.650%" title="פרסום מכרז ובחירת זוכה: 01.09.2027–28.01.2028"></div><div class="bar cat-reg" style="right:45.348%;width:16.341%" title="הגדרת רגולציה ויישום תוכנה במכוני הרישוי: 01.02.2028–28.08.2028"></div></div><div class="g-label" style="grid-row:10">חיבור מוסכים לאגם<span class="reg-flag" title="מוסכים מורשים (§16) — נדרשות תקנות: דיווח על כל טיפול (VIN, ק"מ, חלפים, ליקויי בטיחות). סטטוס: פער פתוח.">!</span></div><div class="g-track" style="grid-row:10"><div class="bar cat-spec" style="right:21.423%;width:4.457%" title="מסמך דרישות: 01.04.2027–28.05.2027"></div><div class="bar cat-reg" style="right:26.192%;width:35.496%" title="הגדרת רגולציה ויישום תוכנה במוסכים כולל דיווח נסועה וממשק למכוני הרישוי: 01.06.2027–28.08.2028"></div></div><div class="g-label" style="grid-row:11">רישום ראשוני דיגיטלי<span class="reg-flag" title="ביטול עסקת רכב חדש — נדרש נוהל פנימי לביטול לאחר סגירת תיק מיידית. סטטוס: פער פתוח.">!</span></div><div class="g-track" style="grid-row:11"><div class="bar cat-spec" style="right:26.192%;width:4.457%" title="מסמך דרישות: 01.06.2027–28.07.2027"></div><div class="bar cat-tender" style="right:30.962%;width:11.650%" title="כתיבת מכרז: 01.08.2027–28.12.2027"></div><div class="bar cat-reg" style="right:52.385%;width:16.497%" title="הגדרת רגולציה ויישום תוכנה במכוני הרישוי: 01.05.2028–28.11.2028"></div></div><div class="g-label" style="grid-row:12">פורטל לציבור לאגם הרכב<span class="reg-flag" title="מודל מסחרי ואגרות (API) — נדרשים נהלים + אגרות להנגשת מידע בתשלום לגורמים מסחריים. סטטוס: פער פתוח. (שיוך למודול זה משוער, לא מצוין במפורש באבני הדרך)">!</span></div><div class="g-track" style="grid-row:12"><div class="bar cat-spec" style="right:30.962%;width:11.650%" title="מסמך דרישות + אפיון טכני מפורט: 01.08.2027–28.12.2027"></div><div class="bar cat-dev" style="right:42.924%;width:9.226%" title="פיתוח גרסה ראשונה: 01.01.2028–28.04.2028"></div></div><div class="g-label" style="grid-row:13">COC דיגיטלי</div><div class="g-track" style="grid-row:13"><div class="bar cat-spec" style="right:35.731%;width:9.304%" title="מסמך דרישות + אפיון טכני מפורט: 01.10.2027–28.01.2028"></div><div class="bar cat-dev" style="right:45.348%;width:6.802%" title="פיתוח גרסה ראשונה: 01.02.2028–28.04.2028"></div></div><div class="g-label" style="grid-row:14">חיבור מעבדות תקינה לאגם<span class="reg-flag" title="שינויי מבנה (תקנה 380) — נדרשות תקנות אכיפה: דיווח מהמתקינים המורשים + סנקציות לחריגים. סטטוס: פער פתוח.">!</span></div><div class="g-track" style="grid-row:14"><div class="bar cat-spec" style="right:38.155%;width:4.457%" title="מסמך דרישות: 01.11.2027–28.12.2027"></div><div class="bar cat-reg" style="right:42.924%;width:28.303%" title="הגדרת רגולציה ויישום תוכנה במעבדות כולל שינוי מבנה: 01.01.2028–28.12.2028"></div></div><div class="g-label" style="grid-row:15">רישיון דיגיטלי<span class="reg-flag" title="רישיון רכב דיגיטלי — נהלים לביטול הדפסה פיזית ומעבר למסמך דיגיטלי מאובטח. סטטוס: הושלם.">!</span></div><div class="g-track" style="grid-row:15"><div class="bar cat-spec" style="right:42.924%;width:4.535%" title="מסמך דרישות: 01.01.2028–28.02.2028"></div><div class="bar cat-reg" style="right:47.615%;width:30.649%" title="הגדרת רגולציה ויישום תוכנה: 01.03.2028–28.03.2029"></div></div><div class="g-label" style="grid-row:16">מודול ריקול</div><div class="g-track" style="grid-row:16"><div class="bar cat-spec" style="right:47.615%;width:4.535%" title="מסמך דרישות: 01.03.2028–28.04.2028"></div><div class="bar cat-reg" style="right:52.385%;width:28.303%" title="הגדרת רגולציה ויישום תוכנה: 01.05.2028–28.04.2029"></div></div><div class="g-label" style="grid-row:17">מודול שמאים<span class="reg-flag" title="שמאי רכב (תקנה 309) — תקנות לדיווח מקוון חובה על אובדן גמור/נזק בטיחותי. סטטוס: הושלם.">!</span></div><div class="g-track" style="grid-row:17"><div class="bar cat-spec" style="right:52.385%;width:4.535%" title="מסמך דרישות: 01.05.2028–28.06.2028"></div><div class="bar cat-reg" style="right:57.154%;width:28.303%" title="הגדרת רגולציה ויישום תוכנה: 01.07.2028–28.06.2029"></div></div><div class="g-label" style="grid-row:18">היסטוריית תביעות ביטוח</div><div class="g-track" style="grid-row:18"><div class="bar cat-spec" style="right:57.154%;width:4.535%" title="מסמך דרישות: 01.07.2028–28.08.2028"></div><div class="bar cat-reg" style="right:62.002%;width:37.764%" title="הגדרת רגולציה ויישום תוכנה: 01.09.2028–28.12.2029"></div></div><div class="g-label" style="grid-row:19">מודול גריטה<span class="reg-flag" title="מגרשי פירוק — נדרש רישיון עסק + הסדר מוניציפלי לדיווח על השמדת רכב. סטטוס: חלקי.">!</span></div><div class="g-track" style="grid-row:19"><div class="bar cat-spec" style="right:62.002%;width:4.457%" title="מסמך דרישות: 01.09.2028–28.10.2028"></div><div class="bar cat-tender" style="right:66.771%;width:11.493%" title="כתיבת מכרז: 01.11.2028–28.03.2029"></div><div class="bar cat-tender" style="right:78.577%;width:11.650%" title="פרסום מכרז ובחירת זוכה: 01.04.2029–28.08.2029"></div><div class="bar cat-reg" style="right:90.539%;width:9.461%" title="הגדרת רגולציה ויישום תוכנה: 01.09.2029–28.12.2030 (ממשיך מעבר לטווח התרשים, עד 12.2030)"><span class="ov">»</span></div></div>
+          <div class="g-today" style="grid-row:3/20"><div class="g-today-line" style="right:5.551%"></div></div>
+          <div class="g-label" style="grid-row:3"><span class="g-name">רישוי יבואנים</span></div><div class="g-track" style="grid-row:3"><div class="bar cat-dev" style="right:0.000%;width:7.115%"></div></div><div class="g-label" style="grid-row:4"><span class="g-name">הוראות רישום</span></div><div class="g-track" style="grid-row:4"><div class="bar cat-spec" style="right:0.000%;width:7.115%"></div><div class="bar cat-dev" style="right:7.193%;width:7.115%"></div></div><div class="g-label" style="grid-row:5"><span class="g-name">הקמת צוות מולטידיסציפלינרי</span></div><div class="g-track" style="grid-row:5"><div class="bar cat-team" style="right:7.193%;width:7.115%"></div></div><div class="g-label" style="grid-row:6"><span class="g-name">יבואנים - מודרניזציה</span></div><div class="g-track" style="grid-row:6"><div class="bar cat-spec" style="right:3.518%;width:3.597%"></div><div class="bar cat-dev" style="right:7.193%;width:7.115%"></div></div><div class="g-label" style="grid-row:7"><span class="g-name">דגמים - מודרניזציה</span></div><div class="g-track" style="grid-row:7"><div class="bar cat-spec" style="right:10.711%;width:3.597%"></div><div class="bar cat-dev" style="right:14.386%;width:6.959%"></div></div><div class="g-label" style="grid-row:8"><span class="g-name">מכוני רישוי 2030</span></div><div class="g-track" style="grid-row:8"><div class="bar cat-spec" style="right:16.810%;width:6.724%"></div><div class="bar cat-tender" style="right:23.769%;width:14.073%"></div><div class="bar cat-tender" style="right:38.155%;width:13.995%"></div><div class="bar cat-reg" style="right:52.385%;width:47.381%"></div></div><div class="g-label" style="grid-row:9"><span class="g-name">מכוני רישוי — הסדרת בתי תוכנה</span></div><div class="g-track" style="grid-row:9"><div class="bar cat-spec" style="right:16.810%;width:4.300%"></div><div class="bar cat-tender" style="right:21.423%;width:11.650%"></div><div class="bar cat-tender" style="right:33.385%;width:11.650%"></div><div class="bar cat-reg" style="right:45.348%;width:16.341%"></div></div><div class="g-label" style="grid-row:10"><span class="g-name">חיבור מוסכים לאגם</span><button type="button" class="reg-flag" data-reg="חיבור מוסכים לאגם" aria-label="פרטי רגולציה — חיבור מוסכים לאגם">!</button></div><div class="g-track" style="grid-row:10"><div class="bar cat-spec" style="right:21.423%;width:4.457%"></div><div class="bar cat-reg" style="right:26.192%;width:35.496%"></div></div><div class="g-label" style="grid-row:11"><span class="g-name">רישום ראשוני דיגיטלי</span><button type="button" class="reg-flag" data-reg="רישום ראשוני דיגיטלי" aria-label="פרטי רגולציה — רישום ראשוני דיגיטלי">!</button></div><div class="g-track" style="grid-row:11"><div class="bar cat-spec" style="right:26.192%;width:4.457%"></div><div class="bar cat-tender" style="right:30.962%;width:11.650%"></div><div class="bar cat-reg" style="right:52.385%;width:16.497%"></div></div><div class="g-label" style="grid-row:12"><span class="g-name">פורטל לציבור לאגם הרכב</span><button type="button" class="reg-flag" data-reg="פורטל לציבור לאגם הרכב" aria-label="פרטי רגולציה — פורטל לציבור לאגם הרכב">!</button></div><div class="g-track" style="grid-row:12"><div class="bar cat-spec" style="right:30.962%;width:11.650%"></div><div class="bar cat-dev" style="right:42.924%;width:9.226%"></div></div><div class="g-label" style="grid-row:13"><span class="g-name">COC דיגיטלי</span></div><div class="g-track" style="grid-row:13"><div class="bar cat-spec" style="right:35.731%;width:9.304%"></div><div class="bar cat-dev" style="right:45.348%;width:6.802%"></div></div><div class="g-label" style="grid-row:14"><span class="g-name">חיבור מעבדות תקינה לאגם</span><button type="button" class="reg-flag" data-reg="חיבור מעבדות תקינה לאגם" aria-label="פרטי רגולציה — חיבור מעבדות תקינה לאגם">!</button></div><div class="g-track" style="grid-row:14"><div class="bar cat-spec" style="right:38.155%;width:4.457%"></div><div class="bar cat-reg" style="right:42.924%;width:28.303%"></div></div><div class="g-label" style="grid-row:15"><span class="g-name">רישיון דיגיטלי</span><button type="button" class="reg-flag" data-reg="רישיון דיגיטלי" aria-label="פרטי רגולציה — רישיון דיגיטלי">!</button></div><div class="g-track" style="grid-row:15"><div class="bar cat-spec" style="right:42.924%;width:4.535%"></div><div class="bar cat-reg" style="right:47.615%;width:30.649%"></div></div><div class="g-label" style="grid-row:16"><span class="g-name">מודול ריקול</span></div><div class="g-track" style="grid-row:16"><div class="bar cat-spec" style="right:47.615%;width:4.535%"></div><div class="bar cat-reg" style="right:52.385%;width:28.303%"></div></div><div class="g-label" style="grid-row:17"><span class="g-name">מודול שמאים</span><button type="button" class="reg-flag" data-reg="מודול שמאים" aria-label="פרטי רגולציה — מודול שמאים">!</button></div><div class="g-track" style="grid-row:17"><div class="bar cat-spec" style="right:52.385%;width:4.535%"></div><div class="bar cat-reg" style="right:57.154%;width:28.303%"></div></div><div class="g-label" style="grid-row:18"><span class="g-name">היסטוריית תביעות ביטוח</span></div><div class="g-track" style="grid-row:18"><div class="bar cat-spec" style="right:57.154%;width:4.535%"></div><div class="bar cat-reg" style="right:62.002%;width:37.764%"></div></div><div class="g-label" style="grid-row:19"><span class="g-name">מודול גריטה</span><button type="button" class="reg-flag" data-reg="מודול גריטה" aria-label="פרטי רגולציה — מודול גריטה">!</button></div><div class="g-track" style="grid-row:19"><div class="bar cat-spec" style="right:62.002%;width:4.457%"></div><div class="bar cat-tender" style="right:66.771%;width:11.493%"></div><div class="bar cat-tender" style="right:78.577%;width:11.650%"></div><div class="bar cat-reg" style="right:90.539%;width:9.461%"><span class="ov">»</span></div></div>
         </div>
       </div>
 
@@ -303,8 +337,67 @@
       <div class="lg-item"><span class="lg-swatch" style="background:var(--gc-dev)"></span>פיתוח</div>
       <div class="lg-item"><span class="lg-swatch" style="background:var(--gc-reg)"></span>הגדרת רגולציה ויישום תוכנה</div>
       <div class="lg-item"><span class="lg-today"></span>היום</div>
-      <div class="lg-item"><span class="lg-flag">!</span>נדרש שינוי רגולציה — ריחוף לפרטים</div>
+      <div class="lg-item"><span class="lg-flag">!</span>רגולציה נדרשת — לחצו לפרטים</div>
     </div>
   </section>
 
 </div>
+
+<div class="modal-backdrop" id="regModal" role="dialog" aria-modal="true" aria-labelledby="regModalTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-mark">!</span>
+      <h2 id="regModalTitle"></h2>
+      <button type="button" class="modal-close" id="regModalClose" aria-label="סגירה">&#215;</button>
+    </div>
+    <span class="module-tag" id="regModalModule"></span>
+    <div id="regModalBody"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var REG = {"חיבור מוסכים לאגם": {"title": "מוסכים מורשים — חובת דיווח (סעיף 16)", "paras": ["הדרישה: חיוב כל מוסך מורשה לדווח על כל ביקור — מספר שלדה, קילומטראז', סוג העבודה, חלפים שהוחלפו וליקויי בטיחות שאותרו. זהו לב הפרויקט; בלי דיווח מהמוסכים, היסטוריית הרכב נשארת חלקית.", "הבסיס המשפטי כבר קיים. סעיף 16 לחוק רישוי שירותים ומקצועות בענף הרכב (תשע\"ו-2016) מעניק סמכות לדרוש דיווח מבעל רישיון, לצד הגנת סודיות על המידע המדווח. תקנות המוסכים (תשפ\"ב-2022) כבר מסדירות את הרישוי — הנדרש הוא הרחבה לחובת דיווח שוטפת.", "וזה בהישג יד: החוק חי ומתעדכן (15 תיקונים עד היום), הפריסה מתחילה מכ-600 מוסכי היבואנים שמרכזים כ-80% מנפח הטיפולים, והמודל משלב תמריץ — תג \"מוסך מאומת\" בפורטל הציבורי וביטול ניירת מקבילה. מוסך שמדווח דיגיטלית חוסך עבודה, לא מוסיף אותה."]}, "מודול שמאים": {"title": "שמאי רכב — דיווח מקוון (תקנה 309)", "paras": ["הדרישה: דיווח דיגיטלי חובה, חסין-מחיקה, של כל הערכת שמאי על אובדן גמור או נזק בטיחותי — ישירות לאגם, עם חסימת טסט אוטומטית עד אישור מפעל בודק.", "זה כבר קרה. תקנות רישוי שירותים ומקצועות בענף הרכב (רישוי עיסוק בשמאות רכב) (הוראת שעה), התשפ\"ו-2026 קובעות מפורשות שהשמאי ידווח לרשות הרישוי באופן מקוון לפי תקנה 309(ט) — כולל תיאור הנזק, מק\"ט ואישור מנהל מקצועי. במקביל, תקנות האתיקה וניגוד העניינים (תשפ\"ו-2026) מטפלות בתלות המובנית של שמאי בחברת הביטוח.", "זו הדוגמה הטובה ביותר לכך שהמערכת יודעת לזוז: מדרישה באפיון לתקנה בתוקף. מה שנותר הוא עבודת אינטגרציה — לוודא שהדיווח מוזרם לאגם ולא למאגר נפרד. היעד: מפחות מ-10% דיווח כיום ל-85% עד 2029."]}, "מודול גריטה": {"title": "מגרשי פירוק — סגירת מעגל החיים של הרכב", "paras": ["הדרישה: חיוב מגרשי הפירוק לדווח לאגם על כל רכב שנכנס להשמדה, כתנאי לרישיון עסק. היום האחריות לדווח מוטלת על בעל הרכב — פרצה שמשאירה רכבים מפורקים \"חיים\" במערכת.", "התשתית כבר קיימת חלקית. מכרז 81/8 להפעלת אתרים מורשים לגריטה כבר מחייב את המגרשים המורשים בבדיקה ממוחשבת מול מאגר הרכב, ולאחר התאמה הרכב מסומן אוטומטית כמבוטל. לא מתחילים מאפס — מרחיבים מנגנון עובד.", "הפער הנותר הוא רכבים נטושים שאינם מגיעים כלל למגרש מורשה, שם האחריות היא של הרשויות המקומיות מכוח חוק שמירת הניקיון. הרחבת חובת הדיווח דרך תנאי רישיון עסק היא מהלך מוניציפלי מוכר ומדורג — מתחילים מהמגרשים המורשים וממשיכים החוצה."]}, "חיבור מעבדות תקינה לאגם": {"title": "שינויי מבנה — דיווח ואכיפה (תקנה 380)", "paras": ["הדרישה: העברת דיווח ישיר מהמתקינים המורשים לאגם על כל שינוי מבנה, והגדרת מדרג סנקציות למי שאינו מדווח.", "תקנה 380(א) כבר אוסרת שינוי מבנה ללא היתר, אך אגרת ההיתר סמלית (כ-68 ₪) ולכן אין הרתעה — כ-6,000 רכבים נפסלים בשנה. במקביל, המשרד כבר מפעיל פיילוט מורחב לייעול הרישום הראשוני לשינויי מבנה ברכבי משא, מול היצרנים והמעבדות המוסמכות.", "הכלים כבר בידיים: התקנה קיימת, המעבדות מוסמכות והפיילוט רץ. מה שנדרש הוא תקנות אכיפה שמבחינות בין מתקין מורשה שלא דיווח לבין שינוי פיראטי — מדרג ממוקד ומדויק, ולא העלאת אגרה גורפת שתדחוף לקוחות לשוק האפור."]}, "פורטל לציבור לאגם הרכב": {"title": "מודל מסחרי ואגרות (API)", "paras": ["הדרישה: נהלים ואגרות שיגדירו מתי המידע חינמי לאזרח ומתי בתשלום לגורמים מסחריים (לוחות רכב, חברות מימון) — כמקור מימון לתחזוקת המערכת.", "כאן נדרשים נהלים ואגרות בלבד, ללא חקיקה וללא ועדת כנסת. יחד עם זאת, חלק מהמידע כבר פתוח וחינמי ב-data.gov.il (כ-4.1 מיליון רשומות), ולכן המודל צריך להתבסס על ערך מוסף אמיתי: עומק, עדכניות, ונתונים שאינם פתוחים היום.", "זהו התחום עם מרחב הפעולה הגדול ביותר — הכול בסמכות המשרד, ואפשר להתחיל מיידית. הערה: שיוך התחום דווקא למודול זה הוא הערכה שלנו ולא נתון שמופיע במפורש באבני הדרך."]}, "רישיון דיגיטלי": {"title": "רישיון רכב דיגיטלי — מיושם, טעון עיגון", "paras": ["הדרישה: ביטול הדפסת הרישיון הפיזי עם הגלופה, ומעבר למסמך דיגיטלי מאובטח שנשלח לאזרח.", "זה כבר עובד בשטח. לאחר תשלום האגרה באזור האישי (בהזדהות דו-שלבית) מונפק קובץ עם ברקוד וסימני אבטחה, המוכר על ידי המשטרה ומכוני הרישוי וניתן להדפסה ביתית. ה-Quick Win מומש ברמה התפעולית.", "מה שנותר הוא הפער בין \"עובד בפועל\" ל\"מעוגן פורמלית\" — עיגון תוקפו המשפטי המלא של המסמך הדיגיטלי. זהו תיקון נהלים בסמכות המשרד: המסלול המהיר ביותר מבין השלושה, ללא תקנות וללא כנסת."]}, "רישום ראשוני דיגיטלי": {"title": "ביטול עסקת רכב חדש — נוהל חדש", "paras": ["הדרישה: נוהל מסודר לביטול עסקת רכב חדש לאחר שהרישיון הדיגיטלי כבר הופק והתיק נסגר.", "היום סגירת התיק מתעכבת עד שלושה ימים בשל עיבוד תשלומים לילי — והעיכוב הזה הוא בדיוק מה שמותיר בפועל \"חלון\" לביטול עסקה. המעבר לסגירה מיידית, שהוא שיפור ברור לאזרח, מבטל את הגמישות הזו ולכן מחייב תחליף מוסדר.", "זהו נוהל פנימי בלבד — הרמה המהירה ביותר בסולם הרגולטורי: החלטת משרד, ללא תקנות וללא כנסת. נדרש אפיון מול מנהלת תיאום ורישוי, בתיאום עם היבואנים ומכוני הרישוי."]}};
+  var backdrop = document.getElementById('regModal');
+  var titleEl = document.getElementById('regModalTitle');
+  var moduleEl = document.getElementById('regModalModule');
+  var bodyEl = document.getElementById('regModalBody');
+  var closeBtn = document.getElementById('regModalClose');
+  var lastFocus = null;
+
+  function open(key) {
+    var data = REG[key];
+    if (!data) return;
+    titleEl.textContent = data.title;
+    moduleEl.textContent = 'מודול: ' + key;
+    bodyEl.innerHTML = '';
+    data.paras.forEach(function (p) {
+      var el = document.createElement('p');
+      el.textContent = p;
+      bodyEl.appendChild(el);
+    });
+    backdrop.classList.add('open');
+    closeBtn.focus();
+  }
+
+  function close() {
+    backdrop.classList.remove('open');
+    if (lastFocus) lastFocus.focus();
+  }
+
+  document.querySelectorAll('.reg-flag').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      lastFocus = btn;
+      open(btn.getAttribute('data-reg'));
+    });
+  });
+
+  closeBtn.addEventListener('click', close);
+  backdrop.addEventListener('click', function (e) {
+    if (e.target === backdrop) close();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && backdrop.classList.contains('open')) close();
+  });
+})();
+</script>
