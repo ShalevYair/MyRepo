@@ -378,6 +378,9 @@
     color: var(--accent);
     white-space: nowrap;
   }
+  .pending-pill.urgent { background: var(--status-block-soft); color: var(--status-block); }
+  .pending-pill.unmatched { background: var(--status-open-soft); color: var(--ink-faint); }
+  .cell-sub { display: block; font-size: 11px; color: var(--ink-faint); margin-top: 4px; line-height: 1.4; }
   @media (max-width: 760px) {
     .split-cols { grid-template-columns: 1fr; }
   }
@@ -874,47 +877,47 @@
               <td><span class="status-dot block">חסם</span></td>
               <td class="action-cell">רשות הגנת הפרטיות — תיקון 13</td>
               <td class="action-cell">התאמת עיצוב המאגר לתיקון 13 + הכרעה בדילמות זיהוי עקיף, לפני איסוף מידע מזהה בפועל</td>
-              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+              <td><span class="pending-pill urgent">⚠ ככל הנראה כבר באיחור</span><span class="cell-sub">זהו רכיב ליבה (הרשאות/סיווג מידע) — אין לו שורה עצמאית באבני הדרך, אך שני המודולים המוקדמים ביותר בתוכנית ("רישוי יבואנים", "הוראות רישום") כבר באמצע פיתוח מ-1.7.2026. אם הליבה טרם נסגרה — נדרש בירור דחוף אם הפיתוח הפעיל תלוי בה.</span></td>
             </tr>
             <tr>
               <td class="domain-cell"><span class="name">רגולציה לרכב חשמלי</span></td>
               <td><span class="status-dot block">חסם</span></td>
               <td class="action-cell">הגנת הסביבה + אוצר — מס נסועה, טסט סוללה</td>
               <td class="action-cell">בירור סטטוס מס נסועה מול האוצר לפני הסתמכות על המודול</td>
-              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+              <td><span class="pending-pill unmatched">לא מזוהה מודול תואם</span><span class="cell-sub">אין שום שורה הקשורה לרכב חשמלי/סוללות/מס נסועה באבני הדרך שהתקבלו — כנראה עדיין לא מתוכנן ברמת מודול.</span></td>
             </tr>
             <tr>
               <td class="domain-cell"><span class="name">ליסינג והשכרה</span></td>
               <td><span class="status-dot open">פער פתוח</span></td>
               <td class="action-cell">התנגדות צפויה מהחברות הגדולות (סיכון גבוה)</td>
               <td class="action-cell">פגישות עבודה עם החברות הגדולות + הישענות על דיווח המוסכים כרשת ביטחון</td>
-              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+              <td><span class="pending-pill unmatched">לא מזוהה מודול תואם</span><span class="cell-sub">מודול "צי רכב מוסדי" אינו שורה עצמאית באבני הדרך. הקירוב הקרוב ביותר — "חיבור מוסכים לאגם" (דיווח נסועה, החל 1.4.2027) — אינו זהה.</span></td>
             </tr>
             <tr>
               <td class="domain-cell"><span class="name">הסכמי שיתוף בין-ממשלתי</span></td>
               <td><span class="status-dot open">פער פתוח</span></td>
               <td class="action-cell">משטרה, משפטים, רשות המסים, הגנת הסביבה</td>
               <td class="action-cell">בירור פנימי מול כל גורם; תיקון 13 מחמיר גם את דרישות ההעברה ביניהם</td>
-              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+              <td><span class="pending-pill unmatched">לא מזוהה מודול תואם</span><span class="cell-sub">אין שורה באבני הדרך שמזוהה במפורש עם אינטגרציות בין-משרדיות (משטרה/משפטים/מסים/הגנת הסביבה).</span></td>
             </tr>
             <tr>
               <td class="domain-cell"><span class="name">ביטול פרצת ביטוח חובה</span></td>
               <td><span class="status-dot open">פער פתוח</span></td>
               <td class="action-cell">רשות שוק ההון — מסלול "לא ודאי"</td>
               <td class="action-cell">אימות פרצת "15 הדקות" מול אגף הפיקוח על הביטוח — לא בסמכות המשרד בלבד</td>
-              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+              <td><b>1.1.2028</b><span class="cell-sub">מול מודול "רישיון דיגיטלי" (מסמך דרישות) — התחלת "הגדרת רגולציה" באותו מודול: 1.3.2028. הערכה על סמך מיפוי שלנו בין התחום למודול, לא צוין במפורש באבני הדרך.</span></td>
             </tr>
             <tr>
               <td class="domain-cell"><span class="name">מגרשי פירוק</span></td>
               <td><span class="status-dot partial">חלקי</span></td>
               <td class="action-cell">רשויות מקומיות — רישיון עסק</td>
               <td class="action-cell">הרחבת חובת הדיווח לכלל המגרשים + גישור על פער הרכב הנטוש מול הרשויות</td>
-              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+              <td><b>1.9.2028</b><span class="cell-sub">מול מודול "מודול גריטה" (מסמך דרישות) — כ-2 שנים מהיום, שקט יחסי. הערכה על סמך מיפוי שלנו בין התחום למודול, לא צוין במפורש באבני הדרך.</span></td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="note">כדי להשלים את עמודת "מועד אחרון": נדרש לו"ז אבני הדרך/שלבי אגם הרכב (מתי כל מודול נדרש בפועל בשטח). אם טיוטת "התלויות ואבני הדרך" שכבר נשלחה לנעה מכילה נתון כזה — יש להשלים ממנה; אחרת נדרש קלט נפרד לפני שליחה סופית.</p>
+      <p class="note">מבוסס על "אגם הרכב 2030 - אבני דרך מפורטות - יולי 2026 - מודולים עיקריים.csv". רק 2 מתוך 6 התחומים משויכים למודול מפורש בקובץ (ביטול פרצת ביטוח, מגרשי פירוק) — המועדים עבורם הם הערכת שיוך שלנו בין תחום למודול, לא נתון שמופיע כך במפורש בקובץ, וכדאי לאמת. לשלושה תחומים (EV, ליסינג, הסכמי שיתוף בין-ממשלתי) לא נמצא מודול תואם כלל בקובץ. לפרטיות — רכיב הליבה שנדרש כמעט לכל מודול — אין שורה עצמאית, וזה החשוב מבין הממצאים: שני המודולים הפעילים כרגע (רישוי יבואנים, הוראות רישום) כבר בפיתוח מ-1.7.2026, כך שאם הליבה לא סגורה זה כנראה כבר איחור בפועל, לא "מועד עתידי" לתכנן אליו.</p>
     </div>
 
     <div class="task-block">
