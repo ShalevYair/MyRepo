@@ -321,6 +321,67 @@
     max-width: 76ch;
   }
 
+  /* ---------- task-block (מענה למשימות) ---------- */
+  .task-block {
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px dashed var(--hairline);
+  }
+  .task-block:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+  .task-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .task-tag .task-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    flex: none;
+  }
+  .task-block h3 { font-weight: 900; font-size: 16.5px; margin: 20px 0 8px; }
+  .task-block h3:first-child { margin-top: 0; }
+  .task-block p { color: var(--ink-soft); font-size: 14px; margin: 0 0 10px; max-width: 76ch; }
+  .split-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 10px 0;
+  }
+  .split-card {
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: var(--paper-raised);
+  }
+  .split-card .split-head { font-size: 12.5px; font-weight: 700; margin-bottom: 8px; }
+  .split-card.immediate .split-head { color: var(--status-done); }
+  .split-card.blocked .split-head { color: var(--status-block); }
+  .split-card ul { margin: 0; padding-inline-start: 18px; font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+  .pending-pill {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  @media (max-width: 760px) {
+    .split-cols { grid-template-columns: 1fr; }
+  }
+
   /* ---------- table shell ---------- */
   .table-scroll {
     overflow-x: auto;
@@ -513,6 +574,7 @@
   <div class="section-nav">
     <a href="#table-1">טבלה 1 — רגולציה מול מודולים ↓</a>
     <a href="#table-2">טבלה 2 — התנגדויות בעלי עניין ↓</a>
+    <a href="#noa-reply">מענה לנעה סייג ↓</a>
   </div>
 
   <div class="legend">
@@ -748,6 +810,123 @@
     </div>
 
     <p class="note">לגבי ההתנגדויות: הטענות בטבלה זו מנוסחות על בסיס ההיגיון העסקי/רגולטורי העולה ממסמך המיפוי (עומס בירוקרטי, עלות היענות, חשיפת מידע עסקי, ניגוד עניינים) — הן אינן ציטוט של עמדה שהובעה בפועל על ידי גורם כלשהו, ומיועדות כבסיס לדיון ולאימות מול הגורמים בשטח.</p>
+  </section>
+
+  <section class="block" id="noa-reply">
+    <div class="block-head">
+      <span class="tag">מענה — תיאום מול מערך הדיגיטל</span>
+      <h2>מענה למשימות שהועברו ע"י נעה סייג (9.9.2026)</h2>
+      <p>בהמשך להחלטות הוועדה ולבקשת ההשלמות עד 17.9.2026. ריכוז המענה לארבע המשימות, כולל שתי ההשלמות שהתבקשו במשימה 2.</p>
+    </div>
+
+    <div class="task-block">
+      <div class="task-tag"><span class="task-num">1</span> מסמך משולב: פרויקט המודרניזציה ופרויקט אגם הרכב — מענה לסיכון התלות</div>
+      <h3>אין תלות חוסמת בין הפרויקטים</h3>
+      <p>האחריות על פרויקט המודרניזציה של מערכת הרכב אוחדה תחת אותה הנהלה כמו אגם הרכב. עיקר הנתונים והתהליכים שאגם הרכב מכניס אינם קיימים היום במערכת הקיימת — ולכן אין תלות מהותית. במקומות בודדים שבהם יידרש שילוב תהליכי בין הפרויקטים, השילוב ייכלל בתכנון המודרניזציה עצמה, ולא צפוי לעכב את אגם הרכב.</p>
+    </div>
+
+    <div class="task-block">
+      <div class="task-tag"><span class="task-num">2</span> פירוט תלויות ואבני דרך — שתי ההשלמות שהתבקשו</div>
+
+      <h3>השלמה א׳ — מה ניתן לבצע מיידית מול מה תלוי בחקיקה/תקנות</h3>
+      <p>מבוסס על טבלה 1 לעיל, 13 תחומים (לאחר הסרת "ערכי ייחוס לבדיקות פליטה" — פרויקט נפרד, ר׳ הערת פוטר).</p>
+      <div class="split-cols">
+        <div class="split-card immediate">
+          <div class="split-head">בסמכות המשרד בלבד — ניתן להתקדם מיידית (6)</div>
+          <ul>
+            <li>מוסכים מורשים (§16)</li>
+            <li>יבואני רכב</li>
+            <li>ליסינג והשכרה</li>
+            <li>שינויי מבנה (תקנה 380)</li>
+            <li>מודל מסחרי ואגרות (API)</li>
+            <li>ביטול עסקת רכב חדש</li>
+          </ul>
+        </div>
+        <div class="split-card blocked">
+          <div class="split-head">תלוי בגורם חיצוני / חקיקה (5)</div>
+          <ul>
+            <li>מגרשי פירוק (+ רשויות מקומיות)</li>
+            <li>פרטיות ושקיפות מידע (רשות הגנת הפרטיות) — חסם</li>
+            <li>הסכמי שיתוף בין-ממשלתי</li>
+            <li>ביטול פרצת ביטוח חובה (רשות שוק ההון)</li>
+            <li>רגולציה לרכב חשמלי (הגנת הסביבה + אוצר) — חסם</li>
+          </ul>
+        </div>
+      </div>
+      <p>שני תחומים נוספים כבר הושלמו בשטח ואינם נכנסים לחלוקה: שמאי רכב (תקנה 309), רישיון רכב דיגיטלי.</p>
+
+      <h3>השלמה ב׳ — המועד האחרון להסרת כל חסם, כדי לא לעכב את הפרויקט</h3>
+      <p>עמודת "מועד אחרון" תלויה בלוח הזמנים של אגם הרכב עצמו (מתי כל מודול נדרש בפועל) — נתון שטרם התקבל אצלנו. הטבלה ממקדת 6 תחומים שעשויים לעכב את הפרויקט (איחוד: בסיכון גבוה, חסם בפועל, או תלויים בגורם חיצוני — שלוש הקטגוריות מה-KPIs לעיל); שאר 7 התחומים בסמכות המשרד בלבד ובסיכון נמוך-בינוני, ולכן פחות צפויים לגרום לעיכוב.</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>תחום</th>
+              <th>סטטוס</th>
+              <th>מה חוסם</th>
+              <th>שרשרת תלות (מה צריך לקרות קודם)</th>
+              <th>מועד אחרון</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="domain-cell"><span class="name">פרטיות ושקיפות מידע</span></td>
+              <td><span class="status-dot block">חסם</span></td>
+              <td class="action-cell">רשות הגנת הפרטיות — תיקון 13</td>
+              <td class="action-cell">התאמת עיצוב המאגר לתיקון 13 + הכרעה בדילמות זיהוי עקיף, לפני איסוף מידע מזהה בפועל</td>
+              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+            </tr>
+            <tr>
+              <td class="domain-cell"><span class="name">רגולציה לרכב חשמלי</span></td>
+              <td><span class="status-dot block">חסם</span></td>
+              <td class="action-cell">הגנת הסביבה + אוצר — מס נסועה, טסט סוללה</td>
+              <td class="action-cell">בירור סטטוס מס נסועה מול האוצר לפני הסתמכות על המודול</td>
+              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+            </tr>
+            <tr>
+              <td class="domain-cell"><span class="name">ליסינג והשכרה</span></td>
+              <td><span class="status-dot open">פער פתוח</span></td>
+              <td class="action-cell">התנגדות צפויה מהחברות הגדולות (סיכון גבוה)</td>
+              <td class="action-cell">פגישות עבודה עם החברות הגדולות + הישענות על דיווח המוסכים כרשת ביטחון</td>
+              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+            </tr>
+            <tr>
+              <td class="domain-cell"><span class="name">הסכמי שיתוף בין-ממשלתי</span></td>
+              <td><span class="status-dot open">פער פתוח</span></td>
+              <td class="action-cell">משטרה, משפטים, רשות המסים, הגנת הסביבה</td>
+              <td class="action-cell">בירור פנימי מול כל גורם; תיקון 13 מחמיר גם את דרישות ההעברה ביניהם</td>
+              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+            </tr>
+            <tr>
+              <td class="domain-cell"><span class="name">ביטול פרצת ביטוח חובה</span></td>
+              <td><span class="status-dot open">פער פתוח</span></td>
+              <td class="action-cell">רשות שוק ההון — מסלול "לא ודאי"</td>
+              <td class="action-cell">אימות פרצת "15 הדקות" מול אגף הפיקוח על הביטוח — לא בסמכות המשרד בלבד</td>
+              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+            </tr>
+            <tr>
+              <td class="domain-cell"><span class="name">מגרשי פירוק</span></td>
+              <td><span class="status-dot partial">חלקי</span></td>
+              <td class="action-cell">רשויות מקומיות — רישיון עסק</td>
+              <td class="action-cell">הרחבת חובת הדיווח לכלל המגרשים + גישור על פער הרכב הנטוש מול הרשויות</td>
+              <td><span class="pending-pill">ממתין לאבני דרך</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">כדי להשלים את עמודת "מועד אחרון": נדרש לו"ז אבני הדרך/שלבי אגם הרכב (מתי כל מודול נדרש בפועל בשטח). אם טיוטת "התלויות ואבני הדרך" שכבר נשלחה לנעה מכילה נתון כזה — יש להשלים ממנה; אחרת נדרש קלט נפרד לפני שליחה סופית.</p>
+    </div>
+
+    <div class="task-block">
+      <div class="task-tag"><span class="task-num">3</span> תכנית עבודה משולבת — ציר עסקי וטכנולוגי</div>
+      <p>אבני הדרך הטכנולוגיות והעסקיות שכבר הועברו למערך הדיגיטל צפויות להספיק. אין תוספת בשלב זה; עדכון יועבר אם יתברר שנדרש משהו נוסף.</p>
+    </div>
+
+    <div class="task-block">
+      <div class="task-tag"><span class="task-num">4</span> הקמת צוות לפתרון סוגיות מולטידיסציפלינריות</div>
+      <p>הקמת הצוות ממתינה לאישור תקציבי — הן ממערך הדיגיטל והן ממשרד התחבורה. עד לאישור, הסוגיות הרוחביות (פרטיות, סייבר, רגולציה, שותפים חיצוניים) מטופלות ישירות מול [שם מלא — לוודא איות] בצוות הליבה.</p>
+      <p><b>ההרכב המתוכנן</b> עם אישור התקציב: נציג/ה מאגף אסטרטגיה או אגף הרכב, ייעוץ משפטי/פרטיות, סייבר, ונציג/ה קבוע/ה ממערך הדיגיטל.</p>
+    </div>
   </section>
 
   <footer>
