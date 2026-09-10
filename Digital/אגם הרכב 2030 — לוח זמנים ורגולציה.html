@@ -205,57 +205,59 @@
     -webkit-font-smoothing: antialiased;
   }
   #page { direction: rtl; max-width: 1280px; margin: 0 auto; padding: 40px 28px 80px; }
-  h1, h2 { text-wrap: balance; margin: 0; }
+  h1 { text-wrap: balance; margin: 0; }
 
   .masthead {
     display: flex; flex-direction: column; gap: 10px;
-    padding-bottom: 28px; border-bottom: 1px solid var(--hairline-strong); margin-bottom: 30px;
+    padding-bottom: 22px; border-bottom: 1px solid var(--hairline-strong); margin-bottom: 26px;
   }
   .eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; color: var(--accent); }
   .masthead h1 { font-weight: 900; font-size: clamp(26px, 4vw, 36px); letter-spacing: -0.01em; }
-  .masthead .sub { max-width: 76ch; color: var(--ink-soft); font-size: 15px; }
-  .meta-row { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 8px; font-size: 13px; color: var(--ink-faint); }
-  .meta-row b { color: var(--ink-soft); font-weight: 700; }
 
-  section.block { margin-bottom: 48px; }
-  .block-head { margin-bottom: 16px; max-width: 80ch; }
-  .block-head .tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); margin-bottom: 6px; }
-  .block-head h2 { font-weight: 900; font-size: 21px; margin-bottom: 6px; }
-  .block-head p { color: var(--ink-soft); font-size: 14px; margin: 0; }
+  section.block { margin-bottom: 28px; }
 
   /* ---------- gantt ---------- */
-  .gantt-scroll { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; box-shadow: var(--shadow); background: var(--paper-raised); padding: 4px 14px 14px; }
-  .gantt {
+  .gantt { border: 1px solid var(--hairline); border-radius: 12px; box-shadow: var(--shadow); background: var(--paper-raised); padding: 6px 14px 14px; }
+  .gantt-grid {
     display: grid;
-    grid-template-columns: 200px repeat(14, minmax(46px, 1fr));
-    min-width: 980px;
+    grid-template-columns: 190px repeat(14, minmax(0, 1fr));
+    width: 100%;
     position: relative;
-    font-size: 12px;
+    font-size: 11.5px;
+    overflow: hidden;
   }
-  .g-corner { position: sticky; right: 0; background: var(--paper-raised); z-index: 3; display: flex; align-items: flex-end; padding: 6px 10px 8px 4px; font-weight: 700; color: var(--ink-faint); font-size: 11px; }
-  .g-yr { text-align: center; font-weight: 900; font-size: 12.5px; color: var(--ink); padding: 8px 2px 2px; border-bottom: 1px solid var(--hairline); }
-  .g-q { text-align: center; font-weight: 700; font-size: 10.5px; color: var(--ink-faint); padding: 3px 2px 8px; border-bottom: 1px solid var(--hairline-strong); }
+  .gantt-grid > * { min-width: 0; }
+  .g-corner { display: flex; align-items: flex-end; padding: 6px 8px 8px 2px; font-weight: 700; color: var(--ink-faint); font-size: 11px; overflow: hidden; }
+  .g-yr { text-align: center; font-weight: 900; font-size: 12px; color: var(--ink); padding: 8px 1px 2px; border-bottom: 1px solid var(--hairline); overflow: hidden; }
+  .g-q { text-align: center; font-weight: 700; font-size: 10px; color: var(--ink-faint); padding: 3px 1px 8px; border-bottom: 1px solid var(--hairline-strong); overflow: hidden; }
   .g-gridlines {
     grid-column: 2 / -1;
     position: relative;
+    min-width: 0;
     background-image: repeating-linear-gradient(to left, var(--hairline) 0, var(--hairline) 1px, transparent 1px, transparent calc(100% / 14));
   }
-  .g-today { grid-column: 2 / -1; position: relative; border-inline-end: 2px dashed var(--accent); pointer-events: none; }
+  .g-today { grid-column: 2 / -1; position: relative; min-width: 0; pointer-events: none; }
+  .g-today-line { position: absolute; top: 0; bottom: 0; border-inline-end: 2px dashed var(--accent); }
   .g-label {
-    grid-column: 1; position: sticky; right: 0; background: var(--paper-raised); z-index: 2;
-    display: flex; align-items: center; padding: 0 10px 0 4px; font-size: 12.5px; font-weight: 700; color: var(--ink);
-    border-top: 1px solid var(--hairline); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    grid-column: 1; background: var(--paper-raised); min-width: 0;
+    display: flex; align-items: center; padding: 0 8px 0 2px; font-size: 11.5px; font-weight: 700; color: var(--ink);
+    border-top: 1px solid var(--hairline); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; gap: 4px;
   }
-  .g-label.org { color: var(--accent-ink); background: var(--accent-soft); flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; white-space: normal; line-height: 1.25; padding-block: 4px; }
-  .g-label .sub { font-weight: 400; font-size: 10px; color: var(--ink-faint); }
-  .g-track { grid-column: 2 / -1; position: relative; border-top: 1px solid var(--hairline); }
+  .g-label.org { color: var(--accent-ink); background: var(--accent-soft); flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; white-space: normal; line-height: 1.2; padding-block: 3px; }
+  .g-label .sub { font-weight: 400; font-size: 9.5px; color: var(--ink-faint); }
+  .reg-flag {
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+    width: 14px; height: 14px; border-radius: 50%; background: var(--status-block);
+    color: #fff; font-weight: 900; font-size: 10px; cursor: help;
+  }
+  .g-track { grid-column: 2 / -1; position: relative; min-width: 0; overflow: hidden; border-top: 1px solid var(--hairline); }
   .g-track.org { background: var(--accent-soft); }
   .bar {
-    position: absolute; top: 6px; bottom: 6px; border-radius: 4px;
+    position: absolute; top: 5px; bottom: 5px; border-radius: 4px;
     box-shadow: inset 0 0 0 2px var(--paper-raised);
     display: flex; align-items: center; justify-content: flex-start;
   }
-  .bar .ov { color: #fff; font-weight: 900; font-size: 12px; padding-inline-start: 2px; }
+  .bar .ov { color: #fff; font-weight: 900; font-size: 11px; padding-inline-start: 2px; }
   .cat-spec { background: var(--gc-spec); }
   .cat-dev { background: var(--gc-dev); }
   .cat-tender { background: var(--gc-tender); }
@@ -266,32 +268,11 @@
   .gantt-legend .lg-item { display: flex; align-items: center; gap: 7px; }
   .gantt-legend .lg-swatch { width: 13px; height: 13px; border-radius: 3px; flex: none; }
   .gantt-legend .lg-today { display:inline-block; width:14px; border-top: 2px dashed var(--accent); }
+  .gantt-legend .lg-flag { width: 14px; height: 14px; border-radius: 50%; background: var(--status-block); color: #fff; font-weight: 900; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; }
 
-  /* ---------- regulation table ---------- */
-  .table-scroll { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; box-shadow: var(--shadow); background: var(--paper-raised); }
-  table { border-collapse: collapse; width: 100%; min-width: 760px; }
-  thead th { text-align: right; font-size: 12px; font-weight: 700; color: var(--ink-faint); padding: 12px 14px; border-bottom: 1px solid var(--hairline-strong); white-space: nowrap; }
-  tbody td { padding: 13px 14px; border-bottom: 1px solid var(--hairline); vertical-align: top; font-size: 13.5px; }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover { background: var(--accent-soft); }
-  td.domain-cell { min-width: 200px; }
-  td.domain-cell .name { font-weight: 700; color: var(--ink); display: block; margin-bottom: 3px; }
-  td.domain-cell .desc { color: var(--ink-soft); font-size: 12.5px; line-height: 1.45; display: block; }
-  td.module-cell { color: var(--ink-soft); min-width: 170px; }
-  .track-chip { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 6px; background: var(--status-open-soft); color: var(--ink-soft); white-space: nowrap; }
-  .status-dot { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 13px; font-weight: 700; }
-  .status-dot::before { content: ""; width: 9px; height: 9px; border-radius: 50%; flex: none; }
-  .status-dot.done::before { background: var(--status-done); } .status-dot.done { color: var(--status-done); }
-  .status-dot.partial::before { background: var(--status-partial); } .status-dot.partial { color: var(--status-partial); }
-  .status-dot.open::before { background: var(--status-open); } .status-dot.open { color: var(--status-open); }
-
-  .note { font-size: 13px; color: var(--ink-faint); background: var(--accent-soft); border-inline-start: 3px solid var(--accent); padding: 10px 14px; border-radius: 6px; margin-top: 14px; max-width: 80ch; }
-
-  footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--hairline); font-size: 12.5px; color: var(--ink-faint); max-width: 80ch; }
-  footer p { margin: 0 0 8px; }
-
-  @media (max-width: 760px) {
+  @media (max-width: 900px) {
     #page { padding: 24px 16px 60px; }
+    .gantt-grid { grid-template-columns: 130px repeat(14, minmax(0, 1fr)); font-size: 10px; }
   }
 </style>
 
@@ -300,28 +281,18 @@
   <header class="masthead">
     <span class="eyebrow">אגם הרכב 2030 · גרסה מקוצרת להפצה</span>
     <h1>לוח זמנים ורגולציה נדרשת</h1>
-    <p class="sub">לוח הזמנים (Gantt) של המודולים העיקריים באגם הרכב, ומתחתיו תחומי הרגולציה שבסמכות משרד התחבורה ונדרשים ליישום המודולים — ללא תחומים התלויים בגורמי חוץ.</p>
-    <div class="meta-row">
-      <span><b>עודכן:</b> 10 בספטמבר 2026</span>
-      <span><b>מקור לוח הזמנים:</b> אבני דרך מפורטות, יולי 2026</span>
-    </div>
   </header>
 
   <section class="block" id="gantt">
-    <div class="block-head">
-      <span class="tag">לוח זמנים</span>
-      <h2>Gantt — מודולי אגם הרכב, Q3 2026 – Q4 2029</h2>
-      <p>כל שורה: מודול, מחולק לפי שלביו (דרישות/אפיון ← מכרז ← פיתוח/רגולציה). קו מקווקו = היום (10.9.2026). השורה העליונה — הקמת הצוות המולטידיסציפלינרי שהתבקשה ל-Q4 2026.</p>
-    </div>
 
-      <div class="gantt-scroll">
-        <div class="gantt" style="grid-template-rows:repeat(2,auto) repeat(17,32px)">
+      <div class="gantt">
+        <div class="gantt-grid" style="grid-template-rows:repeat(2,auto) repeat(17,32px)">
           <div class="g-corner" style="grid-row:1/3">מודול / אבן דרך</div>
           <div class="g-yr" style="grid-column:2/4">2026</div><div class="g-yr" style="grid-column:4/8">2027</div><div class="g-yr" style="grid-column:8/12">2028</div><div class="g-yr" style="grid-column:12/16">2029</div>
           <div class="g-q" style="grid-column:2">Q3</div><div class="g-q" style="grid-column:3">Q4</div><div class="g-q" style="grid-column:4">Q1</div><div class="g-q" style="grid-column:5">Q2</div><div class="g-q" style="grid-column:6">Q3</div><div class="g-q" style="grid-column:7">Q4</div><div class="g-q" style="grid-column:8">Q1</div><div class="g-q" style="grid-column:9">Q2</div><div class="g-q" style="grid-column:10">Q3</div><div class="g-q" style="grid-column:11">Q4</div><div class="g-q" style="grid-column:12">Q1</div><div class="g-q" style="grid-column:13">Q2</div><div class="g-q" style="grid-column:14">Q3</div><div class="g-q" style="grid-column:15">Q4</div>
           <div class="g-gridlines" style="grid-row:3/20"></div>
-          <div class="g-today" style="grid-row:3/20;right:5.551%" title="היום — 10.9.2026"></div>
-          <div class="g-label org" style="grid-row:3">הקמת צוות מולטידיסציפלינרי<span class="sub">אבן דרך ארגונית — לא ממודל אבני הדרך</span></div><div class="g-track org" style="grid-row:3"><div class="bar cat-team" style="right:7.193%;width:7.115%" title="הקמת צוות מולטידיסציפלינרי: 01.10.2026–31.12.2026"></div></div><div class="g-label" style="grid-row:4">רישוי יבואנים</div><div class="g-track" style="grid-row:4"><div class="bar cat-dev" style="right:0.000%;width:6.959%" title="פיתוח גרסה ראשונה: 01.07.2026–28.09.2026"></div><div class="bar cat-spec" style="right:7.193%;width:2.111%" title="אפיון גרסה שניה: 01.10.2026–28.10.2026"></div><div class="bar cat-dev" style="right:9.617%;width:6.880%" title="פיתוח גרסה שניה: 01.11.2026–28.01.2027"></div></div><div class="g-label" style="grid-row:5">הוראות רישום</div><div class="g-track" style="grid-row:5"><div class="bar cat-spec" style="right:0.000%;width:4.535%" title="אפיון טכני מפורט: 01.07.2026–28.08.2026"></div><div class="bar cat-dev" style="right:7.193%;width:6.880%" title="פיתוח גרסה ראשונה: 01.10.2026–28.12.2026"></div><div class="bar cat-spec" style="right:14.386%;width:2.111%" title="אפיון גרסה שניה: 01.01.2027–28.01.2027"></div><div class="bar cat-dev" style="right:16.810%;width:6.724%" title="פיתוח גרסה שניה: 01.02.2027–28.04.2027"></div></div><div class="g-label" style="grid-row:6">יבואנים - מודרניזציה</div><div class="g-track" style="grid-row:6"><div class="bar cat-spec" style="right:4.848%;width:2.111%" title="מסמך דרישות: 01.09.2026–28.09.2026"></div><div class="bar cat-spec" style="right:7.193%;width:4.535%" title="אפיון טכני מפורט: 01.10.2026–28.11.2026"></div><div class="bar cat-dev" style="right:11.962%;width:6.959%" title="פיתוח גרסה ראשונה: 01.12.2026–28.02.2027"></div></div><div class="g-label" style="grid-row:7">דגמים - מודרניזציה</div><div class="g-track" style="grid-row:7"><div class="bar cat-spec" style="right:11.962%;width:2.111%" title="מסמך דרישות: 01.12.2026–28.12.2026"></div><div class="bar cat-spec" style="right:14.386%;width:2.111%" title="אפיון טכני מפורט: 01.01.2027–28.01.2027"></div><div class="bar cat-dev" style="right:16.810%;width:6.724%" title="פיתוח גרסה ראשונה: 01.02.2027–28.04.2027"></div></div><div class="g-label" style="grid-row:8">מכוני רישוי 2030</div><div class="g-track" style="grid-row:8"><div class="bar cat-spec" style="right:16.810%;width:6.724%" title="מסמך דרישות: 01.02.2027–28.04.2027"></div><div class="bar cat-tender" style="right:23.769%;width:14.073%" title="כתיבת מכרז: 01.05.2027–28.10.2027"></div><div class="bar cat-tender" style="right:38.155%;width:13.995%" title="פרסום מכרז ובחירת זוכה: 01.11.2027–28.04.2028"></div><div class="bar cat-reg" style="right:52.385%;width:47.381%" title="הגדרת רגולציה ויישום תוכנה במכוני הרישוי כולל דיווח נסועה: 01.05.2028–28.12.2029"></div></div><div class="g-label" style="grid-row:9">מכוני רישוי — הסדרת בתי תוכנה</div><div class="g-track" style="grid-row:9"><div class="bar cat-spec" style="right:16.810%;width:4.300%" title="מסמך דרישות: 01.02.2027–28.03.2027"></div><div class="bar cat-tender" style="right:21.423%;width:11.650%" title="כתיבת מכרז: 01.04.2027–28.08.2027"></div><div class="bar cat-tender" style="right:33.385%;width:11.650%" title="פרסום מכרז ובחירת זוכה: 01.09.2027–28.01.2028"></div><div class="bar cat-reg" style="right:45.348%;width:16.341%" title="הגדרת רגולציה ויישום תוכנה במכוני הרישוי: 01.02.2028–28.08.2028"></div></div><div class="g-label" style="grid-row:10">חיבור מוסכים לאגם</div><div class="g-track" style="grid-row:10"><div class="bar cat-spec" style="right:21.423%;width:4.457%" title="מסמך דרישות: 01.04.2027–28.05.2027"></div><div class="bar cat-reg" style="right:26.192%;width:35.496%" title="הגדרת רגולציה ויישום תוכנה במוסכים כולל דיווח נסועה וממשק למכוני הרישוי: 01.06.2027–28.08.2028"></div></div><div class="g-label" style="grid-row:11">רישום ראשוני דיגיטלי</div><div class="g-track" style="grid-row:11"><div class="bar cat-spec" style="right:26.192%;width:4.457%" title="מסמך דרישות: 01.06.2027–28.07.2027"></div><div class="bar cat-tender" style="right:30.962%;width:11.650%" title="כתיבת מכרז: 01.08.2027–28.12.2027"></div><div class="bar cat-reg" style="right:52.385%;width:16.497%" title="הגדרת רגולציה ויישום תוכנה במכוני הרישוי: 01.05.2028–28.11.2028"></div></div><div class="g-label" style="grid-row:12">פורטל לציבור לאגם הרכב</div><div class="g-track" style="grid-row:12"><div class="bar cat-spec" style="right:30.962%;width:4.457%" title="מסמך דרישות: 01.08.2027–27.09.2027"></div><div class="bar cat-spec" style="right:35.731%;width:6.880%" title="אפיון טכני מפורט: 01.10.2027–28.12.2027"></div><div class="bar cat-dev" style="right:42.924%;width:9.226%" title="פיתוח גרסה ראשונה: 01.01.2028–28.04.2028"></div></div><div class="g-label" style="grid-row:13">COC דיגיטלי</div><div class="g-track" style="grid-row:13"><div class="bar cat-spec" style="right:35.731%;width:2.111%" title="מסמך דרישות: 01.10.2027–28.10.2027"></div><div class="bar cat-spec" style="right:38.155%;width:6.880%" title="אפיון טכני מפורט: 01.11.2027–28.01.2028"></div><div class="bar cat-dev" style="right:45.348%;width:6.802%" title="פיתוח גרסה ראשונה: 01.02.2028–28.04.2028"></div></div><div class="g-label" style="grid-row:14">חיבור מעבדות תקינה לאגם</div><div class="g-track" style="grid-row:14"><div class="bar cat-spec" style="right:38.155%;width:4.457%" title="מסמך דרישות: 01.11.2027–28.12.2027"></div><div class="bar cat-reg" style="right:42.924%;width:28.303%" title="הגדרת רגולציה ויישום תוכנה במעבדות כולל שינוי מבנה: 01.01.2028–28.12.2028"></div></div><div class="g-label" style="grid-row:15">רישיון דיגיטלי</div><div class="g-track" style="grid-row:15"><div class="bar cat-spec" style="right:42.924%;width:4.535%" title="מסמך דרישות: 01.01.2028–28.02.2028"></div><div class="bar cat-reg" style="right:47.615%;width:30.649%" title="הגדרת רגולציה ויישום תוכנה: 01.03.2028–28.03.2029"></div></div><div class="g-label" style="grid-row:16">מודול ריקול</div><div class="g-track" style="grid-row:16"><div class="bar cat-spec" style="right:47.615%;width:4.535%" title="מסמך דרישות: 01.03.2028–28.04.2028"></div><div class="bar cat-reg" style="right:52.385%;width:28.303%" title="הגדרת רגולציה ויישום תוכנה: 01.05.2028–28.04.2029"></div></div><div class="g-label" style="grid-row:17">מודול שמאים</div><div class="g-track" style="grid-row:17"><div class="bar cat-spec" style="right:52.385%;width:4.535%" title="מסמך דרישות: 01.05.2028–28.06.2028"></div><div class="bar cat-reg" style="right:57.154%;width:28.303%" title="הגדרת רגולציה ויישום תוכנה: 01.07.2028–28.06.2029"></div></div><div class="g-label" style="grid-row:18">היסטוריית תביעות ביטוח</div><div class="g-track" style="grid-row:18"><div class="bar cat-spec" style="right:57.154%;width:4.535%" title="מסמך דרישות: 01.07.2028–28.08.2028"></div><div class="bar cat-reg" style="right:62.002%;width:37.764%" title="הגדרת רגולציה ויישום תוכנה: 01.09.2028–28.12.2029"></div></div><div class="g-label" style="grid-row:19">מודול גריטה</div><div class="g-track" style="grid-row:19"><div class="bar cat-spec" style="right:62.002%;width:4.457%" title="מסמך דרישות: 01.09.2028–28.10.2028"></div><div class="bar cat-tender" style="right:66.771%;width:11.493%" title="כתיבת מכרז: 01.11.2028–28.03.2029"></div><div class="bar cat-tender" style="right:78.577%;width:11.650%" title="פרסום מכרז ובחירת זוכה: 01.04.2029–28.08.2029"></div><div class="bar cat-reg" style="right:90.539%;width:9.461%" title="הגדרת רגולציה ויישום תוכנה: 01.09.2029–28.12.2030 (ממשיך מעבר לטווח התרשים, עד 12.2030)"><span class="ov">»</span></div></div>
+          <div class="g-today" style="grid-row:3/20"><div class="g-today-line" style="right:5.551%" title="היום — 10.9.2026"></div></div>
+          <div class="g-label" style="grid-row:3">רישוי יבואנים<span class="reg-flag" title="יבואני רכב — נדרשות תקנות: מפרט טכני, COC, PDI וזיהום אוויר ישירות למאגר. סטטוס: פער פתוח.">!</span></div><div class="g-track" style="grid-row:3"><div class="bar cat-dev" style="right:0.000%;width:7.115%" title="פיתוח: 01.07.2026–30.09.2026"></div></div><div class="g-label" style="grid-row:4">הוראות רישום</div><div class="g-track" style="grid-row:4"><div class="bar cat-spec" style="right:0.000%;width:7.115%" title="אפיון: 01.07.2026–30.09.2026"></div><div class="bar cat-dev" style="right:7.193%;width:7.115%" title="פיתוח: 01.10.2026–31.12.2026"></div></div><div class="g-label org" style="grid-row:5">הקמת צוות מולטידיסציפלינרי<span class="sub">אבן דרך ארגונית — לא ממודל אבני הדרך</span></div><div class="g-track org" style="grid-row:5"><div class="bar cat-team" style="right:7.193%;width:7.115%" title="הקמת צוות מולטידיסציפלינרי: 01.10.2026–31.12.2026"></div></div><div class="g-label" style="grid-row:6">יבואנים - מודרניזציה</div><div class="g-track" style="grid-row:6"><div class="bar cat-spec" style="right:3.518%;width:3.597%" title="אפיון: 15.08.2026–30.09.2026"></div><div class="bar cat-dev" style="right:7.193%;width:7.115%" title="פיתוח: 01.10.2026–31.12.2026"></div></div><div class="g-label" style="grid-row:7">דגמים - מודרניזציה</div><div class="g-track" style="grid-row:7"><div class="bar cat-spec" style="right:10.711%;width:3.597%" title="אפיון: 15.11.2026–31.12.2026"></div><div class="bar cat-dev" style="right:14.386%;width:6.959%" title="פיתוח: 01.01.2027–31.03.2027"></div></div><div class="g-label" style="grid-row:8">מכוני רישוי 2030</div><div class="g-track" style="grid-row:8"><div class="bar cat-spec" style="right:16.810%;width:6.724%" title="מסמך דרישות: 01.02.2027–28.04.2027"></div><div class="bar cat-tender" style="right:23.769%;width:14.073%" title="כתיבת מכרז: 01.05.2027–28.10.2027"></div><div class="bar cat-tender" style="right:38.155%;width:13.995%" title="פרסום מכרז ובחירת זוכה: 01.11.2027–28.04.2028"></div><div class="bar cat-reg" style="right:52.385%;width:47.381%" title="הגדרת רגולציה ויישום תוכנה במכוני הרישוי כולל דיווח נסועה: 01.05.2028–28.12.2029"></div></div><div class="g-label" style="grid-row:9">מכוני רישוי — הסדרת בתי תוכנה</div><div class="g-track" style="grid-row:9"><div class="bar cat-spec" style="right:16.810%;width:4.300%" title="מסמך דרישות: 01.02.2027–28.03.2027"></div><div class="bar cat-tender" style="right:21.423%;width:11.650%" title="כתיבת מכרז: 01.04.2027–28.08.2027"></div><div class="bar cat-tender" style="right:33.385%;width:11.650%" title="פרסום מכרז ובחירת זוכה: 01.09.2027–28.01.2028"></div><div class="bar cat-reg" style="right:45.348%;width:16.341%" title="הגדרת רגולציה ויישום תוכנה במכוני הרישוי: 01.02.2028–28.08.2028"></div></div><div class="g-label" style="grid-row:10">חיבור מוסכים לאגם<span class="reg-flag" title="מוסכים מורשים (§16) — נדרשות תקנות: דיווח על כל טיפול (VIN, ק"מ, חלפים, ליקויי בטיחות). סטטוס: פער פתוח.">!</span></div><div class="g-track" style="grid-row:10"><div class="bar cat-spec" style="right:21.423%;width:4.457%" title="מסמך דרישות: 01.04.2027–28.05.2027"></div><div class="bar cat-reg" style="right:26.192%;width:35.496%" title="הגדרת רגולציה ויישום תוכנה במוסכים כולל דיווח נסועה וממשק למכוני הרישוי: 01.06.2027–28.08.2028"></div></div><div class="g-label" style="grid-row:11">רישום ראשוני דיגיטלי<span class="reg-flag" title="ביטול עסקת רכב חדש — נדרש נוהל פנימי לביטול לאחר סגירת תיק מיידית. סטטוס: פער פתוח.">!</span></div><div class="g-track" style="grid-row:11"><div class="bar cat-spec" style="right:26.192%;width:4.457%" title="מסמך דרישות: 01.06.2027–28.07.2027"></div><div class="bar cat-tender" style="right:30.962%;width:11.650%" title="כתיבת מכרז: 01.08.2027–28.12.2027"></div><div class="bar cat-reg" style="right:52.385%;width:16.497%" title="הגדרת רגולציה ויישום תוכנה במכוני הרישוי: 01.05.2028–28.11.2028"></div></div><div class="g-label" style="grid-row:12">פורטל לציבור לאגם הרכב<span class="reg-flag" title="מודל מסחרי ואגרות (API) — נדרשים נהלים + אגרות להנגשת מידע בתשלום לגורמים מסחריים. סטטוס: פער פתוח. (שיוך למודול זה משוער, לא מצוין במפורש באבני הדרך)">!</span></div><div class="g-track" style="grid-row:12"><div class="bar cat-spec" style="right:30.962%;width:11.650%" title="מסמך דרישות + אפיון טכני מפורט: 01.08.2027–28.12.2027"></div><div class="bar cat-dev" style="right:42.924%;width:9.226%" title="פיתוח גרסה ראשונה: 01.01.2028–28.04.2028"></div></div><div class="g-label" style="grid-row:13">COC דיגיטלי</div><div class="g-track" style="grid-row:13"><div class="bar cat-spec" style="right:35.731%;width:9.304%" title="מסמך דרישות + אפיון טכני מפורט: 01.10.2027–28.01.2028"></div><div class="bar cat-dev" style="right:45.348%;width:6.802%" title="פיתוח גרסה ראשונה: 01.02.2028–28.04.2028"></div></div><div class="g-label" style="grid-row:14">חיבור מעבדות תקינה לאגם<span class="reg-flag" title="שינויי מבנה (תקנה 380) — נדרשות תקנות אכיפה: דיווח מהמתקינים המורשים + סנקציות לחריגים. סטטוס: פער פתוח.">!</span></div><div class="g-track" style="grid-row:14"><div class="bar cat-spec" style="right:38.155%;width:4.457%" title="מסמך דרישות: 01.11.2027–28.12.2027"></div><div class="bar cat-reg" style="right:42.924%;width:28.303%" title="הגדרת רגולציה ויישום תוכנה במעבדות כולל שינוי מבנה: 01.01.2028–28.12.2028"></div></div><div class="g-label" style="grid-row:15">רישיון דיגיטלי<span class="reg-flag" title="רישיון רכב דיגיטלי — נהלים לביטול הדפסה פיזית ומעבר למסמך דיגיטלי מאובטח. סטטוס: הושלם.">!</span></div><div class="g-track" style="grid-row:15"><div class="bar cat-spec" style="right:42.924%;width:4.535%" title="מסמך דרישות: 01.01.2028–28.02.2028"></div><div class="bar cat-reg" style="right:47.615%;width:30.649%" title="הגדרת רגולציה ויישום תוכנה: 01.03.2028–28.03.2029"></div></div><div class="g-label" style="grid-row:16">מודול ריקול</div><div class="g-track" style="grid-row:16"><div class="bar cat-spec" style="right:47.615%;width:4.535%" title="מסמך דרישות: 01.03.2028–28.04.2028"></div><div class="bar cat-reg" style="right:52.385%;width:28.303%" title="הגדרת רגולציה ויישום תוכנה: 01.05.2028–28.04.2029"></div></div><div class="g-label" style="grid-row:17">מודול שמאים<span class="reg-flag" title="שמאי רכב (תקנה 309) — תקנות לדיווח מקוון חובה על אובדן גמור/נזק בטיחותי. סטטוס: הושלם.">!</span></div><div class="g-track" style="grid-row:17"><div class="bar cat-spec" style="right:52.385%;width:4.535%" title="מסמך דרישות: 01.05.2028–28.06.2028"></div><div class="bar cat-reg" style="right:57.154%;width:28.303%" title="הגדרת רגולציה ויישום תוכנה: 01.07.2028–28.06.2029"></div></div><div class="g-label" style="grid-row:18">היסטוריית תביעות ביטוח</div><div class="g-track" style="grid-row:18"><div class="bar cat-spec" style="right:57.154%;width:4.535%" title="מסמך דרישות: 01.07.2028–28.08.2028"></div><div class="bar cat-reg" style="right:62.002%;width:37.764%" title="הגדרת רגולציה ויישום תוכנה: 01.09.2028–28.12.2029"></div></div><div class="g-label" style="grid-row:19">מודול גריטה<span class="reg-flag" title="מגרשי פירוק — נדרש רישיון עסק + הסדר מוניציפלי לדיווח על השמדת רכב. סטטוס: חלקי.">!</span></div><div class="g-track" style="grid-row:19"><div class="bar cat-spec" style="right:62.002%;width:4.457%" title="מסמך דרישות: 01.09.2028–28.10.2028"></div><div class="bar cat-tender" style="right:66.771%;width:11.493%" title="כתיבת מכרז: 01.11.2028–28.03.2029"></div><div class="bar cat-tender" style="right:78.577%;width:11.650%" title="פרסום מכרז ובחירת זוכה: 01.04.2029–28.08.2029"></div><div class="bar cat-reg" style="right:90.539%;width:9.461%" title="הגדרת רגולציה ויישום תוכנה: 01.09.2029–28.12.2030 (ממשיך מעבר לטווח התרשים, עד 12.2030)"><span class="ov">»</span></div></div>
         </div>
       </div>
 
@@ -332,82 +303,8 @@
       <div class="lg-item"><span class="lg-swatch" style="background:var(--gc-dev)"></span>פיתוח</div>
       <div class="lg-item"><span class="lg-swatch" style="background:var(--gc-reg)"></span>הגדרת רגולציה ויישום תוכנה</div>
       <div class="lg-item"><span class="lg-today"></span>היום</div>
-    </div>
-    <p class="note">מודול "מודול גריטה" ממשיך מעבר לקצה הימני של הלוח (עד 12.2030) — מסומן ב-» בקצה הבר. שורת "רישום ראשוני דיגיטלי" בקובץ המקור הכילה שורה עם תאריך סיום מוקדם מתאריך התחלה (פרסום מכרז ובחירת זוכה) — לא הוצגה, כנראה טעות הקלדה במקור.</p>
-  </section>
-
-  <section class="block" id="regulation">
-    <div class="block-head">
-      <span class="tag">רגולציה נדרשת</span>
-      <h2>תחומי רגולציה בסמכות משרד התחבורה</h2>
-      <p>8 תחומים הנדרשים למודולי אגם הרכב שהם בסמכות המשרד בלבד (תקנות/נהלים פנימיים) — ללא תלות בגורם חוץ-משרדי. תחומים התלויים באישור גורם חיצוני (פרטיות, רכב חשמלי, ליסינג, הסכמי שיתוף בין-משרדי, ביטול פרצת ביטוח) אינם כלולים כאן.</p>
-    </div>
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>תחום רגולציה</th>
-            <th>מודול באגם הרכב</th>
-            <th>מסלול נדרש</th>
-            <th>סטטוס</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="domain-cell"><span class="name">מוסכים מורשים (§16)</span><span class="desc">דיווח על כל טיפול — VIN, ק"מ, חלפים, ליקויי בטיחות</span></td>
-            <td class="module-cell">קליטת נתוני טיפול ותחזוקה</td>
-            <td><span class="track-chip">תקנות</span></td>
-            <td><span class="status-dot open">פער פתוח</span></td>
-          </tr>
-          <tr>
-            <td class="domain-cell"><span class="name">יבואני רכב</span><span class="desc">מפרט טכני, COC, PDI וזיהום אוויר ישירות למאגר</span></td>
-            <td class="module-cell">נתוני יבוא ורישוי דגם</td>
-            <td><span class="track-chip">תקנות</span></td>
-            <td><span class="status-dot open">פער פתוח</span></td>
-          </tr>
-          <tr>
-            <td class="domain-cell"><span class="name">שמאי רכב (תקנה 309)</span><span class="desc">דיווח מקוון חובה על אובדן גמור/נזק בטיחותי</span></td>
-            <td class="module-cell">נזקי שמאות ותביעות</td>
-            <td><span class="track-chip">תקנות</span></td>
-            <td><span class="status-dot done">הושלם</span></td>
-          </tr>
-          <tr>
-            <td class="domain-cell"><span class="name">מגרשי פירוק</span><span class="desc">דיווח על השמדת רכב כתנאי לרישיון עסק</span></td>
-            <td class="module-cell">ביטול רישום וסוף חיים</td>
-            <td><span class="track-chip">רישיון עסק + מוניציפלי</span></td>
-            <td><span class="status-dot partial">חלקי</span></td>
-          </tr>
-          <tr>
-            <td class="domain-cell"><span class="name">שינויי מבנה (תקנה 380)</span><span class="desc">דיווח מהמתקינים המורשים + סנקציות לחריגים</span></td>
-            <td class="module-cell">שינויי מבנה ואישורי הרכבה</td>
-            <td><span class="track-chip">תקנות אכיפה</span></td>
-            <td><span class="status-dot open">פער פתוח</span></td>
-          </tr>
-          <tr>
-            <td class="domain-cell"><span class="name">מודל מסחרי ואגרות (API)</span><span class="desc">הנגשת מידע בתשלום לגורמים מסחריים</span></td>
-            <td class="module-cell">API ומסחור נתונים</td>
-            <td><span class="track-chip">נהלים + אגרות</span></td>
-            <td><span class="status-dot open">פער פתוח</span></td>
-          </tr>
-          <tr>
-            <td class="domain-cell"><span class="name">רישיון רכב דיגיטלי</span><span class="desc">ביטול הדפסה פיזית, מסמך דיגיטלי מאובטח</span></td>
-            <td class="module-cell">הפקת רישיון ותשלומים</td>
-            <td><span class="track-chip">נהלים</span></td>
-            <td><span class="status-dot done">הושלם</span></td>
-          </tr>
-          <tr>
-            <td class="domain-cell"><span class="name">ביטול עסקת רכב חדש</span><span class="desc">נוהל ביטול לאחר סגירת תיק מיידית</span></td>
-            <td class="module-cell">רישום ראשוני</td>
-            <td><span class="track-chip">נוהל פנימי</span></td>
-            <td><span class="status-dot open">פער פתוח</span></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="lg-item"><span class="lg-flag">!</span>נדרש שינוי רגולציה — ריחוף לפרטים</div>
     </div>
   </section>
-
-  <footer>
-    <p>מקור לוח הזמנים: "אגם הרכב 2030 - אבני דרך מפורטות - יולי 2026 - מודולים עיקריים.csv". מקור טבלת הרגולציה: "אגם הרכב 2030 — מטריצת סיכונים רגולטוריים.html" (הגרסה המלאה, כולל תחומי הסיכון שהוצאו מכאן).</p>
-  </footer>
 
 </div>
